@@ -1,0 +1,58 @@
+{% extends 'gestion/base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <h2 class="mb-4">💰 Registrar Venta</h2>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-dark text-white">Cotización de origen</div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6">
+                        <strong>Cliente:</strong> {{ cotizacion.id_cliente.nombre }}<br>
+                        <strong>Producto:</strong> {{ cotizacion.id_producto.nombre }}<br>
+                        <strong>Material:</strong> {{ cotizacion.id_material.descripcion }}
+                    </div>
+                    <div class="col-6 text-end">
+                        <div class="text-muted small">Monto cotizado</div>
+                        <div class="fs-3 fw-bold text-success">${{ cotizacion.monto_total }}</div>
+                        <div class="text-muted small">{{ cotizacion.fecha }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <form method="POST">
+            {% csrf_token %}
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark text-white">Datos de la venta</div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Monto pagado ($)</label>
+                        <input type="number" name="monto_pagado" step="0.01"
+                               value="{{ cotizacion.monto_total }}"
+                               class="form-control form-control-lg" required>
+                        <small class="text-muted">Puedes modificarlo si hubo descuento o anticipo.</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Estatus inicial</label>
+                        <select name="estatus" class="form-select">
+                            <option value="en_produccion">🔧 En producción</option>
+                            <option value="pagada">💰 Pagada</option>
+                            <option value="entregada">✅ Entregada</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Fecha de entrega estimada</label>
+                        <input type="date" name="fecha_entrega" class="form-control">
+                    </div>
+                    <button type="submit" class="btn btn-success btn-lg w-100">
+                        ✅ Confirmar venta
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

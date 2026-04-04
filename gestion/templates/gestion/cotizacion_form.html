@@ -1,0 +1,138 @@
+{% extends 'gestion/base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-7">
+        <h2>🧾 Nueva Cotización</h2>
+        <form method="POST" id="formCotizacion">
+            {% csrf_token %}
+
+            <div class="card shadow-sm mb-3">
+                <div class="card-header bg-dark text-white">Datos del Cliente</div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Cliente</label>
+                        <select name="cliente" class="form-select" required>
+                            <option value="">-- Selecciona cliente --</option>
+                            {% for c in clientes %}
+                            <option value="{{ c.id_cliente }}">{{ c.nombre }} — {{ c.telefono }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm mb-3">
+                <div class="card-header bg-dark text-white">Producto y Material</div>
+                <div class="card-body row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Producto</label>
+                        <select name="producto" id="id_producto" class="form-select" required>
+                            <option value="">-- Selecciona producto --</option>
+                            {% for p in productos %}
+                            <option value="{{ p.id_producto }}" data-utilidad="{{ p.porcentaje_utilidad }}">
+                                {{ p.nombre }} ({{ p.porcentaje_utilidad }}% utilidad)
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Material (Lámina)</label>
+                        <select name="material" class="form-select" required>
+                            <option value="">-- Selecciona material --</option>
+                            {% for m in materiales %}
+                            <option value="{{ m.id_material }}">
+                                {{ m.descripcion }} — Stock: {{ m.stock_actual }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm mb-3">
+                <div class="card-header bg-dark text-white">Medidas y Servicios</div>
+                <div class="card-body row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Largo (metros)</label>
+                        <input type="number" name="largo_pza" id="id_largo" step="0.01" min="0.01"
+                               class="form-control" placeholder="ej. 1.20" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Ancho (metros)</label>
+                        <input type="number" name="ancho_pza" id="id_ancho" step="0.01" min="0.01"
+                               class="form-control" placeholder="ej. 0.60" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Minutos Láser</label>
+                        <input type="number" name="minutos_lazer" id="id_laser" step="1" min="0" value="0"
+                               class="form-control" placeholder="0">
+                        <small class="text-muted">$15.00/min</small>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-success btn-lg w-100">
+                ✅ Guardar Cotización
+            </button>
+        </form>
+    </div>
+
+    <!-- Panel de cálculo en tiempo real -->
+    <div class="col-md-5">
+        <div class="card shadow border-0 sticky-top" style="top:20px">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">💰 Cálculo en tiempo real</h5>
+            </div>
+            <div class="card-body" id="panelCalculo">
+                <p class="text-muted text-center mt-3">Llena los datos para ver el cálculo.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const TARIFA_LASER = 15.00;
+
+function calcular() {
+    const largo = parseFloat(document.getElementById('id_largo').value) || 0;
+    const ancho = parseFloat(document.getElementById('id_ancho').value) || 0;
+    const laser = parseInt(document.getElementById('id_laser').value) || 0;
+    const productoSel = document.getElementById('id_producto');
+    const utilidad = parseFloat(productoSel.options[productoSel.selectedIndex]?.dataset.utilidad) || 0;
+
+    if (largo <= 0 || ancho <= 0 || !productoSel.value) {
+        document.getElementById('panelCalculo').innerHTML =
+            '<p class="text-muted text-center mt-3">Llena los datos para ver el cálculo.</p>';
+        return;
+    }
+
+    // Factor de costo fijo por m² (puedes sincronizarlo con TabuladorCostos vía AJAX)
+    const FACTOR = 100.00;
+
+    const area = largo * ancho;
+    const costoMat = area * FACTOR;
+    const utilidadMonto = costoMat * (utilidad / 100);
+    const costoLaser = laser * TARIFA_LASER;
+    const total = costoMat + utilidadMonto + costoLaser;
+
+    document.getElementById('panelCalculo').innerHTML = `
+        <table class="table table-sm">
+            <tr><td>Área</td><td class="text-end">${area.toFixed(4)} m²</td></tr>
+            <tr><td>Costo material</td><td class="text-end">$${costoMat.toFixed(2)}</td></tr>
+            <tr><td>Utilidad (${utilidad}%)</td><td class="text-end">$${utilidadMonto.toFixed(2)}</td></tr>
+            <tr><td>Corte/Grabado láser</td><td class="text-end">$${costoLaser.toFixed(2)}</td></tr>
+            <tr class="table-success fw-bold">
+                <td>TOTAL</td>
+                <td class="text-end fs-5">$${total.toFixed(2)} MXN</td>
+            </tr>
+        </table>
+    `;
+}
+
+['id_largo','id_ancho','id_laser','id_producto'].forEach(id => {
+    document.getElementById(id)?.addEventListener('input', calcular);
+    document.getElementById(id)?.addEventListener('change', calcular);
+});
+</script>
+{% endblock %}

@@ -1,0 +1,83 @@
+{% extends 'gestion/base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>{% if accion == 'Editar' %}✏️ Editar Producto{% else %}➕ Nuevo Producto{% endif %}</h2>
+            <a href="{% url 'lista_productos' %}" class="btn btn-outline-secondary">← Volver</a>
+        </div>
+
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark text-white">Datos del producto</div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Nombre del producto</label>
+                        <input type="text" name="nombre" class="form-control"
+                               value="{{ producto.nombre|default:'' }}"
+                               placeholder="ej. Tramo de acrílico a la medida" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Descripción / Detalle</label>
+                        <textarea name="detalle" class="form-control" rows="3"
+                                  placeholder="ej. Corte de lámina según medidas del cliente">{{ producto.detalle|default:'' }}</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">% de Utilidad</label>
+                        <div class="input-group">
+                            <input type="number" name="porcentaje_utilidad" class="form-control"
+                                   min="0" max="500" step="1"
+                                   value="{{ producto.porcentaje_utilidad|default:'30' }}" required>
+                            <span class="input-group-text">%</span>
+                        </div>
+                        <small class="text-muted">Ej: 30% → si material cuesta $100, se cobra $130.</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Foto del producto</label>
+                        {% if producto.foto %}
+                        <div class="mb-2">
+                            <img id="preview" src="/media/{{ producto.foto }}"
+                                 class="img-thumbnail" style="max-height:160px;">
+                            <p class="text-muted small mt-1">Sube una nueva para reemplazarla.</p>
+                        </div>
+                        {% else %}
+                        <div class="mb-2 text-center bg-light rounded p-3"
+                             style="height:140px; display:flex; align-items:center; justify-content:center;">
+                            <img id="preview" src="" style="max-height:130px; display:none;">
+                            <span id="previewPlaceholder" style="font-size:2.5rem;">🔷</span>
+                        </div>
+                        {% endif %}
+                        <input type="file" name="foto" id="fotoInput" class="form-control" accept="image/*">
+                        <small class="text-muted">JPG, PNG, WEBP. Opcional.</small>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button type="submit" class="btn btn-success w-100 btn-lg">
+                        {% if accion == 'Editar' %}💾 Guardar cambios{% else %}✅ Crear producto{% endif %}
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.getElementById('fotoInput')?.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+        const preview = document.getElementById('preview');
+        const placeholder = document.getElementById('previewPlaceholder');
+        if (preview) {
+            preview.src = ev.target.result;
+            preview.style.display = 'block';
+            if (placeholder) placeholder.style.display = 'none';
+        }
+    };
+    reader.readAsDataURL(file);
+});
+</script>
+{% endblock %}

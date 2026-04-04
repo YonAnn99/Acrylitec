@@ -1,0 +1,96 @@
+{% extends 'gestion/base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2>📄 Cotización <span class="badge bg-secondary">COT-{{ cotizacion.id_cotizacion|stringformat:"04d" }}</span></h2>
+            <a href="{% url 'lista_cotizaciones' %}" class="btn btn-outline-secondary">← Volver</a>
+        </div>
+
+        <div class="card shadow-sm mb-4" id="cotizacionCard">
+            <div class="card-header bg-dark text-white d-flex justify-content-between">
+                <span>Fecha: {{ cotizacion.fecha }}</span>
+                <span>Acrylitec</span>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <h6 class="text-muted">CLIENTE</h6>
+                        <p class="mb-0 fw-bold">{{ cotizacion.id_cliente.nombre }}</p>
+                        <p class="mb-0">📞 {{ cotizacion.id_cliente.telefono }}</p>
+                        <p class="mb-0">✉️ {{ cotizacion.id_cliente.email }}</p>
+                        <p class="mb-0 text-muted small">{{ cotizacion.id_cliente.direccion }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted">PRODUCTO</h6>
+                        <p class="mb-0 fw-bold">{{ cotizacion.id_producto.nombre }}</p>
+                        <p class="mb-0 text-muted">{{ cotizacion.id_producto.detalle }}</p>
+                        <h6 class="text-muted mt-2">MATERIAL</h6>
+                        <p class="mb-0">{{ cotizacion.id_material.descripcion }}</p>
+                    </div>
+                </div>
+                <hr>
+                <h6 class="text-muted">DESGLOSE</h6>
+                <table class="table table-bordered table-sm">
+                    <tbody>
+                        <tr>
+                            <td>Medidas</td>
+                            <td class="text-end">{{ cotizacion.largo_pza }} m × {{ cotizacion.ancho_pza }} m</td>
+                        </tr>
+                        <tr>
+                            <td>Área total</td>
+                            <td class="text-end">{{ calculo.area|floatformat:4 }} m²</td>
+                        </tr>
+                        <tr>
+                            <td>Costo de material</td>
+                            <td class="text-end">${{ calculo.costo_material }}</td>
+                        </tr>
+                        <tr>
+                            <td>Mano de obra / Utilidad ({{ cotizacion.id_producto.porcentaje_utilidad }}%)</td>
+                            <td class="text-end">${{ calculo.utilidad }}</td>
+                        </tr>
+                        {% if cotizacion.minutos_lazer %}
+                        <tr>
+                            <td>Corte / Grabado láser ({{ cotizacion.minutos_lazer }} min)</td>
+                            <td class="text-end">${{ calculo.costo_laser }}</td>
+                        </tr>
+                        {% endif %}
+                        <tr class="table-success fw-bold fs-5">
+                            <td>TOTAL</td>
+                            <td class="text-end">${{ cotizacion.monto_total }} MXN</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Acciones -->
+        <div class="d-grid gap-2">
+            {% if venta_existente %}
+            <a href="{% url 'detalle_venta' venta_existente.id_venta %}"
+               class="btn btn-primary btn-lg">
+                📦 Ver Venta — VTA-{{ venta_existente.id_venta|stringformat:"04d" }}
+            </a>
+            {% else %}
+            <a href="{% url 'registrar_venta' cotizacion.id_cotizacion %}"
+               class="btn btn-success btn-lg">
+                ✅ Registrar como Venta
+            </a>
+            {% endif %}
+
+            <a href="{{ whatsapp_url }}" target="_blank" class="btn btn-outline-success btn-lg">
+                📱 Enviar por WhatsApp a {{ cotizacion.id_cliente.nombre }}
+            </a>
+
+            <button onclick="window.print()" class="btn btn-outline-secondary">
+                🖨️ Imprimir / PDF
+            </button>
+        </div>
+    </div>
+</div>
+<style>
+@media print { nav, .d-grid { display: none !important; } }
+</style>
+{% endblock %}

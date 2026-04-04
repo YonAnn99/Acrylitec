@@ -1,0 +1,131 @@
+{% extends 'gestion/base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2>🧾 Venta <span class="badge bg-secondary">VTA-{{ venta.id_venta|stringformat:"04d" }}</span></h2>
+            <a href="{% url 'lista_ventas' %}" class="btn btn-outline-secondary">← Volver</a>
+        </div>
+
+        <!-- Datos de la venta -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-dark text-white d-flex justify-content-between">
+                <span>Fecha venta: {{ venta.fecha_venta }}</span>
+                <span>Acrylitec</span>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <h6 class="text-muted">CLIENTE</h6>
+                        <p class="mb-0 fw-bold">{{ venta.id_cotizacion.id_cliente.nombre }}</p>
+                        <p class="mb-0">📞 {{ venta.id_cotizacion.id_cliente.telefono }}</p>
+                        <p class="mb-0 text-muted small">{{ venta.id_cotizacion.id_cliente.direccion }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted">PRODUCTO</h6>
+                        <p class="mb-0 fw-bold">{{ venta.id_cotizacion.id_producto.nombre }}</p>
+                        <h6 class="text-muted mt-2">MATERIAL</h6>
+                        <p class="mb-0">{{ venta.id_cotizacion.id_material.descripcion }}</p>
+                        <h6 class="text-muted mt-2">COTIZACIÓN ORIGEN</h6>
+                        <a href="{% url 'detalle_cotizacion' venta.id_cotizacion.id_cotizacion %}">
+                            COT-{{ venta.id_cotizacion.id_cotizacion|stringformat:"04d" }}
+                        </a>
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-md-4">
+                        <h6 class="text-muted">MONTO COTIZADO</h6>
+                        <p class="fw-bold">${{ venta.id_cotizacion.monto_total }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h6 class="text-muted">MONTO PAGADO</h6>
+                        <p class="fw-bold text-success fs-5">${{ venta.monto_pagado }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h6 class="text-muted">FECHA DE ENTREGA</h6>
+                        <p>{{ venta.fecha_entrega|default:"No definida" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cambiar estatus -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-dark text-white">⚙️ Actualizar Estatus</div>
+            <div class="card-body">
+                <form method="POST" action="{% url 'actualizar_estatus_venta' venta.id_venta %}">
+                    {% csrf_token %}
+                    <div class="row align-items-end g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Estatus actual</label>
+                            <select name="estatus" class="form-select">
+                                <option value="en_produccion" {% if venta.estatus == 'en_produccion' %}selected{% endif %}>
+                                    🔧 En producción
+                                </option>
+                                <option value="pagada" {% if venta.estatus == 'pagada' %}selected{% endif %}>
+                                    💰 Pagada
+                                </option>
+                                <option value="entregada" {% if venta.estatus == 'entregada' %}selected{% endif %}>
+                                    ✅ Entregada
+                                </option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Fecha de entrega</label>
+                            <input type="date" name="fecha_entrega" class="form-control"
+                                   value="{{ venta.fecha_entrega|date:'Y-m-d' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" class="btn btn-dark w-100">
+                                Guardar cambios
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Barra de progreso visual -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h6 class="text-muted mb-3">PROGRESO DEL PEDIDO</h6>
+                <div class="d-flex justify-content-between text-center">
+                    <div class="flex-fill">
+                        <div class="rounded-circle d-inline-flex align-items-center justify-content-center
+                             {% if venta.estatus in 'en_produccion,pagada,entregada' %}bg-success text-white{% else %}bg-light{% endif %}"
+                             style="width:48px;height:48px;font-size:1.3rem;">🔧</div>
+                        <div class="small mt-1">En producción</div>
+                    </div>
+                    <div class="flex-fill align-self-center">
+                        <hr class="{% if venta.estatus in 'pagada,entregada' %}border-success border-2{% endif %}">
+                    </div>
+                    <div class="flex-fill">
+                        <div class="rounded-circle d-inline-flex align-items-center justify-content-center
+                             {% if venta.estatus in 'pagada,entregada' %}bg-success text-white{% else %}bg-light{% endif %}"
+                             style="width:48px;height:48px;font-size:1.3rem;">💰</div>
+                        <div class="small mt-1">Pagada</div>
+                    </div>
+                    <div class="flex-fill align-self-center">
+                        <hr class="{% if venta.estatus == 'entregada' %}border-success border-2{% endif %}">
+                    </div>
+                    <div class="flex-fill">
+                        <div class="rounded-circle d-inline-flex align-items-center justify-content-center
+                             {% if venta.estatus == 'entregada' %}bg-success text-white{% else %}bg-light{% endif %}"
+                             style="width:48px;height:48px;font-size:1.3rem;">✅</div>
+                        <div class="small mt-1">Entregada</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button onclick="window.print()" class="btn btn-outline-secondary w-100">🖨️ Imprimir</button>
+    </div>
+</div>
+
+<style>
+@media print { nav, form, .btn { display: none !important; } }
+</style>
+{% endblock %}

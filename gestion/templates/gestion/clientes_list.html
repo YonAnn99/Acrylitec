@@ -1,0 +1,41 @@
+{% extends 'gestion/base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Directorio de Clientes</h2>
+    <a href="{% url 'crear_cliente' %}" class="btn btn-success">
+        <i class="fas fa-plus"></i> Nuevo Cliente
+    </a>
+</div>
+
+<div class="table-responsive shadow">
+    <table class="table table-hover table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th>Nombre / Empresa</th>
+                <th>Teléfono</th>
+                <th>Email</th>
+                <th>Dirección</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cliente in clientes %}
+            <tr>
+                <td><strong>{{ cliente.nombre }}</strong></td>
+                <td>{{ cliente.telefono|default:"---" }}</td>
+                <td>{{ cliente.email|default:"---" }}</td>
+                <td>{{ cliente.direccion|truncatewords:10 }}</td>
+                <td>
+                    <button class="btn btn-sm btn-info text-white">Editar</button>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="text-center text-muted">No hay clientes registrados todavía.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

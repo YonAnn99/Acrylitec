@@ -1,0 +1,118 @@
+{% extends 'gestion/base.html' %}
+
+{% block content %}
+<h2 class="mb-4">⚙️ Configuración de Precios</h2>
+
+<div class="row g-4">
+
+    <!-- Tarifa láser -->
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-dark text-white">🔆 Tarifa Láser por Minuto</div>
+            <div class="card-body">
+                <p class="text-muted small">Costo de corte y grabado láser por minuto.</p>
+                <div class="mb-2">
+                    <span class="text-muted">Tarifa actual:</span>
+                    <span class="fw-bold fs-5 text-success ms-2">${{ config.tarifa_laser_minuto }}/min</span>
+                </div>
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="accion" value="tarifa_laser">
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input type="number" name="tarifa_laser_minuto" step="0.50" min="1"
+                               value="{{ config.tarifa_laser_minuto }}" class="form-control" required>
+                        <span class="input-group-text">/min</span>
+                    </div>
+                    <button type="submit" class="btn btn-dark w-100 mt-3">Actualizar tarifa</button>
+                </form>
+                <small class="text-muted mt-2 d-block">
+                    Última actualización: {{ config.actualizado|date:"d/m/Y H:i" }}
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Utilidad por producto -->
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-dark text-white">📦 % Utilidad por Producto</div>
+            <div class="card-body">
+                <p class="text-muted small">Porcentaje de ganancia sobre el costo del material.</p>
+                {% for prod in productos %}
+                <form method="POST" class="mb-3">
+                    {% csrf_token %}
+                    <input type="hidden" name="accion" value="utilidad_producto">
+                    <input type="hidden" name="producto_id" value="{{ prod.id_producto }}">
+                    <label class="form-label fw-bold mb-1">{{ prod.nombre }}</label>
+                    <div class="input-group input-group-sm">
+                        <input type="number" name="porcentaje_utilidad" min="0" max="500"
+                               value="{{ prod.porcentaje_utilidad }}" class="form-control" required>
+                        <span class="input-group-text">%</span>
+                        <button type="submit" class="btn btn-sm btn-outline-dark">Guardar</button>
+                    </div>
+                </form>
+                {% empty %}
+                <p class="text-muted">No hay productos. <a href="{% url 'lista_productos' %}">Agrega uno.</a></p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Factor de costo -->
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-dark text-white">📐 Factor de Costo por m²</div>
+            <div class="card-body">
+                <p class="text-muted small">Multiplica el área en m² para obtener el costo base.</p>
+                {% for tab in tabuladores %}
+                <form method="POST" class="mb-3">
+                    {% csrf_token %}
+                    <input type="hidden" name="accion" value="factor_costo">
+                    <input type="hidden" name="tabulador_id" value="{{ tab.id_tabulador }}">
+                    <label class="form-label fw-bold mb-1">Espesor {{ tab.espesor_mm }} mm</label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text">$</span>
+                        <input type="number" name="factor_costo" step="0.01" min="1"
+                               value="{{ tab.factor_costo }}" class="form-control" required>
+                        <span class="input-group-text">/m²</span>
+                        <button type="submit" class="btn btn-sm btn-outline-dark">Guardar</button>
+                    </div>
+                </form>
+                {% empty %}
+                <p class="text-muted">Sin tabuladores. Agrega uno abajo.</p>
+                {% endfor %}
+                <hr>
+                <p class="fw-bold small mb-2">+ Agregar nuevo espesor</p>
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="accion" value="nuevo_tabulador">
+                    <div class="row g-2">
+                        <div class="col-5">
+                            <div class="input-group input-group-sm">
+                                <input type="number" name="espesor_mm" min="1" placeholder="mm"
+                                       class="form-control" required>
+                                <span class="input-group-text">mm</span>
+                            </div>
+                        </div>
+                        <div class="col-5">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text">$</span>
+                                <input type="number" name="factor_costo_nuevo" step="0.01"
+                                       placeholder="factor" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="col-2">
+                            <button type="submit" class="btn btn-sm btn-dark w-100">+</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="alert alert-warning mt-4">
+    ⚠️ Los cambios aplican a partir de la <strong>siguiente cotización</strong>. Los registros existentes no se modifican.
+</div>
+{% endblock %}

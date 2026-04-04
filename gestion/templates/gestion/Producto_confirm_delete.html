@@ -1,0 +1,27 @@
+{% extends 'gestion/base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5 text-center">
+        <div class="card shadow-sm border-danger mt-4">
+            <div class="card-header bg-danger text-white">⚠️ Confirmar eliminación</div>
+            <div class="card-body py-4">
+                {% if producto.foto %}
+                <img src="/media/{{ producto.foto }}" class="rounded mb-3" style="max-height:120px;">
+                {% else %}
+                <div style="font-size:3.5rem;" class="mb-3">🔷</div>
+                {% endif %}
+                <h5>¿Eliminar <strong>{{ producto.nombre }}</strong>?</h5>
+                <p class="text-muted">Esta acción es permanente.</p>
+                <div class="d-flex gap-3 justify-content-center mt-3">
+                    <a href="{% url 'lista_productos' %}" class="btn btn-outline-secondary btn-lg">Cancelar</a>
+                    <form method="POST">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger btn-lg">🗑️ Sí, eliminar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends 'gestion/base.html' %}
+
+{% block content %}
+<div class="card shadow mx-auto" style="max-width: 700px;">
+    <div class="card-header bg-dark text-white text-center">
+        <h3><i class="fas fa-user-plus"></i> Registrar Nuevo Cliente</h3>
+    </div>
+    <div class="card-body">
+        <form method="POST">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label font-weight-bold">Nombre del Cliente o Empresa</label>
+                <input type="text" name="nombre" class="form-control" placeholder="Ej: Publicidad Acrílicos S.A." required>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Teléfono de Contacto</label>
+                    <input type="text" name="telefono" class="form-control" placeholder="55-1234-5678">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Correo Electrónico</label>
+                    <input type="email" name="email" class="form-control" placeholder="contacto@ejemplo.com">
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Dirección de Entrega / Fiscal</label>
+                <textarea name="direccion" class="form-control" rows="3" placeholder="Calle, Número, Colonia..."></textarea>
+            </div>
+
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Guardar Cliente en Base de Datos
+                </button>
+                <a href="{% url 'lista_clientes' %}" class="btn btn-outline-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

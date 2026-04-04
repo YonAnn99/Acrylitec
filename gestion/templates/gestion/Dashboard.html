@@ -1,0 +1,161 @@
+{% extends 'gestion/base.html' %}
+
+{% block content %}
+<h2 class="mb-4">📊 Dashboard — Acrylitec</h2>
+
+<!-- KPIs -->
+<div class="row g-3 mb-4">
+    <div class="col-md-2">
+        <div class="card text-white bg-success shadow-sm">
+            <div class="card-body text-center">
+                <div class="fs-4 fw-bold">${{ kpis.ingresos_mes|floatformat:0 }}</div>
+                <div class="small">Ingresos este mes</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card text-white bg-primary shadow-sm">
+            <div class="card-body text-center">
+                <div class="fs-4 fw-bold">{{ kpis.ventas_mes }}</div>
+                <div class="small">Ventas este mes</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card text-white bg-dark shadow-sm">
+            <div class="card-body text-center">
+                <div class="fs-4 fw-bold">${{ kpis.ingresos_total|floatformat:0 }}</div>
+                <div class="small">Ingresos totales</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card text-white bg-secondary shadow-sm">
+            <div class="card-body text-center">
+                <div class="fs-4 fw-bold">{{ kpis.ventas_total }}</div>
+                <div class="small">Ventas totales</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card text-white bg-info shadow-sm">
+            <div class="card-body text-center">
+                <div class="fs-4 fw-bold">{{ kpis.clientes_total }}</div>
+                <div class="small">Clientes</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card text-white bg-warning shadow-sm">
+            <div class="card-body text-center">
+                <div class="fs-4 fw-bold">{{ kpis.cotizaciones_mes }}</div>
+                <div class="small">Cotizaciones este mes</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Selector de vista -->
+<div class="mb-3">
+    <div class="btn-group" role="group">
+        <button class="btn btn-dark active" onclick="mostrarGrafica('mes', this)">Por Mes</button>
+        <button class="btn btn-outline-dark" onclick="mostrarGrafica('semana', this)">Por Semana</button>
+        <button class="btn btn-outline-dark" onclick="mostrarGrafica('anio', this)">Por Año</button>
+    </div>
+</div>
+
+<!-- Gráficas -->
+<div class="row g-3 mb-4">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-dark text-white">Ingresos por período</div>
+            <div class="card-body">
+                <canvas id="graficaIngresos" height="100"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-dark text-white">Top 5 Productos</div>
+            <div class="card-body">
+                {% if top_productos %}
+                <table class="table table-sm">
+                    <thead><tr><th>Producto</th><th>Ventas</th><th>Ingresos</th></tr></thead>
+                    <tbody>
+                    {% for p in top_productos %}
+                    <tr>
+                        <td>{{ p.id_cotizacion__id_producto__nombre }}</td>
+                        <td>{{ p.cantidad }}</td>
+                        <td>${{ p.total|floatformat:0 }}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p class="text-muted text-center mt-4">Aún no hay ventas registradas.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Accesos rápidos -->
+<div class="row g-3">
+    <div class="col-md-3">
+        <a href="{% url 'crear_cotizacion' %}" class="btn btn-success w-100 btn-lg">➕ Nueva cotización</a>
+    </div>
+    <div class="col-md-3">
+        <a href="{% url 'lista_ventas' %}" class="btn btn-primary w-100 btn-lg">📦 Ver ventas</a>
+    </div>
+    <div class="col-md-3">
+        <a href="{% url 'configuracion_precios' %}" class="btn btn-outline-dark w-100 btn-lg">⚙️ Ajustar precios</a>
+    </div>
+    <div class="col-md-3">
+        <a href="{% url 'lista_productos' %}" class="btn btn-outline-secondary w-100 btn-lg">📦 Productos</a>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const datos = {
+    mes:    { labels: JSON.parse('{{ labels_mes|escapejs }}'),    data: JSON.parse('{{ data_mes|escapejs }}') },
+    semana: { labels: JSON.parse('{{ labels_semana|escapejs }}'), data: JSON.parse('{{ data_semana|escapejs }}') },
+    anio:   { labels: JSON.parse('{{ labels_anio|escapejs }}'),   data: JSON.parse('{{ data_anio|escapejs }}') },
+};
+
+const ctx = document.getElementById('graficaIngresos').getContext('2d');
+let chart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: datos.mes.labels,
+        datasets: [{
+            label: 'Ingresos ($)',
+            data: datos.mes.data,
+            backgroundColor: 'rgba(25, 135, 84, 0.7)',
+            borderColor: 'rgba(25, 135, 84, 1)',
+            borderWidth: 1,
+            borderRadius: 6,
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true,
+            ticks: { callback: v => '$' + v.toLocaleString() }
+        }}
+    }
+});
+
+function mostrarGrafica(periodo, btn) {
+    document.querySelectorAll('.btn-group .btn').forEach(b => {
+        b.classList.remove('btn-dark', 'active');
+        b.classList.add('btn-outline-dark');
+    });
+    btn.classList.remove('btn-outline-dark');
+    btn.classList.add('btn-dark', 'active');
+    chart.data.labels = datos[periodo].labels;
+    chart.data.datasets[0].data = datos[periodo].data;
+    chart.update();
+}
+</script>
+{% endblock %}
