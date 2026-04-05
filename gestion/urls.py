@@ -5,7 +5,8 @@ from . import views
 
 urlpatterns = [
     # ── Dashboard ───────────────────────────────────────────
-    path('', views.dashboard, name='dashboard'),
+    path('', views.login_view, name='home'),
+    path('dashboard/', views.dashboard, name='dashboard'),
 
     # ── Materiales ──────────────────────────────────────────
     path('materiales/', views.lista_materiales, name='lista_materiales'),
@@ -26,6 +27,7 @@ urlpatterns = [
     path('cotizaciones/', views.lista_cotizaciones, name='lista_cotizaciones'),
     path('cotizaciones/nueva/', views.crear_cotizacion, name='crear_cotizacion'),
     path('cotizaciones/<int:pk>/', views.detalle_cotizacion, name='detalle_cotizacion'),
+    path('cotizaciones/express/', views.cotizacion_express, name='cotizacion_express'),
 
     # ── Ventas ──────────────────────────────────────────────
     path('ventas/', views.lista_ventas, name='lista_ventas'),
@@ -38,7 +40,15 @@ urlpatterns = [
 
     # ── AJAX ────────────────────────────────────────────────
     path('ajax/calcular/', views.calcular_precio_ajax, name='calcular_precio_ajax'),
+
+
+    # ── LOGIN ────────────────────────────────────────────────
+    path('login/', views.login_view, name='login'),
+    path('logout/', views.logout_view, name='logout'),
+    path('sin-permiso/', views.sin_permiso, name='sin_permiso'),
 ]
+
+
 
 # Servir archivos de media en desarrollo
 if settings.DEBUG:

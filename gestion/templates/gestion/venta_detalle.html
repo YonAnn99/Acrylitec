@@ -62,6 +62,9 @@
                         <div class="col-md-4">
                             <label class="form-label">Estatus actual</label>
                             <select name="estatus" class="form-select">
+                                <option value="pendiente" {% if venta.estatus == 'pendiente' %}selected{% endif %}>
+                                    ⏳ Pendiente
+                                </option>
                                 <option value="en_produccion" {% if venta.estatus == 'en_produccion' %}selected{% endif %}>
                                     🔧 En producción
                                 </option>
@@ -93,6 +96,17 @@
             <div class="card-body">
                 <h6 class="text-muted mb-3">PROGRESO DEL PEDIDO</h6>
                 <div class="d-flex justify-content-between text-center">
+                    
+                    <div class="flex-fill text-center">
+                        <div class="rounded-circle d-inline-flex align-items-center justify-content-center
+                            {% if venta.estatus in 'en_produccion,pagada,entregada,pendiente' %}bg-success text-white{% else %}bg-light{% endif %}"
+                            style="width:48px;height:48px;font-size:1.3rem;">⏳</div>
+                        <div class="small mt-1">Pendiente</div>
+                    </div>
+
+                    <div class="flex-fill align-self-center">
+                        <hr class="{% if venta.estatus in 'en_produccion,pagada,entregada' %}border-success border-2{% endif %}">
+                    </div>
                     <div class="flex-fill">
                         <div class="rounded-circle d-inline-flex align-items-center justify-content-center
                              {% if venta.estatus in 'en_produccion,pagada,entregada' %}bg-success text-white{% else %}bg-light{% endif %}"

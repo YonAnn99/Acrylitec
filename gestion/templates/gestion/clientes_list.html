@@ -8,6 +8,24 @@
     </a>
 </div>
 
+<form method="GET" action="">
+    <div class="input-group mb-3">
+        <input type="text" 
+               class="form-control" 
+               name="q" 
+               value="{{ query }}" 
+               placeholder="Buscar por nombre, teléfono o email...">
+        <button class="btn btn-primary" type="submit">
+            <i class="fas fa-search"></i> Buscar
+        </button>
+        {% if query %}
+        <a href="{% url 'lista_clientes' %}" class="btn btn-secondary">
+            <i class="fas fa-times"></i> Limpiar
+        </a>
+        {% endif %}
+    </div>
+</form>
+
 <div class="table-responsive shadow">
     <table class="table table-hover table-bordered">
         <thead class="table-dark">

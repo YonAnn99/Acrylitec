@@ -1,0 +1,156 @@
+{% extends 'gestion/base.html' %}
+{% block content %}
+<div class="row">
+    <!-- Formulario izquierda -->
+    <div class="col-md-6">
+        <div class="d-flex align-items-center mb-3">
+            <h2 class="mb-0">⚡ Cotización Express</h2>
+            <span class="badge bg-warning text-dark ms-2">No se guarda</span>
+        </div>
+        <p class="text-muted">Calcula el costo al instante. No genera pedido ni queda registrada.</p>
+
+        <form method="POST">
+            {% csrf_token %}
+            <div class="card mb-3">
+                <div class="card-header bg-dark text-white">👤 Datos del Cliente (opcional)</div>
+                <div class="card-body">
+                    <div class="row g-2">
+                        <div class="col-md-6">
+                            <label class="form-label">Nombre</label>
+                            <input type="text" name="nombre_cliente" class="form-control" 
+                                   placeholder="Nombre del cliente"
+                                   value="{{ resultado.nombre_cliente|default:'' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Teléfono (WhatsApp)</label>
+                            <input type="text" name="telefono" class="form-control" 
+                                   placeholder="521XXXXXXXXXX"
+                                   value="{{ resultado.telefono|default:'' }}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-header bg-dark text-white">🧪 Material y Medidas</div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Material</label>
+                        <select name="material" class="form-select" required>
+                            <option value="">-- Selecciona material --</option>
+                            {% for m in materiales %}
+                            <option value="{{ m.id_tabulador }}" 
+                                {% if resultado and resultado.material == m.nombre %}selected{% endif %}>
+                                {{ m.espesor_mm }}mm — ${{ m.factor_costo }}/m²
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-md-4">
+                            <label class="form-label">Largo (m)</label>
+                            <input type="number" name="largo" class="form-control" 
+                                   step="0.01" min="0" placeholder="ej. 1.20"
+                                   value="{{ resultado.largo|default:'' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Ancho (m)</label>
+                            <input type="number" name="ancho" class="form-control" 
+                                   step="0.01" min="0" placeholder="ej. 0.60"
+                                   value="{{ resultado.ancho|default:'' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Minutos Láser</label>
+                            <input type="number" name="minutos_laser" class="form-control" 
+                                   step="1" min="0" placeholder="0"
+                                   value="{{ resultado.minutos_laser|default:0 }}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones de acción -->
+            <div class="d-grid gap-2">
+                <button type="submit" name="calcular" class="btn btn-success btn-lg">
+                    🧮 Calcular cotización
+                </button>
+                {% if resultado %}
+                <button type="submit" name="exportar_pdf" class="btn btn-outline-dark">
+                    📄 Descargar PDF
+                </button>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <!-- Resultado derecha -->
+    <div class="col-md-6">
+        {% if resultado %}
+        <div class="card shadow border-success" id="resultado-card">
+            <div class="card-header bg-success text-white d-flex justify-content-between">
+                <span>💰 Resultado de Cotización</span>
+                <span class="badge bg-warning text-dark">Express — No guardada</span>
+            </div>
+            <div class="card-body">
+                <h5>{{ resultado.nombre_cliente }}</h5>
+                <table class="table table-sm">
+                    <tr>
+                        <td>Área calculada:</td>
+                        <td><strong>{{ resultado.area }} m²</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Material ({{ resultado.material }}):</td>
+                        <td>${{ resultado.costo_material }}</td>
+                    </tr>
+                    <tr>
+                        <td>Corte láser ({{ resultado.minutos_laser }} min):</td>
+                        <td>${{ resultado.costo_laser }}</td>
+                    </tr>
+                    <tr class="table-success">
+                        <td><strong>TOTAL:</strong></td>
+                        <td><strong class="fs-5">${{ resultado.total }}</strong></td>
+                    </tr>
+                </table>
+
+                <!-- Botón WhatsApp -->
+                {% if resultado.telefono %}
+                <a href="https://wa.me/{{ resultado.telefono }}?text={{ whatsapp_msg|urlencode }}"
+                   target="_blank" class="btn btn-success w-100 mb-2">
+                    📱 Enviar por WhatsApp
+                </a>
+                {% else %}
+                <p class="text-muted small">Ingresa el teléfono para enviar por WhatsApp</p>
+                {% endif %}
+
+                <!-- Botón Imprimir -->
+                <button onclick="window.print()" class="btn btn-outline-secondary w-100 mb-2">
+                    🖨️ Imprimir
+                </button>
+
+                <!-- Convertir en cotización real -->
+                <hr>
+                <p class="text-muted small text-center">¿El cliente confirma el pedido?</p>
+                <a href="{% url 'crear_cotizacion' %}" class="btn btn-primary w-100">
+                    ✅ Crear cotización real
+                </a>
+            </div>
+        </div>
+        {% else %}
+        <div class="card h-100 d-flex align-items-center justify-content-center text-muted">
+            <div class="text-center p-5">
+                <div style="font-size:4rem">⚡</div>
+                <p>Llena el formulario y presiona<br><strong>Calcular cotización</strong></p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Estilos para impresión -->
+<style>
+@media print {
+    nav, .btn, form, .badge { display: none !important; }
+    #resultado-card { border: 2px solid #000 !important; }
+}
+</style>
+{% endblock %}

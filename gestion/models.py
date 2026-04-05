@@ -76,6 +76,7 @@ class TabuladorCostos(models.Model):
 
 class Ventas(models.Model):
     ESTATUS_CHOICES = [
+        ('pendiente', 'Pendiente'),
         ('en_produccion', 'En producción'),
         ('pagada', 'Pagada'),
         ('entregada', 'Entregada'),
@@ -84,7 +85,7 @@ class Ventas(models.Model):
     id_venta = models.AutoField(primary_key=True)
     id_cotizacion = models.ForeignKey(Cotizaciones, models.DO_NOTHING, db_column='id_cotizacion', blank=True, null=True)
     monto_pagado = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    estatus = models.CharField(max_length=20, choices=ESTATUS_CHOICES, default='en_produccion')
+    estatus = models.CharField(max_length=20, choices=ESTATUS_CHOICES, default='pendiente')
     fecha_entrega = models.DateField(blank=True, null=True)
     fecha_venta = models.DateField(auto_now_add=True, null=True)
 

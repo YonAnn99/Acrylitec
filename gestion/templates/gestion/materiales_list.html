@@ -1,7 +1,12 @@
 {% extends 'gestion/base.html' %}
 
 {% block content %}
-<h2>Inventario de Materiales</h2>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Inventario de Materiales</h2>
+    <a href="{% url 'crear_material' %}" class="btn btn-success">
+        <i class="bi bi-plus-circle"></i> + Nuevo Material
+    </a>
+</div>
 <table class="table table-striped table-hover mt-3">
     <thead class="table-dark">
         <tr>
@@ -19,7 +24,7 @@
             <td>{{ material.largo }} cm</td>
             <td>{{ material.ancho }} cm</td>
             <td>{{ material.stock_actual }}</td>
-            <td>
+            <td> 
                 <a href="{% url 'eliminar_material' material.id_material %}" 
                    class="btn btn-danger btn-sm" 
                    onclick="return confirm('¿Seguro que quieres borrar este material?')">

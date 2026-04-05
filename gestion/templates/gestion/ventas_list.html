@@ -4,7 +4,7 @@
 <h2 class="mb-3">📦 Historial de Ventas</h2>
 
 <div class="row g-3 mb-4">
-    <div class="col-md-3">
+    <div class="col">
         <div class="card bg-success text-white shadow-sm">
             <div class="card-body text-center">
                 <div class="fs-4 fw-bold">${{ resumen.total_ingresos|floatformat:2 }}</div>
@@ -12,7 +12,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col">
         <div class="card bg-primary text-white shadow-sm">
             <div class="card-body text-center">
                 <div class="fs-4 fw-bold">{{ resumen.total_ventas }}</div>
@@ -20,7 +20,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col">
         <div class="card bg-warning text-white shadow-sm">
             <div class="card-body text-center">
                 <div class="fs-4 fw-bold">{{ resumen.en_produccion }}</div>
@@ -28,7 +28,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col">
         <div class="card bg-dark text-white shadow-sm">
             <div class="card-body text-center">
                 <div class="fs-4 fw-bold">{{ resumen.entregadas }}</div>
@@ -36,6 +36,14 @@
             </div>
         </div>
     </div>
+    <div class="col">
+    <div class="card bg-secondary text-white shadow-sm">
+        <div class="card-body text-center">
+            <div class="fs-4 fw-bold">{{ resumen.pendientes }}</div>
+            <div class="small">Pendientes</div>
+        </div>
+    </div>
+</div>
 </div>
 
 {% if ventas %}
@@ -62,10 +70,12 @@
                 <td>{{ v.id_cotizacion.id_producto.nombre }}</td>
                 <td class="fw-bold text-success">${{ v.monto_pagado }}</td>
                 <td>
-                    {% if v.estatus == 'en_produccion' %}
+                    {% if v.estatus == 'pendiente' %}
+                        <span class="badge" style="background-color: #6c757d;">⏳ Pendiente</span>
+                    {% elif v.estatus == 'en_produccion' %}
                         <span class="badge bg-warning text-dark">🔧 En producción</span>
                     {% elif v.estatus == 'pagada' %}
-                        <span class="badge bg-primary">💰 Pagada</span>
+                        <span class="badge bg-primary">🔥 Pagada</span>
                     {% elif v.estatus == 'entregada' %}
                         <span class="badge bg-success">✅ Entregada</span>
                     {% endif %}

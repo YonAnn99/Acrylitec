@@ -10,11 +10,207 @@ from django.http import JsonResponse
 from django.core.files.storage import default_storage
 from django.db.models import Sum, Count
 from django.db.models.functions import TruncMonth, TruncWeek, TruncYear
+from django.db.models import Q
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib import messages
+from django.http import HttpResponse
+from reportlab.lib.pagesizes import letter
+from reportlab.lib import colors
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
+from django.conf import settings
+from reportlab.platypus import Image as RLImage
+import io
+from django.contrib import messages
 
 from .models import (
     Materiales, Clientes, Cotizaciones, Productos,
     TabuladorCostos, Ventas, ConfiguracionPrecios
 )
+
+
+#GENERAR PDFS EXPRESS
+
+def generar_pdf_express(datos):
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter)
+    styles = getSampleStyleSheet()
+    elementos = []
+
+    # Título
+    logo_path = os.path.join(settings.BASE_DIR, 'gestion', 'static', 'gestion', 'img', 'logo_acrylitec.png')
+    if os.path.exists(logo_path):
+        logo = RLImage(logo_path, width=150, height=60)
+        elementos.append(logo)
+    
+    elementos.append(Spacer(1, 10))
+    elementos.append(Paragraph("Cotización Express", styles['Title']))
+    elementos.append(Paragraph("Esta cotización es informativa y no genera pedido.", styles['Normal']))
+    elementos.append(Spacer(1, 20))
+
+    # Datos del cliente
+    elementos.append(Paragraph(f"Cliente: {datos['nombre_cliente']}", styles['Normal']))
+    elementos.append(Paragraph(f"Teléfono: {datos['telefono']}", styles['Normal']))
+    elementos.append(Spacer(1, 20))
+
+    # Tabla de desglose
+    tabla_datos = [
+        ['Concepto', 'Detalle', 'Costo'],
+        ['Material', f"{datos['material']} — {datos['area']} m²", f"${datos['costo_material']}"],
+        ['Corte láser', f"{datos['minutos_laser']} min × $15/min", f"${datos['costo_laser']}"],
+        ['', 'TOTAL', f"${datos['total']}"],
+    ]
+    tabla = Table(tabla_datos, colWidths=[180, 220, 100])
+    tabla.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#212529')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('ALIGN', (2, 0), (2, -1), 'RIGHT'),
+        ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor('#d4edda')),
+        ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -2), [colors.white, colors.HexColor('#f8f9fa')]),
+    ]))
+    elementos.append(tabla)
+    elementos.append(Spacer(1, 20))
+    elementos.append(Paragraph("*Precios sujetos a cambio sin previo aviso.", styles['Normal']))
+
+    doc.build(elementos)
+    buffer.seek(0)
+
+    response = HttpResponse(buffer, content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="cotizacion_express.pdf"'
+    return response
+
+# ── Helpers de rol ──────────────────────────────────────────
+def es_admin(user):
+    return user.is_authenticated and (
+        user.is_superuser or user.groups.filter(name='Administrador').exists()
+    )
+
+def es_operador(user):
+    return user.is_authenticated
+
+# ── Login / Logout ──────────────────────────────────────────
+def login_view(request):
+    error = None
+    
+    if request.user.is_authenticated:
+         if es_admin(request.user):
+            return redirect('dashboard')
+         else:
+             return redirect('lista_cotizaciones')
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(request, username=username, password=password)
+        if user:
+            login(request, user)
+            if es_admin(user):
+                return redirect('dashboard')
+            else:
+                return redirect('lista_cotizaciones')         
+    else:
+            error='Usuario o contraseña incorrectos.'
+
+    return render(request, 'gestion/login.html', {'error': error})
+
+def logout_view(request):
+    logout(request)
+    request.session.flush()  # ← limpia toda la sesión
+    return redirect('login')
+
+
+# Vistas que TODOS los usuarios autenticados pueden ver:
+@login_required
+def lista_clientes(request): ...
+
+@login_required
+def nueva_cotizacion(request): ...
+
+@login_required
+def lista_cotizaciones(request): ...
+
+@login_required
+def detalle_venta(request, pk): ...
+
+@login_required
+def lista_ventas(request): ...   # la tabla de ventas la pueden ver todos
+
+# Vistas SOLO para Administrador (dinero, reportes, precios):
+@login_required
+@user_passes_test(es_admin, login_url='/sin-permiso/')
+def dashboard(request): ...      # gráficas + KPIs financieros
+
+@login_required
+@user_passes_test(es_admin, login_url='/sin-permiso/')
+def configuracion_precios(request): ...
+
+def sin_permiso(request):
+    return render(request, 'gestion/sin_permiso.html')
+
+
+# COTIZACION EXPRESS:
+@login_required
+def cotizacion_express(request):
+    productos = Productos.objects.all()
+    materiales = TabuladorCostos.objects.all()
+    resultado = None
+    whatsapp_msg = ''
+
+    if request.method == 'POST':
+        nombre_cliente = request.POST.get('nombre_cliente', 'Cliente')
+        telefono = request.POST.get('telefono', '')
+        material_id = request.POST.get('material')
+        largo = float(request.POST.get('largo', 0))
+        ancho = float(request.POST.get('ancho', 0))
+        minutos_laser = float(request.POST.get('minutos_laser', 0))
+
+        try:
+            material = TabuladorCostos.objects.get(pk=material_id)
+            area = largo * ancho
+            costo_material = area * float(material.factor_costo)
+            costo_laser = minutos_laser * 15
+            total = costo_material + costo_laser
+
+            resultado = {
+                'nombre_cliente': nombre_cliente,
+                'telefono': telefono,
+                'largo': largo,
+                'ancho': ancho,
+                'area': round(area, 4),
+                'material': f"{material.espesor_mm}mm",
+                'costo_material': round(costo_material, 2),
+                'costo_laser': round(costo_laser, 2),
+                'total': round(total, 2),
+                'minutos_laser': minutos_laser,
+            }
+
+            whatsapp_msg = (
+                f"Hola {resultado['nombre_cliente']}, "
+                f"tu cotización express de Acrylitec es:\n\n"
+                f"Área: {resultado['area']} m2\n"
+                f"Material ({resultado['material']}): ${resultado['costo_material']}\n"
+                f"Corte láser: ${resultado['costo_laser']}\n"
+                f"TOTAL: ${resultado['total']}\n\n"
+                f"Cotización informativa, precios sujetos a cambio."
+            )
+
+            if 'exportar_pdf' in request.POST:
+                return generar_pdf_express(resultado)
+
+        except Exception as e:
+            messages.error(request, f'Error al calcular: {e}')
+            print(f"ERROR EXPRESS: {e}")
+
+    # ← Este return está al mismo nivel que el "if request.method"
+    return render(request, 'gestion/cotizacion_express.html', {
+        'productos': productos,
+        'materiales': materiales,
+        'resultado': resultado,
+        'whatsapp_msg': whatsapp_msg,
+    })
 
 
 # ─────────────────────────────────────────
@@ -52,8 +248,18 @@ def _calcular_monto(largo, ancho, producto, minutos_laser=0):
 # ─────────────────────────────────────────
 
 def lista_clientes(request):
-    return render(request, 'gestion/clientes_list.html',
-                  {'clientes': Clientes.objects.all()})
+    query = request.GET.get('q', '')
+    clientes = Clientes.objects.all()
+    if query:
+        clientes = clientes.filter(
+            Q(nombre__icontains=query) |
+            Q(telefono__icontains=query) |
+            Q(email__icontains=query)
+        )
+    return render(request, 'gestion/clientes_list.html', {
+        'clientes': clientes,
+        'query': query
+    })
 
 
 def crear_cliente(request):
@@ -273,6 +479,7 @@ def lista_ventas(request):
     resumen = {
         'total_ventas': ventas.count(),
         'total_ingresos': ventas.aggregate(s=Sum('monto_pagado'))['s'] or Decimal('0'),
+        'pendientes': ventas.filter(estatus='pendiente').count(),
         'en_produccion': ventas.filter(estatus='en_produccion').count(),
         'entregadas': ventas.filter(estatus='entregada').count(),
     }
@@ -291,7 +498,7 @@ def actualizar_estatus_venta(request, pk):
     venta = get_object_or_404(Ventas, pk=pk)
     if request.method == 'POST':
         nuevo = request.POST.get('estatus')
-        if nuevo in ['en_produccion', 'pagada', 'entregada']:
+        if nuevo in ['pendiente','en_produccion', 'pagada', 'entregada']:
             venta.estatus = nuevo
         fecha = request.POST.get('fecha_entrega')
         if fecha:
@@ -324,6 +531,12 @@ def dashboard(request):
     top_productos = (ventas_qs.values('id_cotizacion__id_producto__nombre')
                      .annotate(total=Sum('monto_pagado'), cantidad=Count('id_venta'))
                      .order_by('-cantidad')[:5])
+    pedidos_activos = Ventas.objects.filter(
+                        estatus__in=['pendiente', 'en_produccion']
+                        ).select_related(
+                        'id_cotizacion__id_cliente',
+                        'id_cotizacion__id_producto'
+                        ).order_by('-fecha_venta')
 
     inicio_mes = hoy.replace(day=1)
     ventas_mes = ventas_qs.filter(fecha_venta__gte=inicio_mes)
@@ -334,6 +547,7 @@ def dashboard(request):
         'ventas_total': ventas_qs.count(),
         'clientes_total': Clientes.objects.count(),
         'cotizaciones_mes': Cotizaciones.objects.filter(fecha__gte=inicio_mes).count(),
+        
     }
 
     labels_mes    = [v['periodo'].strftime('%b %Y')         for v in por_mes]
@@ -348,6 +562,7 @@ def dashboard(request):
     return render(request, 'gestion/dashboard.html', {
         'kpis':         kpis,
         'top_productos': top_productos,
+        'pedidos_activos': pedidos_activos,
 
         # ── Versiones JSON seguras para usar en <script> ──────────────────
         'labels_mes':    json.dumps(labels_mes),
