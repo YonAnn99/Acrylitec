@@ -221,19 +221,38 @@ def _get_tarifa_laser():
     return ConfiguracionPrecios.get_config().tarifa_laser_minuto
 
 
-def _calcular_monto(largo, ancho, producto, minutos_laser=0):
-    largo = Decimal(str(largo))
-    ancho = Decimal(str(ancho))
+def _calcular_monto(largo, ancho, espesor_mm,porcentaje_utilidad, minutos_laser=0,producto_id=None):
+    largo = Decimal(str(largo or 0))
+    ancho = Decimal(str(ancho or 0))
     minutos_laser = Decimal(str(minutos_laser or 0))
+    porcentaje_utilidad = Decimal(str(porcentaje_utilidad or 40))
+
+    if producto_id:
+            prod = Productos.objects.filter(pk=producto_id).first()
+            if prod and prod.precio_fijo:
+                return {
+                    'area': largo * ancho,
+                    'costo_material': Decimal('0.00'),
+                    'utilidad': Decimal('0.00'),
+                    'costo_laser': Decimal('0.00'),
+                    'monto_total': prod.precio_fijo,
+                }
+
     area = largo * ancho
-    tabulador = TabuladorCostos.objects.order_by('espesor_mm').first()
-    factor = tabulador.factor_costo if tabulador else Decimal('100.00')
+    try:
+        tabulador = TabuladorCostos.objects.get(espesor_mm=espesor_mm)
+        factor = tabulador.factor_costo
+    except TabuladorCostos.DoesNotExist:
+        factor = Decimal('0.00')
+
     costo_material = area * factor
-    utilidad = costo_material * (Decimal(str(producto.porcentaje_utilidad)) / Decimal('100'))
+    utilidad = costo_material * (porcentaje_utilidad / Decimal('100'))
     costo_laser = minutos_laser * _get_tarifa_laser()
+    
     monto_total = (costo_material + utilidad + costo_laser).quantize(
         Decimal('0.01'), rounding=ROUND_HALF_UP
     )
+
     return {
         'area': area,
         'costo_material': costo_material.quantize(Decimal('0.01')),
@@ -461,9 +480,12 @@ def registrar_venta(request, cotizacion_pk):
     if venta_existente:
         return redirect('detalle_venta', pk=venta_existente.id_venta)
     if request.method == 'POST':
+        monto_abonado = Decimal(request.POST.get('monto_abonado') or 0)
+
+
         venta = Ventas.objects.create(
             id_cotizacion=cotizacion,
-            monto_pagado=request.POST.get('monto_pagado') or cotizacion.monto_total,
+            monto_abonado=monto_abonado,
             estatus=request.POST.get('estatus', 'en_produccion'),
             fecha_entrega=request.POST.get('fecha_entrega') or None,
             fecha_venta=datetime.date.today(),
@@ -541,9 +563,9 @@ def dashboard(request):
     inicio_mes = hoy.replace(day=1)
     ventas_mes = ventas_qs.filter(fecha_venta__gte=inicio_mes)
     kpis = {
-        'ingresos_mes': ventas_mes.aggregate(s=Sum('monto_pagado'))['s'] or Decimal('0'),
+        'ingresos_mes': ventas_mes.filter(estatus='pagada').aggregate(s=Sum('id_cotizacion__monto_total'))['s'] or Decimal('0'),
         'ventas_mes': ventas_mes.count(),
-        'ingresos_total': ventas_qs.aggregate(s=Sum('monto_pagado'))['s'] or Decimal('0'),
+        'ingresos_total': ventas_qs.filter(estatus='pagada').aggregate(s=Sum('id_cotizacion__monto_total'))['s'] or Decimal('0'),
         'ventas_total': ventas_qs.count(),
         'clientes_total': Clientes.objects.count(),
         'cotizaciones_mes': Cotizaciones.objects.filter(fecha__gte=inicio_mes).count(),
