@@ -561,7 +561,7 @@ def dashboard(request):
                 .order_by('periodo'))
 
     top_productos = (ventas_qs.values('id_cotizacion__id_producto__nombre')
-                     .annotate(total=Sum('monto_pagado'), cantidad=Count('id_venta'))
+                     .annotate(total=Sum('id_cotizacion__monto_total'), cantidad=Count('id_venta'))
                      .order_by('-cantidad')[:5])
     pedidos_activos = Ventas.objects.filter(
                         estatus__in=['pendiente', 'en_produccion']
