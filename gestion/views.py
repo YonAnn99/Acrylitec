@@ -606,6 +606,18 @@ def dashboard(request):
     })
 
 
+@login_required
+def nueva_cotizacion(request):
+    # ... tus otras consultas ...
+    materiales_tabulador = TabuladorCostos.objects.order_by('espesor_mm') # Para el nuevo select
+    
+    return render(request, 'gestion/cotizacion_form.html', {
+        # ...
+        'materiales_tabulador': materiales_tabulador,
+        'tarifa_laser': _get_tarifa_laser(),
+    })
+
+
 # ─────────────────────────────────────────
 #  CONFIGURACIÓN DE PRECIOS
 # ─────────────────────────────────────────
