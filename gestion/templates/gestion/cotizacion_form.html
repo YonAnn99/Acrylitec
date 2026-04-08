@@ -1,5 +1,4 @@
 {% extends 'gestion/base.html' %}
-
 {% block content %}
 <div class="container-fluid">
     <div class="row">
@@ -7,7 +6,54 @@
             <h2 class="mb-4">🧾 Nueva Cotización</h2>
             <form method="POST" id="formCotizacion">
                 {% csrf_token %}
-                
+
+                <!-- Cliente -->
+                <div class="card shadow-sm mb-3">
+                    <div class="card-header bg-dark text-white">Datos del Cliente</div>
+                    <div class="card-body">
+                        <label class="form-label">Cliente</label>
+                        <select name="cliente" class="form-select" required>
+                            <option value="">-- Selecciona cliente --</option>
+                            {% for c in clientes %}
+                            <option value="{{ c.id_cliente }}">{{ c.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Producto -->
+                <div class="card shadow-sm mb-3">
+                    <div class="card-header bg-dark text-white">Producto</div>
+                    <div class="card-body">
+                        <label class="form-label">Producto</label>
+                        <select name="producto" id="id_producto" class="form-select" required>
+                            <option value="">-- Selecciona producto --</option>
+                            {% for p in productos %}
+                            <option value="{{ p.id_producto }}" 
+                                data-precio-fijo="{{ p.precio_fijo|default:'' }}"
+                                data-utilidad="{{ p.porcentaje_utilidad }}">
+                                {{ p.nombre }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Material -->
+                <div class="card shadow-sm mb-3">
+                    <div class="card-header bg-dark text-white">Material</div>
+                    <div class="card-body">
+                        <label class="form-label">Material (lámina)</label>
+                        <select name="material" class="form-select" required>
+                            <option value="">-- Selecciona material --</option>
+                            {% for m in materiales %}
+                            <option value="{{ m.id_material }}">{{ m.descripcion }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Medidas -->
                 <div class="card shadow-sm mb-3">
                     <div class="card-header bg-dark text-white">Medidas y Servicios</div>
                     <div class="card-body">
@@ -31,11 +77,18 @@
                                 <select name="espesor_mm" id="id_espesor" class="form-select" required>
                                     <option value="">-- Selecciona --</option>
                                     {% for t in materiales_tabulador %}
-                                        <option value="{{ t.espesor_mm }}" data-factor="{{ t.factor_costo }}">
-                                            {{ t.espesor_mm }} mm
-                                        </option>
+                                    <option value="{{ t.espesor_mm }}" data-factor="{{ t.factor_costo }}">
+                                        {{ t.espesor_mm }} mm
+                                    </option>
                                     {% endfor %}
                                 </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Utilidad (%)</label>
+                                <input type="number" name="porcentaje_utilidad" 
+                                       id="id_utilidad" value="40" min="0" max="200" 
+                                       class="form-control">
+                                <small class="text-muted">40% cortes simples / 70%+ piezas fabricadas</small>
                             </div>
                         </div>
                     </div>
@@ -47,18 +100,37 @@
             </form>
         </div>
 
+        <!-- Panel de cálculo -->
         <div class="col-md-5">
             <div class="card shadow border-0 sticky-top" style="top:20px">
                 <div class="card-header bg-success text-white">
                     <h5 class="mb-0">💰 Cálculo en tiempo real</h5>
                 </div>
-                <div class="card-body text-center py-4">
-                    <p class="text-muted mb-1">Área calculada:</p>
-                    <h4 id="display_area">0.00 cm²</h4>
+                <div class="card-body py-4">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Área:</span>
+                        <strong id="display_area">0.00 cm²</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Costo material:</span>
+                        <span id="display_material">$0.00</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Utilidad:</span>
+                        <span id="display_utilidad">$0.00</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Corte láser:</span>
+                        <span id="display_laser">$0.00</span>
+                    </div>
                     <hr>
-                    <p class="text-muted mb-1">Monto estimado:</p>
-                    <h2 class="text-success fw-bold" id="display_total">$0.00</h2>
-                    <p class="small text-muted mt-2">Basado en el factor de espesor seleccionado.</p>
+                    <div class="text-center">
+                        <p class="text-muted mb-1">Total estimado:</p>
+                        <h2 class="text-success fw-bold" id="display_total">$0.00</h2>
+                    </div>
+                    <p class="small text-muted mt-2 text-center" id="nota_precio_fijo" style="display:none">
+                        ⚠️ Este producto tiene precio fijo
+                    </p>
                 </div>
             </div>
         </div>
@@ -66,36 +138,50 @@
 </div>
 
 <script>
+const tarifaLaser = 15;
 
 function calcularMontoRealTime() {
     const largo = parseFloat(document.querySelector('input[name="largo_pza"]').value) || 0;
     const ancho = parseFloat(document.querySelector('input[name="ancho_pza"]').value) || 0;
-    const minutosLaser = parseFloat(document.querySelector('input[name="minutos_lazer"]').value) || 0;
-    const utilidadPorcentaje = parseFloat(document.querySelector('input[name="porcentaje_utilidad"]').value) || 40;
-    
-    // Obtener factor dinámico del select
+    const minutos = parseFloat(document.querySelector('input[name="minutos_lazer"]').value) || 0;
+    const utilidad = parseFloat(document.getElementById('id_utilidad').value) || 40;
+
     const espesorSelect = document.getElementById('id_espesor');
-    const selectedOption = espesorSelect.options[espesorSelect.selectedIndex];
-    // Nota: El factor en tu tabla está por m2 (ej. 400.00), lo dividimos entre 10,000 para cm2
-    const factorM2 = selectedOption ? parseFloat(selectedOption.getAttribute('data-factor')) || 0 : 0;
-    const factorCm2 = factorM2 / 10000; 
+    const factor = parseFloat(espesorSelect.options[espesorSelect.selectedIndex]?.getAttribute('data-factor')) || 0;
+
+    // Verificar si producto tiene precio fijo
+    const productoSelect = document.getElementById('id_producto');
+    const precioFijo = productoSelect.options[productoSelect.selectedIndex]?.getAttribute('data-precio-fijo');
+
+    if (precioFijo) {
+        document.getElementById('display_total').innerText = '$' + parseFloat(precioFijo).toFixed(2);
+        document.getElementById('nota_precio_fijo').style.display = 'block';
+        document.getElementById('display_area').innerText = '-';
+        document.getElementById('display_material').innerText = '-';
+        document.getElementById('display_utilidad').innerText = '-';
+        document.getElementById('display_laser').innerText = '-';
+        return;
+    }
+
+    document.getElementById('nota_precio_fijo').style.display = 'none';
 
     const area = largo * ancho;
-    const costoMaterial = area * factorCm2;
-    const utilidad = costoMaterial * (utilidadPorcentaje / 100);
-    const costoLaser = minutosLaser * 10.00; // Tarifa actual según tu captura
+    // El factor ya está en cm² directamente
+    const costoMaterial = area * factor;
+    const costoUtilidad = costoMaterial * (utilidad / 100);
+    const costoLaser = minutos * tarifaLaser;
+    const total = costoMaterial + costoUtilidad + costoLaser;
 
-    const total = costoMaterial + utilidad + costoLaser;
-
-    document.getElementById('display_area').innerText = area.toFixed(2) + " cm²";
-    document.getElementById('display_total').innerText = "$" + total.toLocaleString('es-MX', {minimumFractionDigits: 2});
+    document.getElementById('display_area').innerText = area.toFixed(2) + ' cm²';
+    document.getElementById('display_material').innerText = '$' + costoMaterial.toFixed(2);
+    document.getElementById('display_utilidad').innerText = '$' + costoUtilidad.toFixed(2);
+    document.getElementById('display_laser').innerText = '$' + costoLaser.toFixed(2);
+    document.getElementById('display_total').innerText = '$' + total.toLocaleString('es-MX', {minimumFractionDigits: 2});
 }
 
-// Eventos para actualizar al instante
 document.querySelectorAll('input, select').forEach(el => {
     el.addEventListener('input', calcularMontoRealTime);
     el.addEventListener('change', calcularMontoRealTime);
 });
-
 </script>
 {% endblock %}
