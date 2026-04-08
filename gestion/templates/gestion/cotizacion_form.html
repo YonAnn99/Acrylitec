@@ -1,163 +1,100 @@
 {% extends 'gestion/base.html' %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-7">
-        <h2>🧾 Nueva Cotización</h2>
-        <form method="POST" id="formCotizacion">
-            {% csrf_token %}
-
-            <div class="card shadow-sm mb-3">
-                <div class="card-header bg-dark text-white">Datos del Cliente</div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label class="form-label">Cliente</label>
-                        <select name="cliente" class="form-select" required>
-                            <option value="">-- Selecciona cliente --</option>
-                            {% for c in clientes %}
-                            <option value="{{ c.id_cliente }}">{{ c.nombre }} — {{ c.telefono }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card shadow-sm mb-3">
-                <div class="card-header bg-dark text-white">Producto y Material</div>
-                <div class="card-body row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Producto</label>
-                        <select name="producto" id="id_producto" class="form-select" required>
-                            <option value="">-- Selecciona producto --</option>
-                            {% for p in productos %}
-                            <option value="{{ p.id_producto }}" data-utilidad="{{ p.porcentaje_utilidad }}">
-                                {{ p.nombre }} ({{ p.porcentaje_utilidad }}% utilidad)
-                            </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Material (Lámina)</label>
-                        <select name="material" class="form-select" required>
-                            <option value="">-- Selecciona material --</option>
-                            {% for m in materiales %}
-                            <option value="{{ m.id_material }}">
-                                {{ m.descripcion }} — Stock: {{ m.stock_actual }}
-                            </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card shadow-sm mb-3">
-                <div class="card-header bg-dark text-white">Medidas y Servicios</div>
-                <div class="card-body row">
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">Largo (centimetros)</label>
-                        <input type="number" name="largo_pza" id="id_largo" step="0.01" min="0.01"
-                               class="form-control" placeholder="ej. 1.20" required>
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">Ancho (centimetros)</label>
-                        <input type="number" name="ancho_pza" id="id_ancho" step="0.01" min="0.01"
-                               class="form-control" placeholder="ej. 0.60" required>
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">Minutos Láser</label>
-                        <input type="number" name="minutos_lazer" id="id_laser" step="1" min="0" value="0"
-                               class="form-control" placeholder="0">
-                        <small class="text-muted"></small>
-                    </div>
-                    <div class="col-md-3">
-                        <label>Espesor (mm)</label>
-                        <select name="espesor_mm" class="form-select" required>
-                            <option value="">-- Selecciona espesor --</option>
-                            {% for t in materiales_tabulador %}
-                                <option value="{{ t.espesor_mm }}" data-factor="{{ t.factor_costo }}">
-                                    {{ t.espesor_mm }} mm
-                                </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="row mt-3">
-                        <div class="col-md-4">
-                            <label>Porcentaje de Utilidad (%)</label>
-                            <input type="number" name="porcentaje_utilidad" class="form-control" value="40" min="0">
-                            <small class="text-muted">Por defecto: 40%</small>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-7">
+            <h2 class="mb-4">🧾 Nueva Cotización</h2>
+            <form method="POST" id="formCotizacion">
+                {% csrf_token %}
+                
+                <div class="card shadow-sm mb-3">
+                    <div class="card-header bg-dark text-white">Medidas y Servicios</div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Largo (cm)</label>
+                                <input type="number" name="largo_pza" step="0.01" class="form-control" placeholder="ej. 20" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Ancho (cm)</label>
+                                <input type="number" name="ancho_pza" step="0.01" class="form-control" placeholder="ej. 10" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Minutos Láser</label>
+                                <input type="number" name="minutos_lazer" step="1" value="0" class="form-control">
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Espesor (mm)</label>
+                                <select name="espesor_mm" id="id_espesor" class="form-select" required>
+                                    <option value="">-- Selecciona --</option>
+                                    {% for t in materiales_tabulador %}
+                                        <option value="{{ t.espesor_mm }}" data-factor="{{ t.factor_costo }}">
+                                            {{ t.espesor_mm }} mm
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </div>
+
+                <button type="submit" class="btn btn-success btn-lg w-100 shadow">
+                    ✅ Guardar Cotización
+                </button>
+            </form>
+        </div>
+
+        <div class="col-md-5">
+            <div class="card shadow border-0 sticky-top" style="top:20px">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">💰 Cálculo en tiempo real</h5>
+                </div>
+                <div class="card-body text-center py-4">
+                    <p class="text-muted mb-1">Área calculada:</p>
+                    <h4 id="display_area">0.00 cm²</h4>
+                    <hr>
+                    <p class="text-muted mb-1">Monto estimado:</p>
+                    <h2 class="text-success fw-bold" id="display_total">$0.00</h2>
+                    <p class="small text-muted mt-2">Basado en el factor de espesor seleccionado.</p>
+                </div>
             </div>
-
-            <button type="submit" class="btn btn-success btn-lg w-100">
-                ✅ Guardar Cotización
-            </button>
-        </form>
-    </div>
-
-    <!-- Panel de cálculo en tiempo real -->
-    <div class="card shadow border-0 sticky-top" style="top:20px">
-    <div class="card-header bg-success text-white">
-        <h5 class="mb-0">💰 Cálculo en tiempo real</h5>
-    </div>
-    <div class="card-body" id="panelCalculo">
-        <div class="text-center mt-3">
-            <p class="mb-1">Área total:</p>
-            <h4 id="display_area">0.00 cm²</h4>
-            <hr>
-            <p class="mb-1">Monto total estimado:</p>
-            <h2 class="text-success" id="display_total">$0.00</h2>
-            <small class="text-muted">Incluye material, utilidad y láser.</small>
         </div>
     </div>
 </div>
 
 <script>
-const TARIFA_LASER = 15.00;
 
 function calcularMontoRealTime() {
-    // 1. Capturar inputs
     const largo = parseFloat(document.querySelector('input[name="largo_pza"]').value) || 0;
     const ancho = parseFloat(document.querySelector('input[name="ancho_pza"]').value) || 0;
     const minutosLaser = parseFloat(document.querySelector('input[name="minutos_lazer"]').value) || 0;
     const utilidadPorcentaje = parseFloat(document.querySelector('input[name="porcentaje_utilidad"]').value) || 40;
     
-    // 2. Obtener el factor dinámico del select de espesores
+    // Obtener factor dinámico del select
     const espesorSelect = document.getElementById('id_espesor');
     const selectedOption = espesorSelect.options[espesorSelect.selectedIndex];
-    // Leemos el data-factor que pusimos en el HTML
-    const factor = selectedOption ? parseFloat(selectedOption.getAttribute('data-factor')) || 0 : 0;
+    // Nota: El factor en tu tabla está por m2 (ej. 400.00), lo dividimos entre 10,000 para cm2
+    const factorM2 = selectedOption ? parseFloat(selectedOption.getAttribute('data-factor')) || 0 : 0;
+    const factorCm2 = factorM2 / 10000; 
 
-    // 3. Lógica de cálculo Acrylitec
     const area = largo * ancho;
-    const costoMaterial = area * factor;
+    const costoMaterial = area * factorCm2;
     const utilidad = costoMaterial * (utilidadPorcentaje / 100);
-    const costoLaser = minutosLaser * 15.00; // Tarifa láser fija o de variable
+    const costoLaser = minutosLaser * 10.00; // Tarifa actual según tu captura
 
     const total = costoMaterial + utilidad + costoLaser;
 
-    // 4. Inyectar resultados en el panel
-    document.getElementById('display_area').innerText = area.toLocaleString('es-MX', {minimumFractionDigits: 2}) + " cm²";
+    document.getElementById('display_area').innerText = area.toFixed(2) + " cm²";
     document.getElementById('display_total').innerText = "$" + total.toLocaleString('es-MX', {minimumFractionDigits: 2});
 }
 
-// Event Listeners: detectar cambios en cualquier campo
-const inputs = [
-    'input[name="largo_pza"]', 
-    'input[name="ancho_pza"]', 
-    'select[name="espesor_mm"]', 
-    'input[name="minutos_lazer"]', 
-    'input[name="porcentaje_utilidad"]'
-];
-
-inputs.forEach(selector => {
-    const el = document.querySelector(selector);
-    if(el) {
-        // 'input' detecta cambios al escribir, 'change' detecta cambios en select
-        el.addEventListener('input', calcularMontoRealTime);
-        el.addEventListener('change', calcularMontoRealTime);
-    }
+// Eventos para actualizar al instante
+document.querySelectorAll('input, select').forEach(el => {
+    el.addEventListener('input', calcularMontoRealTime);
+    el.addEventListener('change', calcularMontoRealTime);
 });
 
 </script>
