@@ -222,7 +222,7 @@ def _get_tarifa_laser():
     return ConfiguracionPrecios.get_config().tarifa_laser_minuto
 
 
-def _calcular_monto(largo, ancho, espesor_mm,porcentaje_utilidad, minutos_laser=0,producto_id=None):
+def _calcular_monto(largo, ancho, espesor_mm,porcentaje_utilidad, minutos_laser=0):
     largo = Decimal(str(largo or 0))
     ancho = Decimal(str(ancho or 0))
     minutos_laser = Decimal(str(minutos_laser or 0))
@@ -233,15 +233,15 @@ def _calcular_monto(largo, ancho, espesor_mm,porcentaje_utilidad, minutos_laser=
             if prod and prod.precio_fijo:
                 return {
                     'area': largo * ancho,
+                    'area_m2': (largo * ancho) / Decimal('10000'),
                     'costo_material': Decimal('0.00'),
                     'utilidad': Decimal('0.00'),
                     'costo_laser': Decimal('0.00'),
                     'monto_total': prod.precio_fijo,
                 }
 
-    area = largo * ancho  # cm²
-    area_m2 = area / Decimal('10000')  # convertir a m²
-    costo_material = area_m2 * factor
+    area_cm2 = largo * ancho
+    area_m2 = area_cm2 / Decimal('10000')  # ← conversión clave
     try:
         tabulador = TabuladorCostos.objects.get(espesor_mm=espesor_mm)
         factor = tabulador.factor_costo
@@ -257,7 +257,8 @@ def _calcular_monto(largo, ancho, espesor_mm,porcentaje_utilidad, minutos_laser=
     )
 
     return {
-        'area': area,
+        'area': area_cm2,
+        'area_m2': area_m2,
         'costo_material': costo_material.quantize(Decimal('0.01')),
         'utilidad': utilidad.quantize(Decimal('0.01')),
         'costo_laser': costo_laser.quantize(Decimal('0.01')),

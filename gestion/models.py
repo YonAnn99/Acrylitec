@@ -31,8 +31,8 @@ class Cotizaciones(models.Model):
     fecha = models.DateField(blank=True, null=True)
 
     def calcular_monto(self):
-        """Fórmula Acrylitec: (Área * Factor Espesor) + Utilidad + Láser"""
-        # 1. Si el producto tiene precio fijo, eso manda
+        
+        
         if self.id_producto and self.id_producto.precio_fijo:
             return self.id_producto.precio_fijo
 
@@ -43,10 +43,13 @@ class Cotizaciones(models.Model):
         except TabuladorCostos.DoesNotExist:
             factor = Decimal('0.00')
 
+        largo = Decimal(str(self.largo_pza or 0))
+        ancho = Decimal(str(self.ancho_pza or 0))
+
         # 3. Cálculo de área y costo base
-        area = (self.largo_pza or 0) * (self.ancho_pza or 0)  # área en cm²
-        area_m2 = Decimal(area) / Decimal('10000')  # convertir a m²
-        costo_base = area_m2 * Decimal(factor)
+        area_cm2 = largo * ancho
+        area_m2 = area_cm2 / Decimal('10000')  # convertir cm² a m²
+        costo_base = area_m2 * factor
 
         # 4. Utilidad manual (40%, 70%, etc.)
         utilidad = costo_base * (Decimal(self.porcentaje_utilidad) / Decimal(100))

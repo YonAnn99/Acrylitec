@@ -168,6 +168,9 @@ function calcularMontoRealTime() {
     const area = largo * ancho;  // cm²
     const areaMt2 = area / 10000;  // convertir a m²
     const costoMaterial = areaMt2 * factor;  // factor está en $/m²
+    const costoUtilidad = costoMaterial * (utilidad / 100);
+    const costoLaser = minutos * tarifaLaser;
+    const total = costoMaterial + costoUtilidad + costoLaser;
 
     document.getElementById('display_area').innerText = area.toFixed(2) + ' cm²';
     document.getElementById('display_material').innerText = '$' + costoMaterial.toFixed(2);
