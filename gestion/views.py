@@ -401,6 +401,7 @@ def crear_cotizacion(request):
     productos = Productos.objects.all()
     materiales = Materiales.objects.all()
     tarifa_laser = _get_tarifa_laser()
+    materiales_tabulador = TabuladorCostos.objects.order_by('espesor_mm')
 
     if request.method == 'POST':
         cliente = get_object_or_404(Clientes, pk=request.POST.get('cliente'))
@@ -423,7 +424,10 @@ def crear_cotizacion(request):
 
     return render(request, 'gestion/cotizacion_form.html', {
         'clientes': clientes, 'productos': productos,
-        'materiales': materiales, 'tarifa_laser': tarifa_laser,
+        'productos': productos,
+        'materiales': materiales,
+        'materiales_tabulador': materiales_tabulador,
+        'tarifa_laser': _get_tarifa_laser(),
     })
 
 
