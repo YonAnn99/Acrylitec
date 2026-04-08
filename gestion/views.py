@@ -169,10 +169,11 @@ def cotizacion_express(request):
 
         try:
             material = TabuladorCostos.objects.get(pk=material_id)
-            area = largo * ancho
-            costo_material = area * float(material.factor_costo)
-            costo_laser = minutos_laser * 15
-            total = costo_material + costo_laser
+            area = Decimal(largo) * Decimal(ancho)
+            costo_material = area * material.factor_costo
+            utilidad = costo_material * Decimal('0.40')
+            costo_laser = Decimal(minutos_laser) * Decimal('15.00')
+            total = costo_material + utilidad + costo_laser
 
             resultado = {
                 'nombre_cliente': nombre_cliente,
@@ -405,14 +406,18 @@ def crear_cotizacion(request):
         cliente = get_object_or_404(Clientes, pk=request.POST.get('cliente'))
         producto = get_object_or_404(Productos, pk=request.POST.get('producto'))
         material = get_object_or_404(Materiales, pk=request.POST.get('material'))
-        largo = request.POST.get('largo_pza')
-        ancho = request.POST.get('ancho_pza')
-        minutos_laser = request.POST.get('minutos_lazer') or 0
-        calculo = _calcular_monto(largo, ancho, producto, minutos_laser)
+        
+        # Guardamos directamente; el método save() del modelo calculará el monto_total
         cotizacion = Cotizaciones.objects.create(
-            id_cliente=cliente, id_producto=producto, id_material=material,
-            largo_pza=largo, ancho_pza=ancho, minutos_lazer=minutos_laser,
-            monto_total=calculo['monto_total'], fecha=datetime.date.today(),
+            id_cliente=cliente,
+            id_producto=producto,
+            id_material=material,
+            largo_pza=request.POST.get('largo_pza'),
+            ancho_pza=request.POST.get('ancho_pza'),
+            espesor_mm=request.POST.get('espesor_mm'),
+            porcentaje_utilidad=request.POST.get('porcentaje_utilidad') or 40,
+            minutos_lazer=request.POST.get('minutos_lazer') or 0,
+            fecha=datetime.date.today(),
         )
         return redirect('detalle_cotizacion', pk=cotizacion.id_cotizacion)
 
@@ -426,8 +431,12 @@ def detalle_cotizacion(request, pk):
     cotizacion = get_object_or_404(
         Cotizaciones.objects.select_related('id_cliente', 'id_producto', 'id_material'), pk=pk)
     calculo = _calcular_monto(
-        cotizacion.largo_pza, cotizacion.ancho_pza,
-        cotizacion.id_producto, cotizacion.minutos_lazer)
+        cotizacion.largo_pza, 
+        cotizacion.ancho_pza,
+        cotizacion.id_producto.id_producto if cotizacion.id_producto else None,  # para que tome el precio fijo si existe   
+        cotizacion.minutos_lazer,
+        cotizacion.espesor_mm, 
+        cotizacion.porcentaje_utilidad)
     venta_existente = Ventas.objects.filter(id_cotizacion=cotizacion).first()
 
     cliente = cotizacion.id_cliente
@@ -439,7 +448,7 @@ def detalle_cotizacion(request, pk):
         f"#COT-{cotizacion.id_cotizacion:04d}.\n"
         f"Producto: {cotizacion.id_producto.nombre}\n"
         f"Material: {cotizacion.id_material.descripcion}\n"
-        f"Medidas: {cotizacion.largo_pza}m × {cotizacion.ancho_pza}m\n"
+        f"Medidas: {cotizacion.largo_pza}m × {cotizacion.ancho_pza}cm\n"
         f"Total: ${cotizacion.monto_total} MXN\n"
         f"Fecha: {cotizacion.fecha}\n¡Estamos a tus órdenes!"
     )
@@ -500,7 +509,7 @@ def lista_ventas(request):
     ).order_by('-fecha_venta', '-id_venta')
     resumen = {
         'total_ventas': ventas.count(),
-        'total_ingresos': ventas.aggregate(s=Sum('monto_pagado'))['s'] or Decimal('0'),
+        'total_ingresos': ventas.aggregate(s=Sum('monto_abonado'))['s'] or Decimal('0'),
         'pendientes': ventas.filter(estatus='pendiente').count(),
         'en_produccion': ventas.filter(estatus='en_produccion').count(),
         'entregadas': ventas.filter(estatus='entregada').count(),
@@ -537,17 +546,18 @@ def dashboard(request):
     hoy = datetime.date.today()
     ventas_qs = Ventas.objects.select_related('id_cotizacion__id_producto')
 
-    por_mes = (ventas_qs.filter(fecha_venta__gte=hoy - datetime.timedelta(days=180))
+    por_mes = (ventas_qs.filter(fecha_venta__gte=hoy - datetime.timedelta(days=180), estatus='pagada')
                .annotate(periodo=TruncMonth('fecha_venta'))
-               .values('periodo').annotate(total=Sum('monto_pagado'), cantidad=Count('id_venta'))
+               .values('periodo')
+               .annotate(total=Sum('id_cotizacion__monto_total'), cantidad=Count('id_venta'))
                .order_by('periodo'))
     por_semana = (ventas_qs.filter(fecha_venta__gte=hoy - datetime.timedelta(weeks=8))
                   .annotate(periodo=TruncWeek('fecha_venta'))
-                  .values('periodo').annotate(total=Sum('monto_pagado'), cantidad=Count('id_venta'))
+                  .values('periodo').annotate(total=Sum('id_cotizacion__monto_total'), cantidad=Count('id_venta'))
                   .order_by('periodo'))
     por_anio = (ventas_qs.filter(fecha_venta__gte=hoy - datetime.timedelta(days=365 * 3))
                 .annotate(periodo=TruncYear('fecha_venta'))
-                .values('periodo').annotate(total=Sum('monto_pagado'), cantidad=Count('id_venta'))
+                .values('periodo').annotate(total=Sum('id_cotizacion__monto_total'), cantidad=Count('id_venta'))
                 .order_by('periodo'))
 
     top_productos = (ventas_qs.values('id_cotizacion__id_producto__nombre')
