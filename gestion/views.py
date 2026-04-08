@@ -239,7 +239,9 @@ def _calcular_monto(largo, ancho, espesor_mm,porcentaje_utilidad, minutos_laser=
                     'monto_total': prod.precio_fijo,
                 }
 
-    area = largo * ancho
+    area = largo * ancho  # cm²
+    area_m2 = area / Decimal('10000')  # convertir a m²
+    costo_material = area_m2 * factor
     try:
         tabulador = TabuladorCostos.objects.get(espesor_mm=espesor_mm)
         factor = tabulador.factor_costo

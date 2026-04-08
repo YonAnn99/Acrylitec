@@ -44,8 +44,9 @@ class Cotizaciones(models.Model):
             factor = Decimal('0.00')
 
         # 3. Cálculo de área y costo base
-        area = (self.largo_pza or 0) * (self.ancho_pza or 0)
-        costo_base = Decimal(area) * Decimal(factor)
+        area = (self.largo_pza or 0) * (self.ancho_pza or 0)  # área en cm²
+        area_m2 = Decimal(area) / Decimal('10000')  # convertir a m²
+        costo_base = area_m2 * Decimal(factor)
 
         # 4. Utilidad manual (40%, 70%, etc.)
         utilidad = costo_base * (Decimal(self.porcentaje_utilidad) / Decimal(100))
