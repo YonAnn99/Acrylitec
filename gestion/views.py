@@ -228,6 +228,9 @@ def _calcular_monto(largo, ancho, espesor_mm, porcentaje_utilidad, minutos_laser
     minutos_laser = Decimal(str(minutos_laser or 0))
     porcentaje_utilidad = Decimal(str(porcentaje_utilidad or 40))
 
+    area_cm2 = largo * ancho
+    area_m2 = area_cm2 / Decimal('10000')
+
     if producto_id:
             prod = Productos.objects.filter(pk=producto_id).first()
             if prod and prod.precio_fijo:
@@ -240,15 +243,13 @@ def _calcular_monto(largo, ancho, espesor_mm, porcentaje_utilidad, minutos_laser
                     'monto_total': prod.precio_fijo,
                 }
 
-    area_cm2 = largo * ancho
-    area_m2 = area_cm2 / Decimal('10000')  # ← conversión clave
     try:
         tabulador = TabuladorCostos.objects.get(espesor_mm=espesor_mm)
         factor = tabulador.factor_costo
     except TabuladorCostos.DoesNotExist:
         factor = Decimal('0.00')
 
-    costo_material = area * factor
+    costo_material = area_m2 * factor
     utilidad = costo_material * (porcentaje_utilidad / Decimal('100'))
     costo_laser = minutos_laser * _get_tarifa_laser()
     
