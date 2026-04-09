@@ -547,6 +547,17 @@ def actualizar_estatus_venta(request, pk):
         venta.save()
     return redirect('detalle_venta', pk=pk)
 
+def actualizar_abono_venta(request, pk):
+    venta = get_object_or_404(Ventas, pk=pk)
+    if request.method == 'POST':
+        nuevo_abono = request.POST.get('monto_abonado')
+        try:
+            venta.monto_abonado = Decimal(nuevo_abono)
+            venta.save()
+        except Exception as e:
+            messages.error(request, f'Error: {e}')
+    return redirect('detalle_venta', pk=pk)
+
 
 # ─────────────────────────────────────────
 #  DASHBOARD

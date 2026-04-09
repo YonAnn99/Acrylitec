@@ -33,6 +33,7 @@ urlpatterns = [
     path('ventas/', views.lista_ventas, name='lista_ventas'),
     path('ventas/<int:pk>/', views.detalle_venta, name='detalle_venta'),
     path('ventas/<int:pk>/estatus/', views.actualizar_estatus_venta, name='actualizar_estatus_venta'),
+    path('ventas/<int:pk>/abono/', views.actualizar_abono_venta, name='actualizar_abono_venta'),
     path('cotizaciones/<int:cotizacion_pk>/registrar-venta/', views.registrar_venta, name='registrar_venta'),
 
     # ── Configuración de Precios ────────────────────────────
