@@ -169,10 +169,12 @@ def cotizacion_express(request):
 
         try:
             material = TabuladorCostos.objects.get(pk=material_id)
-            area = Decimal(largo) * Decimal(ancho)
-            costo_material = area * material.factor_costo
-            utilidad = costo_material * Decimal('0.40')
-            costo_laser = Decimal(minutos_laser) * Decimal('15.00')
+            area_cm2 = Decimal(str(largo)) * Decimal(str(ancho))
+            area_m2 = area_cm2 / Decimal('10000')  # ← convertir a m²
+            costo_material = area_m2 * material.factor_costo
+            utilidad_pct = Decimal(str(request.POST.get('utilidad', 40)))
+            utilidad = costo_material * (utilidad_pct / Decimal('100'))
+            costo_laser = Decimal(str(minutos_laser)) * _get_tarifa_laser()
             total = costo_material + utilidad + costo_laser
 
             resultado = {
@@ -180,9 +182,12 @@ def cotizacion_express(request):
                 'telefono': telefono,
                 'largo': largo,
                 'ancho': ancho,
-                'area': round(area, 4),
+                'area_cm2': round(area_cm2, 2),
+                'area_m2': round(area_m2, 4),
                 'material': f"{material.espesor_mm}mm",
                 'costo_material': round(costo_material, 2),
+                'utilidad': round(utilidad, 2),
+                'utilidad_pct': utilidad_pct,
                 'costo_laser': round(costo_laser, 2),
                 'total': round(total, 2),
                 'minutos_laser': minutos_laser,
@@ -211,6 +216,7 @@ def cotizacion_express(request):
         'materiales': materiales,
         'resultado': resultado,
         'whatsapp_msg': whatsapp_msg,
+        'tarifa_laser': _get_tarifa_laser(), 
     })
 
 

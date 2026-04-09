@@ -1,3 +1,4 @@
+{% load static %}
 {% extends 'gestion/base.html' %}
 {% block content %}
 <div class="row">
@@ -17,13 +18,13 @@
                     <div class="row g-2">
                         <div class="col-md-6">
                             <label class="form-label">Nombre</label>
-                            <input type="text" name="nombre_cliente" class="form-control" 
+                            <input type="text" name="nombre_cliente" class="form-control"
                                    placeholder="Nombre del cliente"
                                    value="{{ resultado.nombre_cliente|default:'' }}">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Teléfono (WhatsApp)</label>
-                            <input type="text" name="telefono" class="form-control" 
+                            <input type="text" name="telefono" class="form-control"
                                    placeholder="521XXXXXXXXXX"
                                    value="{{ resultado.telefono|default:'' }}">
                         </div>
@@ -35,12 +36,13 @@
                 <div class="card-header bg-dark text-white">🧪 Material y Medidas</div>
                 <div class="card-body">
                     <div class="mb-3">
-                        <label class="form-label">Material</label>
-                        <select name="material" class="form-select" required>
+                        <label class="form-label">Espesor (mm)</label>
+                        <select name="material" id="id_material" class="form-select" required>
                             <option value="">-- Selecciona material --</option>
                             {% for m in materiales %}
-                            <option value="{{ m.id_tabulador }}" 
-                                {% if resultado and resultado.material == m.nombre %}selected{% endif %}>
+                            <option value="{{ m.id_tabulador }}"
+                                data-factor="{{ m.factor_costo }}"
+                                {% if resultado and resultado.material == m.espesor_mm|stringformat:"s"|add:"mm" %}selected{% endif %}>
                                 {{ m.espesor_mm }}mm — ${{ m.factor_costo }}/m²
                             </option>
                             {% endfor %}
@@ -48,28 +50,35 @@
                     </div>
                     <div class="row g-2">
                         <div class="col-md-4">
-                            <label class="form-label">Largo (m)</label>
-                            <input type="number" name="largo" class="form-control" 
-                                   step="0.01" min="0" placeholder="ej. 1.20"
+                            <label class="form-label">Largo (cm)</label>
+                            <input type="number" name="largo" class="form-control"
+                                   step="0.01" min="0" placeholder="ej. 20"
                                    value="{{ resultado.largo|default:'' }}">
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">Ancho (m)</label>
-                            <input type="number" name="ancho" class="form-control" 
-                                   step="0.01" min="0" placeholder="ej. 0.60"
+                            <label class="form-label">Ancho (cm)</label>
+                            <input type="number" name="ancho" class="form-control"
+                                   step="0.01" min="0" placeholder="ej. 10"
                                    value="{{ resultado.ancho|default:'' }}">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Minutos Láser</label>
-                            <input type="number" name="minutos_laser" class="form-control" 
+                            <input type="number" name="minutos_laser" class="form-control"
                                    step="1" min="0" placeholder="0"
                                    value="{{ resultado.minutos_laser|default:0 }}">
                         </div>
                     </div>
+                    <div class="mt-3">
+                        <label class="form-label">Utilidad (%)</label>
+                        <input type="number" name="utilidad" class="form-control"
+                               step="1" min="0" max="200" placeholder="ej. 40"
+                               value="{{ resultado.utilidad_pct|default:40 }}">
+                        <small class="text-muted">40% cortes simples / 70%+ piezas fabricadas</small>
+                    </div>
                 </div>
             </div>
 
-            <!-- Botones de acción -->
+            <!-- Botones -->
             <div class="d-grid gap-2">
                 <button type="submit" name="calcular" class="btn btn-success btn-lg">
                     🧮 Calcular cotización
@@ -95,12 +104,16 @@
                 <h5>{{ resultado.nombre_cliente }}</h5>
                 <table class="table table-sm">
                     <tr>
-                        <td>Área calculada:</td>
-                        <td><strong>{{ resultado.area }} m²</strong></td>
+                        <td>Área:</td>
+                        <td><strong>{{ resultado.area_cm2 }} cm²</strong></td>
                     </tr>
                     <tr>
                         <td>Material ({{ resultado.material }}):</td>
                         <td>${{ resultado.costo_material }}</td>
+                    </tr>
+                    <tr>
+                        <td>Utilidad ({{ resultado.utilidad_pct }}%):</td>
+                        <td>${{ resultado.utilidad }}</td>
                     </tr>
                     <tr>
                         <td>Corte láser ({{ resultado.minutos_laser }} min):</td>
@@ -112,7 +125,6 @@
                     </tr>
                 </table>
 
-                <!-- Botón WhatsApp -->
                 {% if resultado.telefono %}
                 <a href="https://wa.me/{{ resultado.telefono }}?text={{ whatsapp_msg|urlencode }}"
                    target="_blank" class="btn btn-success w-100 mb-2">
@@ -122,12 +134,10 @@
                 <p class="text-muted small">Ingresa el teléfono para enviar por WhatsApp</p>
                 {% endif %}
 
-                <!-- Botón Imprimir -->
                 <button onclick="window.print()" class="btn btn-outline-secondary w-100 mb-2">
                     🖨️ Imprimir
                 </button>
 
-                <!-- Convertir en cotización real -->
                 <hr>
                 <p class="text-muted small text-center">¿El cliente confirma el pedido?</p>
                 <a href="{% url 'crear_cotizacion' %}" class="btn btn-primary w-100">
@@ -140,6 +150,19 @@
             <div class="text-center p-5">
                 <div style="font-size:4rem">⚡</div>
                 <p>Llena el formulario y presiona<br><strong>Calcular cotización</strong></p>
+                <hr>
+                <!-- Preview en tiempo real -->
+                <p class="text-muted small mb-1">Área:</p>
+                <p id="display_area">0.00 cm²</p>
+                <p class="text-muted small mb-1">Costo material:</p>
+                <p id="display_material">$0.00</p>
+                <p class="text-muted small mb-1">Utilidad:</p>
+                <p id="display_utilidad">$0.00</p>
+                <p class="text-muted small mb-1">Corte láser:</p>
+                <p id="display_laser">$0.00</p>
+                <hr>
+                <p class="text-muted small mb-1">Total estimado:</p>
+                <h3 class="text-success" id="display_total">$0.00</h3>
             </div>
         </div>
         {% endif %}
@@ -153,4 +176,38 @@
     #resultado-card { border: 2px solid #000 !important; }
 }
 </style>
+
+
+<script>
+const tarifaLaser = 15; // Costo por minuto de corte láser
+
+function calcularMontoRealTime() {
+    const largo = parseFloat(document.querySelector('input[name="largo"]').value) || 0;
+    const ancho = parseFloat(document.querySelector('input[name="ancho"]').value) || 0;
+    const minutos = parseFloat(document.querySelector('input[name="minutos_laser"]').value) || 0;
+    const utilidad = parseFloat(document.querySelector('input[name="utilidad"]').value) || 40;
+
+    const matSelect = document.getElementById('id_material');
+    const factor = parseFloat(matSelect.options[matSelect.selectedIndex]?.getAttribute('data-factor')) || 0;
+
+    const areaCm2 = largo * ancho;
+    const areaM2 = areaCm2 / 10000;
+    const costoMaterial = areaM2 * factor;
+    const costoUtilidad = costoMaterial * (utilidad / 100);
+    const costoLaser = minutos * tarifaLaser;
+    const total = costoMaterial + costoUtilidad + costoLaser;
+
+    const el = (id) => document.getElementById(id);
+    if (el('display_area')) el('display_area').innerText = areaCm2.toFixed(2) + ' cm²';
+    if (el('display_material')) el('display_material').innerText = '$' + costoMaterial.toFixed(2);
+    if (el('display_utilidad')) el('display_utilidad').innerText = '$' + costoUtilidad.toFixed(2);
+    if (el('display_laser')) el('display_laser').innerText = '$' + costoLaser.toFixed(2);
+    if (el('display_total')) el('display_total').innerText = '$' + total.toLocaleString('es-MX', {minimumFractionDigits: 2});
+}
+
+document.querySelectorAll('input, select').forEach(el => {
+    el.addEventListener('input', calcularMontoRealTime);
+    el.addEventListener('change', calcularMontoRealTime);
+});
+</script>
 {% endblock %}
