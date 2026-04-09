@@ -37,19 +37,11 @@
                     <tbody>
                         <tr>
                             <td>Medidas</td>
-                            <td class="text-end">{{ cotizacion.largo_pza }} m × {{ cotizacion.ancho_pza }} m</td>
+                            <td class="text-end">{{ cotizacion.largo_pza }} cm × {{ cotizacion.ancho_pza }} cm</td>
                         </tr>
                         <tr>
                             <td>Área total</td>
-                            <td class="text-end">{{ calculo.area|floatformat:4 }} m²</td>
-                        </tr>
-                        <tr>
-                            <td>Costo de material</td>
-                            <td class="text-end">${{ calculo.costo_material }}</td>
-                        </tr>
-                        <tr>
-                            <td>Mano de obra / Utilidad ({{ cotizacion.id_producto.porcentaje_utilidad }}%)</td>
-                            <td class="text-end">${{ calculo.utilidad }}</td>
+                            <td class="text-end">{{ calculo.area|floatformat:4 }} cm²</td>
                         </tr>
                         {% if cotizacion.minutos_lazer %}
                         <tr>

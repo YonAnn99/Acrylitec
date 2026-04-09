@@ -342,6 +342,7 @@ def lista_productos(request):
 
 def crear_producto(request):
     if request.method == 'POST':
+        precio_fijo = request.POST.get('precio_fijo') or None
         foto_path = None
         if 'foto' in request.FILES:
             foto = request.FILES['foto']
@@ -351,7 +352,8 @@ def crear_producto(request):
         Productos.objects.create(
             nombre=request.POST.get('nombre'),
             detalle=request.POST.get('detalle'),
-            porcentaje_utilidad=request.POST.get('porcentaje_utilidad'),
+            porcentaje_utilidad=request.POST.get('porcentaje_utilidad') or 40,
+            precio_fijo=precio_fijo,
             foto=foto_path,
         )
         return redirect('lista_productos')
@@ -363,7 +365,8 @@ def editar_producto(request, pk):
     if request.method == 'POST':
         producto.nombre = request.POST.get('nombre')
         producto.detalle = request.POST.get('detalle')
-        producto.porcentaje_utilidad = request.POST.get('porcentaje_utilidad')
+        producto.porcentaje_utilidad = request.POST.get('porcentaje_utilidad') or 40
+        producto.precio_fijo = request.POST.get('precio_fijo') or None
         if 'foto' in request.FILES:
             foto = request.FILES['foto']
             ext = os.path.splitext(foto.name)[1]

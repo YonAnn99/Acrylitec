@@ -22,7 +22,11 @@
                 <h5 class="card-title mb-1">{{ prod.nombre }}</h5>
                 <p class="text-muted small mb-2">{{ prod.detalle|default:"Sin descripción" }}</p>
                 <div class="mt-auto">
-                    <span class="badge bg-success fs-6 mb-3">{{ prod.porcentaje_utilidad }}% utilidad</span>
+                    {% if prod.precio_fijo %}
+                        <span class="badge bg-primary fs-6 mb-3">💰 Precio fijo: ${{ prod.precio_fijo }}</span>
+                    {% else %}
+                        <span class="badge bg-success fs-6 mb-3">{{ prod.porcentaje_utilidad }}% utilidad</span>
+                    {% endif %}
                     <div class="d-flex gap-2">
                         <a href="{% url 'editar_producto' prod.id_producto %}"
                            class="btn btn-sm btn-outline-dark flex-fill">✏️ Editar</a>

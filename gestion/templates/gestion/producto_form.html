@@ -24,16 +24,42 @@
                         <textarea name="detalle" class="form-control" rows="3"
                                   placeholder="ej. Corte de lámina según medidas del cliente">{{ producto.detalle|default:'' }}</textarea>
                     </div>
+
+                    <!-- ← REEMPLAZADO: precio fijo + utilidad -->
                     <div class="mb-3">
-                        <label class="form-label fw-bold">% de Utilidad</label>
-                        <div class="input-group">
-                            <input type="number" name="porcentaje_utilidad" class="form-control"
-                                   min="0" max="500" step="1"
-                                   value="{{ producto.porcentaje_utilidad|default:'30' }}" required>
-                            <span class="input-group-text">%</span>
+                        <label class="form-label fw-bold">Tipo de precio</label>
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <div class="card border p-3 h-100">
+                                    <label class="form-label fw-semibold">💰 Precio fijo</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" name="precio_fijo" class="form-control"
+                                               min="0" step="0.01"
+                                               value="{{ producto.precio_fijo|default:'' }}"
+                                               placeholder="ej. 350.00">
+                                    </div>
+                                    <small class="text-muted mt-1">Para productos con costo establecido. Ignora la fórmula.</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card border p-3 h-100">
+                                    <label class="form-label fw-semibold">📊 % de Utilidad</label>
+                                    <div class="input-group">
+                                        <input type="number" name="porcentaje_utilidad" class="form-control"
+                                               min="0" max="500" step="1"
+                                               value="{{ producto.porcentaje_utilidad|default:'40' }}">
+                                        <span class="input-group-text">%</span>
+                                    </div>
+                                    <small class="text-muted mt-1">Se aplica sobre el costo del material.</small>
+                                </div>
+                            </div>
                         </div>
-                        <small class="text-muted">Ej: 30% → si material cuesta $100, se cobra $130.</small>
+                        <small class="text-warning mt-2 d-block">
+                            ⚠️ Si defines precio fijo, este tendrá prioridad sobre la utilidad.
+                        </small>
                     </div>
+
                     <div class="mb-3">
                         <label class="form-label fw-bold">Foto del producto</label>
                         {% if producto.foto %}
