@@ -68,7 +68,7 @@
                 <td>{{ v.fecha_venta }}</td>
                 <td>{{ v.id_cotizacion.id_cliente.nombre }}</td>
                 <td>{{ v.id_cotizacion.id_producto.nombre }}</td>
-                <td class="fw-bold text-success">${{ v.monto_pagado }}</td>
+                <td class="fw-bold text-success">${{ v.monto_abonado }}</td>
                 <td>
                     {% if v.estatus == 'pendiente' %}
                         <span class="badge" style="background-color: #6c757d;">⏳ Pendiente</span>
