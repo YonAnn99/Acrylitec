@@ -518,7 +518,8 @@ def lista_ventas(request):
     ).order_by('-fecha_venta', '-id_venta')
     resumen = {
         'total_ventas': ventas.count(),
-        'total_ingresos': ventas.aggregate(s=Sum('monto_abonado'))['s'] or Decimal('0'),
+        'total_ingresos': ventas.filter(estatus='pagada').aggregate(
+            s=Sum('id_cotizacion__monto_total'))['s'] or Decimal('0'),
         'pendientes': ventas.filter(estatus='pendiente').count(),
         'en_produccion': ventas.filter(estatus='en_produccion').count(),
         'entregadas': ventas.filter(estatus='entregada').count(),
