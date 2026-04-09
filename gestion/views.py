@@ -222,7 +222,7 @@ def _get_tarifa_laser():
     return ConfiguracionPrecios.get_config().tarifa_laser_minuto
 
 
-def _calcular_monto(largo, ancho, espesor_mm,porcentaje_utilidad, minutos_laser=0):
+def _calcular_monto(largo, ancho, espesor_mm, porcentaje_utilidad, minutos_laser=0, producto_id=None):
     largo = Decimal(str(largo or 0))
     ancho = Decimal(str(ancho or 0))
     minutos_laser = Decimal(str(minutos_laser or 0))
