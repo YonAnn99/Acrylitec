@@ -438,12 +438,13 @@ def detalle_cotizacion(request, pk):
     cotizacion = get_object_or_404(
         Cotizaciones.objects.select_related('id_cliente', 'id_producto', 'id_material'), pk=pk)
     calculo = _calcular_monto(
-        cotizacion.largo_pza, 
-        cotizacion.ancho_pza,
-        cotizacion.id_producto.id_producto if cotizacion.id_producto else None,  # para que tome el precio fijo si existe   
-        cotizacion.minutos_lazer,
-        cotizacion.espesor_mm, 
-        cotizacion.porcentaje_utilidad)
+        largo=cotizacion.largo_pza,
+        ancho=cotizacion.ancho_pza,
+        espesor_mm=cotizacion.espesor_mm,
+        porcentaje_utilidad=cotizacion.porcentaje_utilidad,
+        minutos_laser=cotizacion.minutos_lazer,
+        producto_id=cotizacion.id_producto.id_producto if cotizacion.id_producto else None,
+    )
     venta_existente = Ventas.objects.filter(id_cotizacion=cotizacion).first()
 
     cliente = cotizacion.id_cliente
