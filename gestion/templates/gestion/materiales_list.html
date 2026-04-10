@@ -3,10 +3,22 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h2>Inventario de Materiales</h2>
-    <a href="{% url 'crear_material' %}" class="btn btn-success">
-        <i class="bi bi-plus-circle"></i> + Nuevo Material
-    </a>
+    <a href="{% url 'crear_material' %}" class="btn btn-success">+ Nuevo Material</a>
 </div>
+
+<!-- Barra de búsqueda -->
+<form method="GET" class="mb-3">
+    <div class="input-group">
+        <input type="text" name="q" class="form-control"
+               placeholder="Buscar material..."
+               value="{{ query }}">
+        <button class="btn btn-primary" type="submit">🔍 Buscar</button>
+        {% if query %}
+        <a href="{% url 'lista_materiales' %}" class="btn btn-secondary">✖ Limpiar</a>
+        {% endif %}
+    </div>
+</form>
+
 <table class="table table-striped table-hover mt-3">
     <thead class="table-dark">
         <tr>
@@ -14,7 +26,7 @@
             <th>Largo</th>
             <th>Ancho</th>
             <th>Stock Actual</th>
-            <th>Acciones</th> </tr>
+            <th>Acciones</th>
         </tr>
     </thead>
     <tbody>
@@ -24,9 +36,9 @@
             <td>{{ material.largo }} cm</td>
             <td>{{ material.ancho }} cm</td>
             <td>{{ material.stock_actual }}</td>
-            <td> 
-                <a href="{% url 'eliminar_material' material.id_material %}" 
-                   class="btn btn-danger btn-sm" 
+            <td>
+                <a href="{% url 'eliminar_material' material.id_material %}"
+                   class="btn btn-danger btn-sm"
                    onclick="return confirm('¿Seguro que quieres borrar este material?')">
                    Eliminar
                 </a>

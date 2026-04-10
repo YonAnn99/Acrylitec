@@ -309,8 +309,14 @@ def crear_cliente(request):
 # ─────────────────────────────────────────
 
 def lista_materiales(request):
-    return render(request, 'gestion/materiales_list.html',
-                  {'materiales': Materiales.objects.all()})
+    query = request.GET.get('q', '')
+    materiales = Materiales.objects.all()
+    if query:
+        materiales = materiales.filter(descripcion__icontains=query)
+    return render(request, 'gestion/materiales_list.html', {
+        'materiales': materiales,
+        'query': query
+    })
 
 
 def crear_material(request):
