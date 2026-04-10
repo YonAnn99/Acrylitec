@@ -12,7 +12,7 @@
                     <div class="card-header bg-dark text-white">Datos del Cliente</div>
                     <div class="card-body">
                         <label class="form-label">Cliente</label>
-                        <select name="cliente" class="form-select" required>
+                        <select name="cliente" id="id_cliente" class="form-select select2" required>
                             <option value="">-- Selecciona cliente --</option>
                             {% for c in clientes %}
                             <option value="{{ c.id_cliente }}">{{ c.nombre }}</option>
@@ -26,7 +26,7 @@
                     <div class="card-header bg-dark text-white">Producto</div>
                     <div class="card-body">
                         <label class="form-label">Producto</label>
-                        <select name="producto" id="id_producto" class="form-select" required>
+                        <select name="producto" id="id_producto" class="form-select select2" required>
                             <option value="">-- Selecciona producto --</option>
                             {% for p in productos %}
                             <option value="{{ p.id_producto }}" 
@@ -44,7 +44,7 @@
                     <div class="card-header bg-dark text-white">Material</div>
                     <div class="card-body">
                         <label class="form-label">Material (lámina)</label>
-                        <select name="material" class="form-select" required>
+                        <select name="material" id="id_material" class="form-select select2" required>
                             <option value="">-- Selecciona material --</option>
                             {% for m in materiales %}
                             <option value="{{ m.id_material }}">{{ m.descripcion }}</option>
@@ -139,6 +139,21 @@
 
 <script>
 const tarifaLaser = 15;
+$(document).ready(function() {
+    $('.select2').select2({
+        theme: 'bootstrap-5',
+        placeholder: '-- Busca o selecciona --',
+        allowClear: true,
+        language: {
+            noResults: function() {
+                return "No se encontraron resultados";
+            },
+            searching: function() {
+                return "Buscando...";
+            }
+        }
+    });
+});
 
 function calcularMontoRealTime() {
     const largo = parseFloat(document.querySelector('input[name="largo_pza"]').value) || 0;
