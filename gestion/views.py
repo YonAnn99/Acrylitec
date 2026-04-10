@@ -573,6 +573,49 @@ def actualizar_abono_venta(request, pk):
             messages.error(request, f'Error: {e}')
     return redirect('detalle_venta', pk=pk)
 
+def venta_directa(request):
+    clientes = Clientes.objects.all()
+    productos = Productos.objects.all()
+    materiales = Materiales.objects.all()
+    materiales_tabulador = TabuladorCostos.objects.order_by('espesor_mm')
+
+    if request.method == 'POST':
+        cliente = get_object_or_404(Clientes, pk=request.POST.get('cliente'))
+        producto = get_object_or_404(Productos, pk=request.POST.get('producto'))
+        material = get_object_or_404(Materiales, pk=request.POST.get('material'))
+        
+        # Crear cotización automática en background
+        cotizacion = Cotizaciones.objects.create(
+            id_cliente=cliente,
+            id_producto=producto,
+            id_material=material,
+            largo_pza=request.POST.get('largo_pza'),
+            ancho_pza=request.POST.get('ancho_pza'),
+            espesor_mm=request.POST.get('espesor_mm'),
+            porcentaje_utilidad=request.POST.get('porcentaje_utilidad') or 40,
+            minutos_lazer=request.POST.get('minutos_lazer') or 0,
+            fecha=datetime.date.today(),
+        )
+        
+        # Crear la venta directamente
+        monto_abonado = Decimal(request.POST.get('monto_abonado') or 0)
+        venta = Ventas.objects.create(
+            id_cotizacion=cotizacion,
+            monto_abonado=monto_abonado,
+            estatus=request.POST.get('estatus', 'pendiente'),
+            fecha_entrega=request.POST.get('fecha_entrega') or None,
+            fecha_venta=datetime.date.today(),
+        )
+        return redirect('detalle_venta', pk=venta.id_venta)
+
+    return render(request, 'gestion/venta_directa.html', {
+        'clientes': clientes,
+        'productos': productos,
+        'materiales': materiales,
+        'materiales_tabulador': materiales_tabulador,
+        'tarifa_laser': _get_tarifa_laser(),
+    })
+
 
 # ─────────────────────────────────────────
 #  DASHBOARD

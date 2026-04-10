@@ -1,0 +1,236 @@
+{% extends 'gestion/base.html' %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-7">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>💰 Nueva Venta Directa</h2>
+                <a href="{% url 'lista_ventas' %}" class="btn btn-outline-secondary">← Volver</a>
+            </div>
+            <p class="text-muted">Registra una venta sin necesidad de crear una cotización previa.</p>
+
+            <form method="POST" id="formVentaDirecta">
+                {% csrf_token %}
+
+                <!-- Cliente -->
+                <div class="card shadow-sm mb-3">
+                    <div class="card-header bg-dark text-white">👤 Cliente</div>
+                    <div class="card-body">
+                        <select name="cliente" id="id_cliente" class="form-select select2" required>
+                            <option value="">-- Selecciona cliente --</option>
+                            {% for c in clientes %}
+                            <option value="{{ c.id_cliente }}">{{ c.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Producto -->
+                <div class="card shadow-sm mb-3">
+                    <div class="card-header bg-dark text-white">📦 Producto</div>
+                    <div class="card-body">
+                        <select name="producto" id="id_producto" class="form-select select2" required>
+                            <option value="">-- Selecciona producto --</option>
+                            {% for p in productos %}
+                            <option value="{{ p.id_producto }}"
+                                data-precio-fijo="{{ p.precio_fijo|default:'' }}"
+                                data-utilidad="{{ p.porcentaje_utilidad }}">
+                                {{ p.nombre }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Material -->
+                <div class="card shadow-sm mb-3">
+                    <div class="card-header bg-dark text-white">🧪 Material</div>
+                    <div class="card-body">
+                        <select name="material" id="id_material" class="form-select select2" required>
+                            <option value="">-- Selecciona material --</option>
+                            {% for m in materiales %}
+                            <option value="{{ m.id_material }}">{{ m.descripcion }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Medidas -->
+                <div class="card shadow-sm mb-3">
+                    <div class="card-header bg-dark text-white">📐 Medidas y Servicios</div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Largo (cm)</label>
+                                <input type="number" name="largo_pza" step="0.01"
+                                       class="form-control" placeholder="ej. 20" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Ancho (cm)</label>
+                                <input type="number" name="ancho_pza" step="0.01"
+                                       class="form-control" placeholder="ej. 10" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Minutos Láser</label>
+                                <input type="number" name="minutos_lazer" step="1"
+                                       value="0" class="form-control">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Espesor (mm)</label>
+                                <select name="espesor_mm" id="id_espesor" class="form-select" required>
+                                    <option value="">-- Selecciona --</option>
+                                    {% for t in materiales_tabulador %}
+                                    <option value="{{ t.espesor_mm }}" data-factor="{{ t.factor_costo }}">
+                                        {{ t.espesor_mm }} mm
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Utilidad (%)</label>
+                                <input type="number" name="porcentaje_utilidad"
+                                       id="id_utilidad" value="40" min="0" max="200"
+                                       class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Datos de venta -->
+                <div class="card shadow-sm mb-3">
+                    <div class="card-header bg-dark text-white">💳 Datos de Pago</div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Monto abonado ($)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" name="monto_abonado" step="0.01"
+                                           min="0" class="form-control"
+                                           placeholder="0.00" id="id_monto_abonado">
+                                </div>
+                                <small class="text-muted">Deja en 0 si aún no paga.</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Estatus inicial</label>
+                                <select name="estatus" class="form-select">
+                                    <option value="pendiente">⏳ Pendiente</option>
+                                    <option value="en_produccion">🔧 En producción</option>
+                                    <option value="pagada">💰 Pagada</option>
+                                    <option value="entregada">✅ Entregada</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Fecha de entrega estimada</label>
+                            <input type="date" name="fecha_entrega" class="form-control">
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-success btn-lg w-100">
+                    ✅ Registrar Venta
+                </button>
+            </form>
+        </div>
+
+        <!-- Panel cálculo -->
+        <div class="col-md-5">
+            <div class="card shadow border-0 sticky-top" style="top:20px">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">💰 Cálculo en tiempo real</h5>
+                </div>
+                <div class="card-body py-4">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Área:</span>
+                        <strong id="display_area">0.00 cm²</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Costo material:</span>
+                        <span id="display_material">$0.00</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Utilidad:</span>
+                        <span id="display_utilidad">$0.00</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Corte láser:</span>
+                        <span id="display_laser">$0.00</span>
+                    </div>
+                    <hr>
+                    <div class="text-center">
+                        <p class="text-muted mb-1">Total estimado:</p>
+                        <h2 class="text-success fw-bold" id="display_total">$0.00</h2>
+                    </div>
+                    <p class="small text-warning mt-2 text-center" id="nota_precio_fijo" style="display:none">
+                        ⚠️ Este producto tiene precio fijo
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const tarifaLaser = {{ tarifa_laser }};
+
+$(document).ready(function() {
+    $('.select2').select2({
+        theme: 'bootstrap-5',
+        placeholder: '-- Busca o selecciona --',
+        allowClear: true,
+    });
+
+    // Select2 también dispara change
+    $('#id_cliente, #id_producto, #id_material').on('change', calcularMontoRealTime);
+    $('#id_espesor').on('change', calcularMontoRealTime);
+});
+
+function calcularMontoRealTime() {
+    const largo = parseFloat(document.querySelector('input[name="largo_pza"]').value) || 0;
+    const ancho = parseFloat(document.querySelector('input[name="ancho_pza"]').value) || 0;
+    const minutos = parseFloat(document.querySelector('input[name="minutos_lazer"]').value) || 0;
+    const utilidad = parseFloat(document.getElementById('id_utilidad').value) || 40;
+
+    const espesorSelect = document.getElementById('id_espesor');
+    const factor = parseFloat(espesorSelect.options[espesorSelect.selectedIndex]?.getAttribute('data-factor')) || 0;
+
+    const productoSelect = document.getElementById('id_producto');
+    const precioFijo = productoSelect.options[productoSelect.selectedIndex]?.getAttribute('data-precio-fijo');
+
+    if (precioFijo) {
+        document.getElementById('display_total').innerText = '$' + parseFloat(precioFijo).toFixed(2);
+        document.getElementById('nota_precio_fijo').style.display = 'block';
+        document.getElementById('display_area').innerText = '-';
+        document.getElementById('display_material').innerText = '-';
+        document.getElementById('display_utilidad').innerText = '-';
+        document.getElementById('display_laser').innerText = '-';
+        document.getElementById('id_monto_abonado').value = precioFijo;
+        return;
+    }
+
+    document.getElementById('nota_precio_fijo').style.display = 'none';
+
+    const area = largo * ancho;
+    const areaMt2 = area / 10000;
+    const costoMaterial = areaMt2 * factor;
+    const costoUtilidad = costoMaterial * (utilidad / 100);
+    const costoLaser = minutos * tarifaLaser;
+    const total = costoMaterial + costoUtilidad + costoLaser;
+
+    document.getElementById('display_area').innerText = area.toFixed(2) + ' cm²';
+    document.getElementById('display_material').innerText = '$' + costoMaterial.toFixed(2);
+    document.getElementById('display_utilidad').innerText = '$' + costoUtilidad.toFixed(2);
+    document.getElementById('display_laser').innerText = '$' + costoLaser.toFixed(2);
+    document.getElementById('display_total').innerText = '$' + total.toLocaleString('es-MX', {minimumFractionDigits: 2});
+    document.getElementById('id_monto_abonado').innerText = total.toFixed(2);
+}
+
+document.querySelectorAll('input[type="number"], select:not(.select2)').forEach(el => {
+    el.addEventListener('input', calcularMontoRealTime);
+    el.addEventListener('change', calcularMontoRealTime);
+});
+</script>
+{% endblock %}
