@@ -56,11 +56,47 @@
 </div>
 
 <!-- Selector de vista -->
-<div class="mb-3">
-    <div class="btn-group" role="group">
-        <button class="btn btn-dark active" onclick="mostrarGrafica('mes', this)">Por Mes</button>
-        <button class="btn btn-outline-dark" onclick="mostrarGrafica('semana', this)">Por Semana</button>
-        <button class="btn btn-outline-dark" onclick="mostrarGrafica('anio', this)">Por Año</button>
+<!-- Filtros del Dashboard -->
+<div class="d-flex gap-2 mb-3">
+    <!-- Selector de Año -->
+    <div class="flex-grow-1">
+        <label class="small text-muted">Seleccionar Año</label>
+        <select id="filtroAnio" class="form-select" onchange="actualizarGrafica()">
+            <option value="2026" selected>2026</option>
+            <option value="2025">2025</option>
+            <option value="2024">2024</option>
+        </select>
+    </div>
+
+    <!-- Selector de Mes -->
+    <div class="flex-grow-1">
+        <label class="small text-muted">Mes</label>
+        <select id="filtroMes" class="form-select" onchange="actualizarGrafica()">
+            <option value="todos">Todos los meses</option>
+            <option value="1">Enero</option>
+            <option value="2">Febrero</option>
+            <option value="3">Marzo</option>
+            <option value="4">Abril</option>
+            <option value="5">Mayo</option>
+            <option value="6">Junio</option>
+            <option value="7">Julio</option>
+            <option value="8">Agosto</option>
+            <option value="9">Septiembre</option>
+            <option value="10">Octubre</option>
+            <option value="11">Noviembre</option>
+            <option value="12">Diciembre</option>
+        </select>
+    </div>
+
+    <!-- Selector de Semana -->
+    <div class="flex-grow-1">
+        <label class="small text-muted">Semana del año</label>
+        <select id="filtroSemana" class="form-select" onchange="actualizarGrafica()">
+            <option value="todas">Todas las semanas</option>
+            {% for i in range_53 %} <!-- Generar del 1 al 53 -->
+            <option value="{{ i }}">Semana {{ i }}</option>
+            {% endfor %}
+        </select>
     </div>
 </div>
 
