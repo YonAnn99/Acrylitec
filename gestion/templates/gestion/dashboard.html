@@ -1,60 +1,137 @@
-<!-- Selector de vista con filtros -->
-<div class="mb-3 d-flex align-items-center gap-2 flex-wrap">
+{% extends 'gestion/base.html' %}
 
-    <!-- Por Mes -->
-    <div class="dropdown">
-        <button class="btn btn-dark active dropdown-toggle" id="btnMes"
-                onclick="mostrarGrafica('mes', this)"
-                data-bs-toggle="dropdown" aria-expanded="false">
-            📅 Por Mes
-        </button>
-        <ul class="dropdown-menu" id="menuMeses">
-            <li><h6 class="dropdown-header">Selecciona año</h6></li>
-            <li id="aniosMes"></li>
-            <li><hr class="dropdown-divider"></li>
-            <li><h6 class="dropdown-header">Selecciona mes</h6></li>
-            <li><a class="dropdown-item active" href="#" onclick="filtrarMes('todos', this)">Todos los meses</a></li>
-            <li><a class="dropdown-item" href="#" onclick="filtrarMes(1, this)">Enero</a></li>
-            <li><a class="dropdown-item" href="#" onclick="filtrarMes(2, this)">Febrero</a></li>
-            <li><a class="dropdown-item" href="#" onclick="filtrarMes(3, this)">Marzo</a></li>
-            <li><a class="dropdown-item" href="#" onclick="filtrarMes(4, this)">Abril</a></li>
-            <li><a class="dropdown-item" href="#" onclick="filtrarMes(5, this)">Mayo</a></li>
-            <li><a class="dropdown-item" href="#" onclick="filtrarMes(6, this)">Junio</a></li>
-            <li><a class="dropdown-item" href="#" onclick="filtrarMes(7, this)">Julio</a></li>
-            <li><a class="dropdown-item" href="#" onclick="filtrarMes(8, this)">Agosto</a></li>
-            <li><a class="dropdown-item" href="#" onclick="filtrarMes(9, this)">Septiembre</a></li>
-            <li><a class="dropdown-item" href="#" onclick="filtrarMes(10, this)">Octubre</a></li>
-            <li><a class="dropdown-item" href="#" onclick="filtrarMes(11, this)">Noviembre</a></li>
-            <li><a class="dropdown-item" href="#" onclick="filtrarMes(12, this)">Diciembre</a></li>
-        </ul>
+{% block content %}
+<h2 class="mb-4">📊 Dashboard — Acrylitec</h2>
+
+<!-- KPIs -->
+<div class="row g-3 mb-4">
+    <div class="col-md-2">
+        <div class="card text-white bg-success shadow-sm">
+            <div class="card-body text-center">
+                <div class="fs-4 fw-bold">${{ kpis.ingresos_mes|floatformat:0 }}</div>
+                <div class="small">Ingresos este mes</div>
+            </div>
+        </div>
     </div>
-
-    <!-- Por Semana -->
-    <div class="dropdown">
-        <button class="btn btn-outline-dark dropdown-toggle" id="btnSemana"
-                onclick="mostrarGrafica('semana', this)"
-                data-bs-toggle="dropdown" aria-expanded="false">
-            📆 Por Semana
-        </button>
-        <ul class="dropdown-menu" style="max-height:300px; overflow-y:auto;" id="menuSemanas">
-            <li><h6 class="dropdown-header">Selecciona semana</h6></li>
-            <li><a class="dropdown-item active" href="#" onclick="filtrarSemana('todas', this)">Todas las semanas</a></li>
-        </ul>
+    <div class="col-md-2">
+        <div class="card text-white bg-primary shadow-sm">
+            <div class="card-body text-center">
+                <div class="fs-4 fw-bold">{{ kpis.ventas_mes }}</div>
+                <div class="small">Ventas este mes</div>
+            </div>
+        </div>
     </div>
-
-    <!-- Por Año -->
-    <div class="dropdown">
-        <button class="btn btn-outline-dark dropdown-toggle" id="btnAnio"
-                onclick="mostrarGrafica('anio', this)"
-                data-bs-toggle="dropdown" aria-expanded="false">
-            📊 Por Año
-        </button>
-        <ul class="dropdown-menu" id="menuAnios">
-            <li><h6 class="dropdown-header">Selecciona año</h6></li>
-            <li><a class="dropdown-item active" href="#" onclick="filtrarAnio('todos', this)">Todos los años</a></li>
-        </ul>
+    <div class="col-md-2">
+        <div class="card text-white bg-dark shadow-sm">
+            <div class="card-body text-center">
+                <div class="fs-4 fw-bold">${{ kpis.ingresos_total|floatformat:0 }}</div>
+                <div class="small">Ingresos totales</div>
+            </div>
+        </div>
     </div>
+    <div class="col-md-2">
+        <div class="card text-white bg-secondary shadow-sm">
+            <div class="card-body text-center">
+                <div class="fs-4 fw-bold">{{ kpis.ventas_total }}</div>
+                <div class="small">Ventas totales</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card text-white bg-info shadow-sm">
+            <div class="card-body text-center">
+                <div class="fs-4 fw-bold">{{ kpis.clientes_total }}</div>
+                <div class="small">Clientes</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card text-white bg-warning shadow-sm">
+            <div class="card-body text-center">
+                <div class="fs-4 fw-bold">{{ kpis.cotizaciones_mes }}</div>
+                <div class="small">Cotizaciones este mes</div>
+            </div>
+        </div>
+    </div>
+</div>
 
+<!-- Selector de vista -->
+<div class="mb-3">
+    <div class="btn-group" role="group">
+        <button class="btn btn-dark active" onclick="mostrarGrafica('mes', this)">Por Mes</button>
+        <button class="btn btn-outline-dark" onclick="mostrarGrafica('semana', this)">Por Semana</button>
+        <button class="btn btn-outline-dark" onclick="mostrarGrafica('anio', this)">Por Año</button>
+    </div>
+</div>
+
+<!-- Gráficas -->
+<div class="row g-3 mb-4">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-dark text-white">Ingresos por período</div>
+            <div class="card-body">
+                <canvas id="graficaIngresos" height="100"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+    <div class="card-header bg-dark text-white">
+        📦 Pedidos Pendientes / En Producción
+    </div>
+    <div class="card-body p-0">
+        {% if pedidos_activos %}
+        <table class="table table-sm mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>Cliente</th>
+                    <th>Producto</th>
+                    <th>Estatus</th>
+                    <th>Entrega</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for v in pedidos_activos %}
+                <tr>
+                    <td><small>{{ v.id_venta }}</small></td>
+                    <td><small>{{ v.id_cotizacion.id_cliente.nombre }}</small></td>
+                    <td><small>{{ v.id_cotizacion.id_producto.nombre }}</small></td>
+                    <td>
+                        {% if v.estatus == 'pendiente' %}
+                            <span class="badge bg-secondary">⏳ Pendiente</span>
+                        {% elif v.estatus == 'en_produccion' %}
+                            <span class="badge bg-warning text-dark">🔧 En producción</span>
+                        {% endif %}
+                    </td>
+                    <td><small>{{ v.fecha_entrega|default:"—" }}</small></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="text-center py-4 text-muted">
+            <p class="mb-0">✅ No hay pedidos pendientes</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+</div>
+
+<!-- Accesos rápidos -->
+<div class="row g-3">
+    <div class="col-md-3">
+        <a href="{% url 'crear_cotizacion' %}" class="btn btn-success w-100 btn-lg">➕ Nueva cotización</a>
+    </div>
+    <div class="col-md-3">
+        <a href="{% url 'lista_ventas' %}" class="btn btn-primary w-100 btn-lg">📦 Ver ventas</a>
+    </div>
+    <div class="col-md-3">
+        <a href="{% url 'configuracion_precios' %}" class="btn btn-outline-dark w-100 btn-lg">⚙️ Ajustar precios</a>
+    </div>
+    <div class="col-md-3">
+        <a href="{% url 'lista_productos' %}" class="btn btn-outline-secondary w-100 btn-lg">📦 Productos</a>
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -64,13 +141,6 @@ const datos = {
     semana: { labels: JSON.parse('{{ labels_semana|escapejs }}'), data: JSON.parse('{{ data_semana|escapejs }}') },
     anio:   { labels: JSON.parse('{{ labels_anio|escapejs }}'),   data: JSON.parse('{{ data_anio|escapejs }}') },
 };
-
-// Estado actual
-let periodoActivo = 'mes';
-let filtroMesNum = 'todos';
-let filtroAnioMes = 'todos';
-let filtroSemana = 'todas';
-let filtroAnioAnio = 'todos';
 
 const ctx = document.getElementById('graficaIngresos').getContext('2d');
 let chart = new Chart(ctx, {
@@ -95,152 +165,16 @@ let chart = new Chart(ctx, {
     }
 });
 
-// Nombres de meses para parseo
-const MESES_ES = ['ene','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec',
-                  'jan','ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
-const MESES_NUM = {
-    'jan':1,'feb':2,'mar':3,'apr':4,'may':5,'jun':6,
-    'jul':7,'aug':8,'sep':9,'oct':10,'nov':11,'dec':12,
-    'ene':1,'abr':4,'ago':8,'dic':12
-};
-
-function getAnioDeLabel(label) {
-    // "Mar 2026" → 2026
-    const parts = label.split(' ');
-    return parts[parts.length - 1];
-}
-
-function getMesDeLabel(label) {
-    // "Mar 2026" → 3
-    const mes = label.split(' ')[0].toLowerCase().substring(0, 3);
-    return MESES_NUM[mes] || 0;
-}
-
-function getSemanaDeLabel(label) {
-    // "Sem 13/03" → "Sem 13/03"
-    return label;
-}
-
-// Poblar dropdowns dinámicamente al cargar
-function poblarDropdowns() {
-    // Años en datos de mes
-    const aniosMes = [...new Set(datos.mes.labels.map(getAnioDeLabel))].sort();
-    const contAniosMes = document.getElementById('aniosMes');
-    contAniosMes.innerHTML = aniosMes.map(a =>
-        `<a class="dropdown-item" href="#" onclick="filtrarAnioEnMes('${a}', this)">${a}</a>`
-    ).join('');
-
-    // Semanas disponibles
-    const menuSem = document.getElementById('menuSemanas');
-    datos.semana.labels.forEach(label => {
-        const li = document.createElement('li');
-        li.innerHTML = `<a class="dropdown-item" href="#" onclick="filtrarSemana('${label}', this)">${label}</a>`;
-        menuSem.appendChild(li);
-    });
-
-    // Años disponibles en datos de año
-    const menuAnio = document.getElementById('menuAnios');
-    datos.anio.labels.forEach(label => {
-        const li = document.createElement('li');
-        li.innerHTML = `<a class="dropdown-item" href="#" onclick="filtrarAnio('${label}', this)">${label}</a>`;
-        menuAnio.appendChild(li);
-    });
-}
-
-function actualizarGrafica(labels, data) {
-    chart.data.labels = labels;
-    chart.data.datasets[0].data = data;
-    chart.update();
-}
-
 function mostrarGrafica(periodo, btn) {
-    periodoActivo = periodo;
-    // Reset filtros
-    filtroMesNum = 'todos';
-    filtroSemana = 'todas';
-    filtroAnioAnio = 'todos';
-
-    // Actualizar estilos botones
-    ['btnMes', 'btnSemana', 'btnAnio'].forEach(id => {
-        const b = document.getElementById(id);
+    document.querySelectorAll('.btn-group .btn').forEach(b => {
         b.classList.remove('btn-dark', 'active');
         b.classList.add('btn-outline-dark');
     });
     btn.classList.remove('btn-outline-dark');
     btn.classList.add('btn-dark', 'active');
-
-    actualizarGrafica(datos[periodo].labels, datos[periodo].data);
+    chart.data.labels = datos[periodo].labels;
+    chart.data.datasets[0].data = datos[periodo].data;
+    chart.update();
 }
-
-function filtrarMes(mes, el) {
-    filtroMesNum = mes;
-    // Marcar activo
-    document.querySelectorAll('#menuMeses .dropdown-item').forEach(i => i.classList.remove('active'));
-    el.classList.add('active');
-
-    let labels, data;
-    if (mes === 'todos') {
-        labels = datos.mes.labels;
-        data = datos.mes.data;
-    } else {
-        labels = []; data = [];
-        datos.mes.labels.forEach((l, i) => {
-            if (getMesDeLabel(l) === mes) {
-                labels.push(l); data.push(datos.mes.data[i]);
-            }
-        });
-    }
-    actualizarGrafica(labels, data);
-}
-
-function filtrarAnioEnMes(anio, el) {
-    filtroAnioMes = anio;
-    document.querySelectorAll('#aniosMes .dropdown-item').forEach(i => i.classList.remove('active'));
-    el.classList.add('active');
-
-    let labels = [], data = [];
-    datos.mes.labels.forEach((l, i) => {
-        if (getAnioDeLabel(l) === anio) {
-            labels.push(l); data.push(datos.mes.data[i]);
-        }
-    });
-    actualizarGrafica(labels, data);
-}
-
-function filtrarSemana(semana, el) {
-    filtroSemana = semana;
-    document.querySelectorAll('#menuSemanas .dropdown-item').forEach(i => i.classList.remove('active'));
-    el.classList.add('active');
-
-    let labels, data;
-    if (semana === 'todas') {
-        labels = datos.semana.labels;
-        data = datos.semana.data;
-    } else {
-        const idx = datos.semana.labels.indexOf(semana);
-        labels = idx >= 0 ? [datos.semana.labels[idx]] : [];
-        data   = idx >= 0 ? [datos.semana.data[idx]] : [];
-    }
-    actualizarGrafica(labels, data);
-}
-
-function filtrarAnio(anio, el) {
-    filtroAnioAnio = anio;
-    document.querySelectorAll('#menuAnios .dropdown-item').forEach(i => i.classList.remove('active'));
-    el.classList.add('active');
-
-    let labels, data;
-    if (anio === 'todos') {
-        labels = datos.anio.labels;
-        data = datos.anio.data;
-    } else {
-        const idx = datos.anio.labels.indexOf(anio);
-        labels = idx >= 0 ? [datos.anio.labels[idx]] : [];
-        data   = idx >= 0 ? [datos.anio.data[idx]] : [];
-    }
-    actualizarGrafica(labels, data);
-}
-
-// Inicializar dropdowns al cargar
-poblarDropdowns();
 </script>
+{% endblock %}
