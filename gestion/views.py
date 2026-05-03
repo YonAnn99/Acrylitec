@@ -23,8 +23,7 @@ from django.conf import settings
 from reportlab.platypus import Image as RLImage
 import io
 from django.contrib import messages
-from django.db.models import Sum
-from django.db.models.functions import ExtractMonth, ExtractWeek
+
 from .models import (
     Materiales, Clientes, Cotizaciones, Productos,
     TabuladorCostos, Ventas, ConfiguracionPrecios
@@ -624,12 +623,47 @@ def venta_directa(request):
 
 def dashboard(request):
     hoy = datetime.date.today()
-    filtro_anio = int(request.GET.get('anio', hoy.year))
-    filtro_mes = request.GET.get('mes', 'todos')
-    filtro_semana = request.GET.get('semana', 'todas')
-
-    
     ventas_qs = Ventas.objects.select_related('id_cotizacion__id_producto')
+
+    # ── Todos los meses disponibles agrupados por año ─────────────────────
+    por_mes_all = (ventas_qs.filter(estatus='pagada')
+                   .annotate(periodo=TruncMonth('fecha_venta'))
+                   .values('periodo')
+                   .annotate(total=Sum('id_cotizacion__monto_total'), cantidad=Count('id_venta'))
+                   .order_by('periodo'))
+
+    meses_por_anio = {}
+    for v in por_mes_all:
+        y = str(v['periodo'].year)
+        if y not in meses_por_anio:
+            meses_por_anio[y] = {'labels': [], 'data': []}
+        meses_por_anio[y]['labels'].append(v['periodo'].strftime('%b %Y'))
+        meses_por_anio[y]['data'].append(float(v['total'] or 0))
+
+    # ── Todas las semanas disponibles agrupadas por año ───────────────────
+    por_semana_all = (ventas_qs
+                      .annotate(periodo=TruncWeek('fecha_venta'))
+                      .values('periodo')
+                      .annotate(total=Sum('id_cotizacion__monto_total'), cantidad=Count('id_venta'))
+                      .order_by('periodo'))
+
+    semanas_por_anio = {}
+    for v in por_semana_all:
+        y = str(v['periodo'].year)
+        if y not in semanas_por_anio:
+            semanas_por_anio[y] = {'labels': [], 'data': []}
+        week_num = v['periodo'].isocalendar()[1]
+        semanas_por_anio[y]['labels'].append(f"Semana {week_num} ({v['periodo'].strftime('%d/%m')})")
+        semanas_por_anio[y]['data'].append(float(v['total'] or 0))
+
+    # ── Todos los años disponibles ────────────────────────────────────────
+    por_anio_all = (ventas_qs.filter(estatus='pagada')
+                    .annotate(periodo=TruncYear('fecha_venta'))
+                    .values('periodo')
+                    .annotate(total=Sum('id_cotizacion__monto_total'), cantidad=Count('id_venta'))
+                    .order_by('periodo'))
+    labels_anio = [v['periodo'].strftime('%Y') for v in por_anio_all]
+    data_anio   = [float(v['total'] or 0) for v in por_anio_all]
 
     top_productos = (ventas_qs.values('id_cotizacion__id_producto__nombre')
                      .annotate(total=Sum('id_cotizacion__monto_total'), cantidad=Count('id_venta'))
@@ -640,50 +674,31 @@ def dashboard(request):
                         'id_cotizacion__id_cliente',
                         'id_cotizacion__id_producto'
                         ).order_by('-fecha_venta')
-    
-    ventas_filtradas = ventas_qs.filter(fecha_venta__year=filtro_anio)
-
-    if filtro_mes != 'todos':
-        ventas_filtradas = ventas_filtradas.filter(fecha_venta__month=int(filtro_mes))
-    
-    if filtro_semana != 'todas':
-        # Filtrar por número de semana ISO
-        ventas_filtradas = ventas_filtradas.filter(fecha_venta__week=int(filtro_semana))
 
     inicio_mes = hoy.replace(day=1)
     ventas_mes = ventas_qs.filter(fecha_venta__gte=inicio_mes)
-    por_periodo = (ventas_filtradas.filter(estatus='pagada')
-                   .annotate(periodo=TruncMonth('fecha_venta'))
-                   .values('periodo')
-                   .annotate(total=Sum('id_cotizacion__monto_total'))
-                   .order_by('periodo'))
-
-
     kpis = {
-        'ingresos_filtrados': ventas_filtradas.filter(estatus='pagada').aggregate(s=Sum('id_cotizacion__monto_total'))['s'] or Decimal('0'),
-        'ventas_filtradas': ventas_filtradas.count(),
-        'ingresos_total_historico': ventas_qs.filter(estatus='pagada').aggregate(s=Sum('id_cotizacion__monto_total'))['s'] or Decimal('0'),
+        'ingresos_mes': ventas_mes.filter(estatus='pagada').aggregate(s=Sum('id_cotizacion__monto_total'))['s'] or Decimal('0'),
+        'ventas_mes': ventas_mes.count(),
+        'ingresos_total': ventas_qs.filter(estatus='pagada').aggregate(s=Sum('id_cotizacion__monto_total'))['s'] or Decimal('0'),
+        'ventas_total': ventas_qs.count(),
         'clientes_total': Clientes.objects.count(),
-        'cotizaciones_mes': Cotizaciones.objects.filter(fecha__year=hoy.year, fecha__month=hoy.month).count(),
+        'cotizaciones_mes': Cotizaciones.objects.filter(fecha__gte=inicio_mes).count(),
     }
 
-    labels = [v['periodo'].strftime('%b %Y') for v in por_periodo]
-    data = [float(v['total'] or 0) for v in por_periodo]
-
-    # Lista de semanas para el dropdown (1-53)
-    rango_semanas = list(range(1, 54))
-
-
+    anio_actual = str(hoy.year)
 
     return render(request, 'gestion/dashboard.html', {
-        'kpis': kpis,
-        'pedidos_activos': Ventas.objects.filter(estatus__in=['pendiente', 'en_produccion']).select_related('id_cotizacion__id_cliente', 'id_cotizacion__id_producto').order_by('-fecha_venta'),
-        'labels_json': json.dumps(labels),
-        'data_json': json.dumps(data),
-        'rango_semanas': rango_semanas,
-        'filtro_anio': filtro_anio,
-        'filtro_mes': filtro_mes,
-        'filtro_semana': filtro_semana,
+        'kpis':             kpis,
+        'top_productos':    top_productos,
+        'pedidos_activos':  pedidos_activos,
+        'anio_actual':      anio_actual,
+
+        # ── Datos JSON para gráficas ──────────────────────────────────────
+        'meses_por_anio':   json.dumps(meses_por_anio),
+        'semanas_por_anio': json.dumps(semanas_por_anio),
+        'labels_anio':      json.dumps(labels_anio),
+        'data_anio':        json.dumps(data_anio),
     })
 
 

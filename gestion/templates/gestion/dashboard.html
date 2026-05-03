@@ -55,12 +55,34 @@
     </div>
 </div>
 
-<!-- Selector de vista -->
-<div class="mb-3">
+<!-- Selector de vista + dropdown dinámico -->
+<div class="mb-3 d-flex align-items-center gap-3 flex-wrap">
     <div class="btn-group" role="group">
-        <button class="btn btn-dark active" onclick="mostrarGrafica('mes', this)">Por Mes</button>
-        <button class="btn btn-outline-dark" onclick="mostrarGrafica('semana', this)">Por Semana</button>
-        <button class="btn btn-outline-dark" onclick="mostrarGrafica('anio', this)">Por Año</button>
+        <button class="btn btn-dark active" onclick="cambiarPeriodo('mes', this)">Por Mes</button>
+        <button class="btn btn-outline-dark" onclick="cambiarPeriodo('semana', this)">Por Semana</button>
+        <button class="btn btn-outline-dark" onclick="cambiarPeriodo('anio', this)">Por Año</button>
+    </div>
+
+    <!-- Selector de año para vista "Por Mes" -->
+    <div id="selector-mes" class="d-flex align-items-center gap-2">
+        <label class="mb-0 text-muted small fw-semibold">Año:</label>
+        <select id="select-anio-mes" class="form-select form-select-sm" style="width:auto;" onchange="actualizarGrafica()">
+        </select>
+    </div>
+
+    <!-- Selector de año para vista "Por Semana" -->
+    <div id="selector-semana" class="d-flex align-items-center gap-2 d-none">
+        <label class="mb-0 text-muted small fw-semibold">Año:</label>
+        <select id="select-anio-semana" class="form-select form-select-sm" style="width:auto;" onchange="actualizarGrafica()">
+        </select>
+    </div>
+
+    <!-- Selector de año específico para vista "Por Año" -->
+    <div id="selector-anio" class="d-flex align-items-center gap-2 d-none">
+        <label class="mb-0 text-muted small fw-semibold">Año:</label>
+        <select id="select-anio-anio" class="form-select form-select-sm" style="width:auto;" onchange="actualizarGrafica()">
+            <option value="todos">Todos los años</option>
+        </select>
     </div>
 </div>
 
@@ -68,54 +90,61 @@
 <div class="row g-3 mb-4">
     <div class="col-md-8">
         <div class="card shadow-sm">
-            <div class="card-header bg-dark text-white">Ingresos por período</div>
+            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                <span>Ingresos por período</span>
+                <span id="subtitulo-grafica" class="badge bg-secondary"></span>
+            </div>
             <div class="card-body">
                 <canvas id="graficaIngresos" height="100"></canvas>
+                <div id="sin-datos" class="text-center py-4 text-muted d-none">
+                    <p class="mb-0">📭 Sin datos para este período</p>
+                </div>
             </div>
         </div>
     </div>
     <div class="col-md-4">
         <div class="card shadow-sm">
-    <div class="card-header bg-dark text-white">
-        📦 Pedidos Pendientes / En Producción
-    </div>
-    <div class="card-body p-0">
-        {% if pedidos_activos %}
-        <table class="table table-sm mb-0">
-            <thead class="table-light">
-                <tr>
-                    <th>#</th>
-                    <th>Cliente</th>
-                    <th>Producto</th>
-                    <th>Estatus</th>
-                    <th>Entrega</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for v in pedidos_activos %}
-                <tr>
-                    <td><small>{{ v.id_venta }}</small></td>
-                    <td><small>{{ v.id_cotizacion.id_cliente.nombre }}</small></td>
-                    <td><small>{{ v.id_cotizacion.id_producto.nombre }}</small></td>
-                    <td>
-                        {% if v.estatus == 'pendiente' %}
-                            <span class="badge bg-secondary">⏳ Pendiente</span>
-                        {% elif v.estatus == 'en_produccion' %}
-                            <span class="badge bg-warning text-dark">🔧 En producción</span>
-                        {% endif %}
-                    </td>
-                    <td><small>{{ v.fecha_entrega|default:"—" }}</small></td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% else %}
-        <div class="text-center py-4 text-muted">
-            <p class="mb-0">✅ No hay pedidos pendientes</p>
+            <div class="card-header bg-dark text-white">
+                📦 Pedidos Pendientes / En Producción
+            </div>
+            <div class="card-body p-0">
+                {% if pedidos_activos %}
+                <table class="table table-sm mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>Cliente</th>
+                            <th>Producto</th>
+                            <th>Estatus</th>
+                            <th>Entrega</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for v in pedidos_activos %}
+                        <tr>
+                            <td><small>{{ v.id_venta }}</small></td>
+                            <td><small>{{ v.id_cotizacion.id_cliente.nombre }}</small></td>
+                            <td><small>{{ v.id_cotizacion.id_producto.nombre }}</small></td>
+                            <td>
+                                {% if v.estatus == 'pendiente' %}
+                                    <span class="badge bg-secondary">⏳ Pendiente</span>
+                                {% elif v.estatus == 'en_produccion' %}
+                                    <span class="badge bg-warning text-dark">🔧 En producción</span>
+                                {% endif %}
+                            </td>
+                            <td><small>{{ v.fecha_entrega|default:"—" }}</small></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="text-center py-4 text-muted">
+                    <p class="mb-0">✅ No hay pedidos pendientes</p>
+                </div>
+                {% endif %}
+            </div>
         </div>
-        {% endif %}
     </div>
-</div>
 </div>
 
 <!-- Accesos rápidos -->
@@ -136,22 +165,63 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-const datos = {
-    mes:    { labels: JSON.parse('{{ labels_mes|escapejs }}'),    data: JSON.parse('{{ data_mes|escapejs }}') },
-    semana: { labels: JSON.parse('{{ labels_semana|escapejs }}'), data: JSON.parse('{{ data_semana|escapejs }}') },
-    anio:   { labels: JSON.parse('{{ labels_anio|escapejs }}'),   data: JSON.parse('{{ data_anio|escapejs }}') },
+// ── Datos del servidor ────────────────────────────────────────────────────
+const mesesPorAnio   = JSON.parse('{{ meses_por_anio|escapejs }}');
+const semanasPorAnio = JSON.parse('{{ semanas_por_anio|escapejs }}');
+const labelsAnio     = JSON.parse('{{ labels_anio|escapejs }}');
+const dataAnio       = JSON.parse('{{ data_anio|escapejs }}');
+const anioActual     = '{{ anio_actual }}';
+
+// ── Estado global ─────────────────────────────────────────────────────────
+let periodoActivo = 'mes';
+
+// ── Poblar un <select> con una lista de años ──────────────────────────────
+function poblarSelect(selectId, anios, valorDefault) {
+    const sel = document.getElementById(selectId);
+    sel.innerHTML = '';
+    anios.forEach(a => {
+        const opt = document.createElement('option');
+        opt.value = a;
+        opt.textContent = a;
+        if (a === valorDefault) opt.selected = true;
+        sel.appendChild(opt);
+    });
+}
+
+// Poblar selects al cargar la página
+const aniosMes     = Object.keys(mesesPorAnio).sort((a, b) => b - a);
+const aniosSemana  = Object.keys(semanasPorAnio).sort((a, b) => b - a);
+
+poblarSelect('select-anio-mes',    aniosMes,    anioActual || aniosMes[0]);
+poblarSelect('select-anio-semana', aniosSemana, anioActual || aniosSemana[0]);
+
+// Poblar selector de años en la vista "Por Año"
+const selAnioAnio = document.getElementById('select-anio-anio');
+labelsAnio.forEach(a => {
+    const opt = document.createElement('option');
+    opt.value = a;
+    opt.textContent = a;
+    selAnioAnio.appendChild(opt);
+});
+
+// ── Colores por período ───────────────────────────────────────────────────
+const colores = {
+    mes:    { bg: 'rgba(25, 135, 84, 0.7)',   border: 'rgba(25, 135, 84, 1)' },
+    semana: { bg: 'rgba(13, 110, 253, 0.7)',  border: 'rgba(13, 110, 253, 1)' },
+    anio:   { bg: 'rgba(108, 117, 125, 0.7)', border: 'rgba(108, 117, 125, 1)' },
 };
 
+// ── Inicializar Chart.js ──────────────────────────────────────────────────
 const ctx = document.getElementById('graficaIngresos').getContext('2d');
 let chart = new Chart(ctx, {
     type: 'bar',
     data: {
-        labels: datos.mes.labels,
+        labels: [],
         datasets: [{
             label: 'Ingresos ($)',
-            data: datos.mes.data,
-            backgroundColor: 'rgba(25, 135, 84, 0.7)',
-            borderColor: 'rgba(25, 135, 84, 1)',
+            data: [],
+            backgroundColor: colores.mes.bg,
+            borderColor:     colores.mes.border,
             borderWidth: 1,
             borderRadius: 6,
         }]
@@ -159,22 +229,86 @@ let chart = new Chart(ctx, {
     options: {
         responsive: true,
         plugins: { legend: { display: false } },
-        scales: { y: { beginAtZero: true,
-            ticks: { callback: v => '$' + v.toLocaleString() }
-        }}
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: { callback: v => '$' + v.toLocaleString() }
+            }
+        }
     }
 });
 
-function mostrarGrafica(periodo, btn) {
+// ── Actualizar gráfica según período y selector activo ────────────────────
+function actualizarGrafica() {
+    let labels = [], data = [], subtitulo = '';
+
+    if (periodoActivo === 'mes') {
+        const anio = document.getElementById('select-anio-mes').value;
+        const d = mesesPorAnio[anio];
+        if (d) { labels = d.labels; data = d.data; }
+        subtitulo = `Meses de ${anio}`;
+
+    } else if (periodoActivo === 'semana') {
+        const anio = document.getElementById('select-anio-semana').value;
+        const d = semanasPorAnio[anio];
+        if (d) { labels = d.labels; data = d.data; }
+        subtitulo = `Semanas de ${anio}`;
+
+    } else if (periodoActivo === 'anio') {
+        const filtro = document.getElementById('select-anio-anio').value;
+        if (filtro === 'todos') {
+            labels    = labelsAnio;
+            data      = dataAnio;
+            subtitulo = 'Todos los años';
+        } else {
+            const idx = labelsAnio.indexOf(filtro);
+            labels    = idx >= 0 ? [labelsAnio[idx]] : [];
+            data      = idx >= 0 ? [dataAnio[idx]]   : [];
+            subtitulo = filtro;
+        }
+    }
+
+    // Mostrar/ocultar mensaje sin datos
+    const sinDatos = document.getElementById('sin-datos');
+    if (labels.length === 0) {
+        chart.canvas.style.display = 'none';
+        sinDatos.classList.remove('d-none');
+    } else {
+        chart.canvas.style.display = '';
+        sinDatos.classList.add('d-none');
+        chart.data.labels = labels;
+        chart.data.datasets[0].data = data;
+        chart.update();
+    }
+
+    document.getElementById('subtitulo-grafica').textContent = subtitulo;
+}
+
+// ── Cambiar período activo (botones Mes / Semana / Año) ───────────────────
+function cambiarPeriodo(periodo, btn) {
+    periodoActivo = periodo;
+
+    // Resaltar botón activo
     document.querySelectorAll('.btn-group .btn').forEach(b => {
         b.classList.remove('btn-dark', 'active');
         b.classList.add('btn-outline-dark');
     });
     btn.classList.remove('btn-outline-dark');
     btn.classList.add('btn-dark', 'active');
-    chart.data.labels = datos[periodo].labels;
-    chart.data.datasets[0].data = datos[periodo].data;
-    chart.update();
+
+    // Mostrar el selector correcto
+    document.getElementById('selector-mes').classList.toggle('d-none',    periodo !== 'mes');
+    document.getElementById('selector-semana').classList.toggle('d-none', periodo !== 'semana');
+    document.getElementById('selector-anio').classList.toggle('d-none',   periodo !== 'anio');
+
+    // Actualizar color de barras
+    chart.data.datasets[0].backgroundColor = colores[periodo].bg;
+    chart.data.datasets[0].borderColor      = colores[periodo].border;
+
+    actualizarGrafica();
 }
+
+// ── Carga inicial ─────────────────────────────────────────────────────────
+actualizarGrafica();
 </script>
 {% endblock %}
