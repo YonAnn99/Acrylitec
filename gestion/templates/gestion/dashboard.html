@@ -55,35 +55,169 @@
     </div>
 </div>
 
-<!-- Selector de vista + dropdown dinámico -->
+<!-- ── Estilos del picker tipo calendario ─────────────────────────────── -->
+<style>
+.periodo-btn-group .btn { border-radius: 8px 0 0 8px; }
+.periodo-btn-group .btn:last-child { border-radius: 0 8px 8px 0; }
+
+/* Botón disparador del picker */
+.picker-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: #fff;
+    border: 1.5px solid #ced4da;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: .92rem;
+    font-weight: 500;
+    color: #212529;
+    transition: border-color .15s, box-shadow .15s;
+    white-space: nowrap;
+    user-select: none;
+}
+.picker-trigger:hover { border-color: #198754; box-shadow: 0 0 0 3px rgba(25,135,84,.12); }
+.picker-trigger .picker-icon { font-size: 1rem; }
+.picker-trigger .picker-caret { font-size: .7rem; color: #6c757d; margin-left: 2px; }
+
+/* Panel desplegable */
+.picker-panel {
+    position: absolute;
+    z-index: 1050;
+    background: #fff;
+    border: 1.5px solid #dee2e6;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,.14);
+    padding: 16px;
+    min-width: 280px;
+    display: none;
+    animation: fadeInDown .15s ease;
+}
+.picker-panel.open { display: block; }
+@keyframes fadeInDown {
+    from { opacity:0; transform:translateY(-6px); }
+    to   { opacity:1; transform:translateY(0); }
+}
+
+/* Cabecera del panel con nav de año */
+.picker-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+.picker-header .picker-nav {
+    background: none;
+    border: none;
+    font-size: 1.1rem;
+    cursor: pointer;
+    color: #495057;
+    padding: 2px 8px;
+    border-radius: 6px;
+    transition: background .12s;
+}
+.picker-header .picker-nav:hover { background: #f0f0f0; }
+.picker-header .picker-year-label {
+    font-weight: 700;
+    font-size: 1rem;
+    color: #212529;
+}
+
+/* Cuadrícula de celdas */
+.picker-grid {
+    display: grid;
+    gap: 6px;
+}
+.picker-grid.months  { grid-template-columns: repeat(3, 1fr); }
+.picker-grid.weeks   { grid-template-columns: repeat(6, 1fr); }
+.picker-grid.years   { grid-template-columns: repeat(4, 1fr); }
+
+.picker-cell {
+    padding: 7px 4px;
+    text-align: center;
+    border-radius: 7px;
+    cursor: pointer;
+    font-size: .82rem;
+    font-weight: 500;
+    color: #212529;
+    border: 1.5px solid transparent;
+    transition: background .12s, border-color .12s;
+    line-height: 1.2;
+}
+.picker-cell:hover { background: #e9f5ee; border-color: #a3d9b3; color: #198754; }
+.picker-cell.active {
+    background: #198754;
+    color: #fff;
+    border-color: #198754;
+}
+.picker-cell.has-data { font-weight: 700; }
+.picker-cell.no-data  { color: #adb5bd; font-weight: 400; }
+.picker-cell.no-data:hover { background: #f8f9fa; border-color: #dee2e6; color: #adb5bd; cursor: default; }
+
+/* Wrapper posición relativa para el panel */
+.picker-wrapper { position: relative; display: inline-block; }
+</style>
+
+<!-- ── Controles de período + pickers ────────────────────────────────── -->
 <div class="mb-3 d-flex align-items-center gap-3 flex-wrap">
-    <div class="btn-group" role="group">
+
+    <!-- Botones de período -->
+    <div class="btn-group periodo-btn-group" role="group">
         <button class="btn btn-dark active" onclick="cambiarPeriodo('mes', this)">Por Mes</button>
         <button class="btn btn-outline-dark" onclick="cambiarPeriodo('semana', this)">Por Semana</button>
         <button class="btn btn-outline-dark" onclick="cambiarPeriodo('anio', this)">Por Año</button>
     </div>
 
-    <!-- Selector de año para vista "Por Mes" -->
-    <div id="selector-mes" class="d-flex align-items-center gap-2">
-        <label class="mb-0 text-muted small fw-semibold">Año:</label>
-        <select id="select-anio-mes" class="form-select form-select-sm" style="width:auto;" onchange="actualizarGrafica()">
-        </select>
+    <!-- ── Picker MES ──────────────────────────────────────────────── -->
+    <div id="picker-mes-wrapper" class="picker-wrapper">
+        <div class="picker-trigger" onclick="togglePicker('picker-mes')">
+            <span class="picker-icon">📅</span>
+            <span id="label-mes">— Mes —</span>
+            <span class="picker-caret">▼</span>
+        </div>
+        <div id="picker-mes" class="picker-panel">
+            <div class="picker-header">
+                <button class="picker-nav" onclick="navMes(-1)">&#8249;</button>
+                <span class="picker-year-label" id="mes-year-nav"></span>
+                <button class="picker-nav" onclick="navMes(1)">&#8250;</button>
+            </div>
+            <div class="picker-grid months" id="mes-grid"></div>
+        </div>
     </div>
 
-    <!-- Selector de año para vista "Por Semana" -->
-    <div id="selector-semana" class="d-flex align-items-center gap-2 d-none">
-        <label class="mb-0 text-muted small fw-semibold">Año:</label>
-        <select id="select-anio-semana" class="form-select form-select-sm" style="width:auto;" onchange="actualizarGrafica()">
-        </select>
+    <!-- ── Picker SEMANA ───────────────────────────────────────────── -->
+    <div id="picker-semana-wrapper" class="picker-wrapper d-none">
+        <div class="picker-trigger" onclick="togglePicker('picker-semana')">
+            <span class="picker-icon">🗓️</span>
+            <span id="label-semana">— Semana —</span>
+            <span class="picker-caret">▼</span>
+        </div>
+        <div id="picker-semana" class="picker-panel" style="min-width:340px;">
+            <div class="picker-header">
+                <button class="picker-nav" onclick="navSemana(-1)">&#8249;</button>
+                <span class="picker-year-label" id="semana-year-nav"></span>
+                <button class="picker-nav" onclick="navSemana(1)">&#8250;</button>
+            </div>
+            <div class="picker-grid weeks" id="semana-grid"></div>
+        </div>
     </div>
 
-    <!-- Selector de año específico para vista "Por Año" -->
-    <div id="selector-anio" class="d-flex align-items-center gap-2 d-none">
-        <label class="mb-0 text-muted small fw-semibold">Año:</label>
-        <select id="select-anio-anio" class="form-select form-select-sm" style="width:auto;" onchange="actualizarGrafica()">
-            <option value="todos">Todos los años</option>
-        </select>
+    <!-- ── Picker AÑO ──────────────────────────────────────────────── -->
+    <div id="picker-anio-wrapper" class="picker-wrapper d-none">
+        <div class="picker-trigger" onclick="togglePicker('picker-anio')">
+            <span class="picker-icon">📆</span>
+            <span id="label-anio">— Año —</span>
+            <span class="picker-caret">▼</span>
+        </div>
+        <div id="picker-anio" class="picker-panel" style="min-width:260px;">
+            <div class="picker-header">
+                <span class="picker-year-label">Selecciona un año</span>
+            </div>
+            <div class="picker-grid years" id="anio-grid"></div>
+        </div>
     </div>
+
 </div>
 
 <!-- Gráficas -->
@@ -112,11 +246,7 @@
                 <table class="table table-sm mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th>#</th>
-                            <th>Cliente</th>
-                            <th>Producto</th>
-                            <th>Estatus</th>
-                            <th>Entrega</th>
+                            <th>#</th><th>Cliente</th><th>Producto</th><th>Estatus</th><th>Entrega</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -170,105 +300,277 @@ const mesesPorAnio   = JSON.parse('{{ meses_por_anio|escapejs }}');
 const semanasPorAnio = JSON.parse('{{ semanas_por_anio|escapejs }}');
 const labelsAnio     = JSON.parse('{{ labels_anio|escapejs }}');
 const dataAnio       = JSON.parse('{{ data_anio|escapejs }}');
-const anioActual     = '{{ anio_actual }}';
+const anioActual     = parseInt('{{ anio_actual }}') || new Date().getFullYear();
 
-// ── Estado global ─────────────────────────────────────────────────────────
-let periodoActivo = 'mes';
+// ── Nombres de meses en español ───────────────────────────────────────────
+const MESES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+const MESES_FULL = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
+                    'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
-// ── Poblar un <select> con una lista de años ──────────────────────────────
-function poblarSelect(selectId, anios, valorDefault) {
-    const sel = document.getElementById(selectId);
-    sel.innerHTML = '';
-    anios.forEach(a => {
-        const opt = document.createElement('option');
-        opt.value = a;
-        opt.textContent = a;
-        if (a === valorDefault) opt.selected = true;
-        sel.appendChild(opt);
-    });
-}
+// ── Estado ────────────────────────────────────────────────────────────────
+let periodoActivo  = 'mes';
+let navAnioMes     = anioActual;   // año navegado en picker de mes
+let navAnioSemana  = anioActual;   // año navegado en picker de semana
 
-// Poblar selects al cargar la página
-const aniosMes     = Object.keys(mesesPorAnio).sort((a, b) => b - a);
-const aniosSemana  = Object.keys(semanasPorAnio).sort((a, b) => b - a);
+// Selección actual
+let selMesAnio = String(anioActual);
+let selMesIdx  = null;   // 0-11
+let selSemAnio = String(anioActual);
+let selSemIdx  = null;   // índice dentro del array de semanas
+let selAnio    = 'todos';
 
-poblarSelect('select-anio-mes',    aniosMes,    anioActual || aniosMes[0]);
-poblarSelect('select-anio-semana', aniosSemana, anioActual || aniosSemana[0]);
-
-// Poblar selector de años en la vista "Por Año"
-const selAnioAnio = document.getElementById('select-anio-anio');
-labelsAnio.forEach(a => {
-    const opt = document.createElement('option');
-    opt.value = a;
-    opt.textContent = a;
-    selAnioAnio.appendChild(opt);
-});
-
-// ── Colores por período ───────────────────────────────────────────────────
+// ── Chart.js ──────────────────────────────────────────────────────────────
 const colores = {
-    mes:    { bg: 'rgba(25, 135, 84, 0.7)',   border: 'rgba(25, 135, 84, 1)' },
-    semana: { bg: 'rgba(13, 110, 253, 0.7)',  border: 'rgba(13, 110, 253, 1)' },
-    anio:   { bg: 'rgba(108, 117, 125, 0.7)', border: 'rgba(108, 117, 125, 1)' },
+    mes:    { bg:'rgba(25,135,84,.7)',   bd:'rgba(25,135,84,1)' },
+    semana: { bg:'rgba(13,110,253,.7)',  bd:'rgba(13,110,253,1)' },
+    anio:   { bg:'rgba(108,117,125,.7)',bd:'rgba(108,117,125,1)' },
 };
 
-// ── Inicializar Chart.js ──────────────────────────────────────────────────
 const ctx = document.getElementById('graficaIngresos').getContext('2d');
 let chart = new Chart(ctx, {
     type: 'bar',
-    data: {
-        labels: [],
-        datasets: [{
-            label: 'Ingresos ($)',
-            data: [],
-            backgroundColor: colores.mes.bg,
-            borderColor:     colores.mes.border,
-            borderWidth: 1,
-            borderRadius: 6,
-        }]
-    },
-    options: {
-        responsive: true,
-        plugins: { legend: { display: false } },
-        scales: {
-            y: {
-                beginAtZero: true,
-                ticks: { callback: v => '$' + v.toLocaleString() }
-            }
-        }
+    data: { labels:[], datasets:[{
+        label:'Ingresos ($)', data:[],
+        backgroundColor: colores.mes.bg,
+        borderColor:     colores.mes.bd,
+        borderWidth:1, borderRadius:6,
+    }]},
+    options:{
+        responsive:true,
+        plugins:{ legend:{ display:false } },
+        scales:{ y:{ beginAtZero:true,
+            ticks:{ callback: v=>'$'+v.toLocaleString() }
+        }}
     }
 });
 
-// ── Actualizar gráfica según período y selector activo ────────────────────
+// ── Abrir/cerrar picker ───────────────────────────────────────────────────
+function togglePicker(id) {
+    const panel = document.getElementById(id);
+    const wasOpen = panel.classList.contains('open');
+    closeAllPickers();
+    if (!wasOpen) panel.classList.add('open');
+}
+function closeAllPickers() {
+    document.querySelectorAll('.picker-panel').forEach(p => p.classList.remove('open'));
+}
+document.addEventListener('click', e => {
+    if (!e.target.closest('.picker-wrapper')) closeAllPickers();
+});
+
+// ─────────────────────────────────────────────────────────────────────────
+// PICKER MES
+// ─────────────────────────────────────────────────────────────────────────
+function renderMesGrid() {
+    document.getElementById('mes-year-nav').textContent = navAnioMes;
+    const grid = document.getElementById('mes-grid');
+    grid.innerHTML = '';
+
+    const anioKey = String(navAnioMes);
+    const datosMes = mesesPorAnio[anioKey] || { labels:[], data:[] };
+
+    // Construir set de meses con datos (índice 0-11)
+    const mesesConDatos = new Set();
+    datosMes.labels.forEach(lbl => {
+        // label format: "Ene 2026" → extraer mes
+        const parts = lbl.split(' ');
+        const mIdx = MESES.indexOf(parts[0]);
+        if (mIdx >= 0) mesesConDatos.add(mIdx);
+    });
+
+    MESES.forEach((m, i) => {
+        const cell = document.createElement('div');
+        cell.className = 'picker-cell';
+        cell.textContent = m;
+        const tieneData = mesesConDatos.has(i);
+
+        if (tieneData) {
+            cell.classList.add('has-data');
+        } else {
+            cell.classList.add('no-data');
+        }
+
+        if (selMesAnio === anioKey && selMesIdx === i) {
+            cell.classList.add('active');
+        }
+
+        if (tieneData) {
+            cell.onclick = () => seleccionarMes(anioKey, i, m);
+        }
+        grid.appendChild(cell);
+    });
+}
+
+function navMes(dir) {
+    const anios = Object.keys(mesesPorAnio).map(Number).sort((a,b) => a-b);
+    if (!anios.length) return;
+    const minAnio = anios[0], maxAnio = anios[anios.length-1];
+    const nuevo = navAnioMes + dir;
+    if (nuevo < minAnio || nuevo > maxAnio) return;
+    navAnioMes = nuevo;
+    renderMesGrid();
+}
+
+function seleccionarMes(anioKey, mesIdx, mesNombre) {
+    selMesAnio = anioKey;
+    selMesIdx  = mesIdx;
+    document.getElementById('label-mes').textContent = `${MESES_FULL[mesIdx]} ${anioKey}`;
+    closeAllPickers();
+    actualizarGrafica();
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// PICKER SEMANA
+// ─────────────────────────────────────────────────────────────────────────
+function renderSemanaGrid() {
+    document.getElementById('semana-year-nav').textContent = navAnioSemana;
+    const grid = document.getElementById('semana-grid');
+    grid.innerHTML = '';
+
+    const anioKey = String(navAnioSemana);
+    const datosSem = semanasPorAnio[anioKey] || { labels:[], data:[] };
+
+    // Extraer números de semana con datos
+    const semanasConDatos = new Map(); // semNum → índice
+    datosSem.labels.forEach((lbl, idx) => {
+        // label: "Semana 15 (07/04)"
+        const m = lbl.match(/Semana\s+(\d+)/);
+        if (m) semanasConDatos.set(parseInt(m[1]), idx);
+    });
+
+    const totalSemanas = 53;
+    for (let s = 1; s <= totalSemanas; s++) {
+        const cell = document.createElement('div');
+        cell.className = 'picker-cell';
+        cell.textContent = s;
+        const tieneData = semanasConDatos.has(s);
+
+        if (tieneData) {
+            cell.classList.add('has-data');
+            const dataIdx = semanasConDatos.get(s);
+            if (selSemAnio === anioKey && selSemIdx === dataIdx) {
+                cell.classList.add('active');
+            }
+            cell.onclick = () => seleccionarSemana(anioKey, dataIdx, s, datosSem.labels[dataIdx]);
+        } else {
+            cell.classList.add('no-data');
+        }
+        grid.appendChild(cell);
+    }
+}
+
+function navSemana(dir) {
+    const anios = Object.keys(semanasPorAnio).map(Number).sort((a,b) => a-b);
+    if (!anios.length) return;
+    const minAnio = anios[0], maxAnio = anios[anios.length-1];
+    const nuevo = navAnioSemana + dir;
+    if (nuevo < minAnio || nuevo > maxAnio) return;
+    navAnioSemana = nuevo;
+    renderSemanaGrid();
+}
+
+function seleccionarSemana(anioKey, dataIdx, semNum, labelCompleto) {
+    selSemAnio = anioKey;
+    selSemIdx  = dataIdx;
+    // Extraer fecha del label: "Semana 15 (07/04)"
+    const m = labelCompleto.match(/\((.+?)\)/);
+    const fecha = m ? ` · ${m[1]}` : '';
+    document.getElementById('label-semana').textContent = `Sem ${semNum}${fecha} / ${anioKey}`;
+    closeAllPickers();
+    actualizarGrafica();
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// PICKER AÑO
+// ─────────────────────────────────────────────────────────────────────────
+function renderAnioGrid() {
+    const grid = document.getElementById('anio-grid');
+    grid.innerHTML = '';
+
+    // Opción "Todos"
+    const todos = document.createElement('div');
+    todos.className = 'picker-cell has-data' + (selAnio === 'todos' ? ' active' : '');
+    todos.textContent = 'Todos';
+    todos.style.gridColumn = '1 / -1';
+    todos.onclick = () => { selAnio = 'todos'; document.getElementById('label-anio').textContent = 'Todos los años'; closeAllPickers(); actualizarGrafica(); renderAnioGrid(); };
+    grid.appendChild(todos);
+
+    // Años disponibles (más reciente primero)
+    const aniosDisp = labelsAnio.slice().reverse();
+    aniosDisp.forEach(a => {
+        const cell = document.createElement('div');
+        cell.className = 'picker-cell has-data' + (selAnio === a ? ' active' : '');
+        cell.textContent = a;
+        cell.onclick = () => {
+            selAnio = a;
+            document.getElementById('label-anio').textContent = a;
+            closeAllPickers();
+            actualizarGrafica();
+            renderAnioGrid();
+        };
+        grid.appendChild(cell);
+    });
+
+    // Años sin datos (hasta el año actual)
+    const aniosConDatos = new Set(labelsAnio.map(String));
+    const minAnio = labelsAnio.length ? parseInt(labelsAnio[0]) : anioActual;
+    for (let y = anioActual; y >= minAnio - 3; y--) {
+        if (!aniosConDatos.has(String(y))) {
+            const cell = document.createElement('div');
+            cell.className = 'picker-cell no-data';
+            cell.textContent = y;
+            grid.appendChild(cell);
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// ACTUALIZAR GRÁFICA
+// ─────────────────────────────────────────────────────────────────────────
 function actualizarGrafica() {
     let labels = [], data = [], subtitulo = '';
 
     if (periodoActivo === 'mes') {
-        const anio = document.getElementById('select-anio-mes').value;
-        const d = mesesPorAnio[anio];
-        if (d) { labels = d.labels; data = d.data; }
-        subtitulo = `Meses de ${anio}`;
+        // Mostrar todos los meses del año seleccionado, o solo el mes elegido
+        const anioKey = selMesAnio;
+        const d = mesesPorAnio[anioKey] || { labels:[], data:[] };
+
+        if (selMesIdx !== null) {
+            // Mes específico seleccionado → mostrar barra única
+            const mesLabel = `${MESES[selMesIdx]} ${anioKey}`;
+            const idx = d.labels.indexOf(mesLabel);
+            if (idx >= 0) { labels = [d.labels[idx]]; data = [d.data[idx]]; }
+            subtitulo = `${MESES_FULL[selMesIdx]} ${anioKey}`;
+        } else {
+            // Sin selección específica → todos los meses del año
+            labels = d.labels; data = d.data;
+            subtitulo = `Meses de ${anioKey}`;
+        }
 
     } else if (periodoActivo === 'semana') {
-        const anio = document.getElementById('select-anio-semana').value;
-        const d = semanasPorAnio[anio];
-        if (d) { labels = d.labels; data = d.data; }
-        subtitulo = `Semanas de ${anio}`;
+        const anioKey = selSemAnio;
+        const d = semanasPorAnio[anioKey] || { labels:[], data:[] };
+
+        if (selSemIdx !== null) {
+            labels = [d.labels[selSemIdx]];
+            data   = [d.data[selSemIdx]];
+            subtitulo = d.labels[selSemIdx];
+        } else {
+            labels = d.labels; data = d.data;
+            subtitulo = `Semanas de ${anioKey}`;
+        }
 
     } else if (periodoActivo === 'anio') {
-        const filtro = document.getElementById('select-anio-anio').value;
-        if (filtro === 'todos') {
-            labels    = labelsAnio;
-            data      = dataAnio;
-            subtitulo = 'Todos los años';
+        if (selAnio === 'todos') {
+            labels = labelsAnio; data = dataAnio; subtitulo = 'Todos los años';
         } else {
-            const idx = labelsAnio.indexOf(filtro);
-            labels    = idx >= 0 ? [labelsAnio[idx]] : [];
-            data      = idx >= 0 ? [dataAnio[idx]]   : [];
-            subtitulo = filtro;
+            const idx = labelsAnio.indexOf(selAnio);
+            labels = idx >= 0 ? [labelsAnio[idx]] : [];
+            data   = idx >= 0 ? [dataAnio[idx]]   : [];
+            subtitulo = selAnio;
         }
     }
 
-    // Mostrar/ocultar mensaje sin datos
     const sinDatos = document.getElementById('sin-datos');
     if (labels.length === 0) {
         chart.canvas.style.display = 'none';
@@ -280,35 +582,54 @@ function actualizarGrafica() {
         chart.data.datasets[0].data = data;
         chart.update();
     }
-
     document.getElementById('subtitulo-grafica').textContent = subtitulo;
 }
 
-// ── Cambiar período activo (botones Mes / Semana / Año) ───────────────────
+// ─────────────────────────────────────────────────────────────────────────
+// CAMBIAR PERÍODO (botones)
+// ─────────────────────────────────────────────────────────────────────────
 function cambiarPeriodo(periodo, btn) {
     periodoActivo = periodo;
 
-    // Resaltar botón activo
     document.querySelectorAll('.btn-group .btn').forEach(b => {
-        b.classList.remove('btn-dark', 'active');
-        b.classList.add('btn-outline-dark');
+        b.classList.remove('btn-dark','active'); b.classList.add('btn-outline-dark');
     });
     btn.classList.remove('btn-outline-dark');
-    btn.classList.add('btn-dark', 'active');
+    btn.classList.add('btn-dark','active');
 
-    // Mostrar el selector correcto
-    document.getElementById('selector-mes').classList.toggle('d-none',    periodo !== 'mes');
-    document.getElementById('selector-semana').classList.toggle('d-none', periodo !== 'semana');
-    document.getElementById('selector-anio').classList.toggle('d-none',   periodo !== 'anio');
+    document.getElementById('picker-mes-wrapper').classList.toggle('d-none',    periodo !== 'mes');
+    document.getElementById('picker-semana-wrapper').classList.toggle('d-none', periodo !== 'semana');
+    document.getElementById('picker-anio-wrapper').classList.toggle('d-none',   periodo !== 'anio');
 
-    // Actualizar color de barras
     chart.data.datasets[0].backgroundColor = colores[periodo].bg;
-    chart.data.datasets[0].borderColor      = colores[periodo].border;
+    chart.data.datasets[0].borderColor      = colores[periodo].bd;
+
+    // Resetear selección de ítem específico al cambiar modo
+    if (periodo === 'mes')    { selMesIdx = null; }
+    if (periodo === 'semana') { selSemIdx = null; }
 
     actualizarGrafica();
 }
 
-// ── Carga inicial ─────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────
+// INICIALIZACIÓN
+// ─────────────────────────────────────────────────────────────────────────
+// Fijar año de navegación en el más reciente disponible
+const aniosMesDisp = Object.keys(mesesPorAnio).map(Number).sort((a,b)=>b-a);
+if (aniosMesDisp.length) { navAnioMes = aniosMesDisp[0]; selMesAnio = String(navAnioMes); }
+
+const aniosSemDisp = Object.keys(semanasPorAnio).map(Number).sort((a,b)=>b-a);
+if (aniosSemDisp.length) { navAnioSemana = aniosSemDisp[0]; selSemAnio = String(navAnioSemana); }
+
+renderMesGrid();
+renderSemanaGrid();
+renderAnioGrid();
+
+// Label inicial del botón mes
+document.getElementById('label-mes').textContent = `Año ${selMesAnio}`;
+document.getElementById('label-semana').textContent = `Año ${selSemAnio}`;
+document.getElementById('label-anio').textContent = 'Todos los años';
+
 actualizarGrafica();
 </script>
 {% endblock %}
