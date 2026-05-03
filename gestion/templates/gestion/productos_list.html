@@ -1,37 +1,61 @@
 {% extends 'gestion/base.html' %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>📦 Productos</h2>
-    <a href="{% url 'crear_producto' %}" class="btn btn-success">+ Nuevo Producto</a>
+<!-- Cabecera Responsiva con Buscador -->
+<div class="row g-3 mb-4 align-items-center">
+    <div class="col-12 col-md-4">
+        <h2 class="mb-0">📦 Productos</h2>
+    </div>
+    
+    <!-- Barra de Búsqueda -->
+    <div class="col-12 col-md-5">
+        <form method="GET" action="{% url 'lista_productos' %}" class="d-flex shadow-sm">
+            <input type="text" name="q" class="form-control" 
+                   placeholder="Buscar por nombre o detalle..." value="{{ query|default:'' }}">
+            <button type="submit" class="btn btn-dark ms-1">🔍</button>
+            {% if query %}
+                <a href="{% url 'lista_productos' %}" class="btn btn-outline-secondary ms-1">✕</a>
+            {% endif %}
+        </form>
+    </div>
+
+    <div class="col-12 col-md-3 text-md-end">
+        <a href="{% url 'crear_producto' %}" class="btn btn-success w-100 w-md-auto">+ Nuevo Producto</a>
+    </div>
 </div>
 
 {% if productos %}
 <div class="row g-4">
     {% for prod in productos %}
-    <div class="col-md-3">
-        <div class="card shadow-sm h-100">
+    <!-- col-12 para móvil (una sola tarjeta ancha) y col-md-3 para PC -->
+    <div class="col-12 col-md-3">
+        <div class="card shadow-sm h-100 border-0">
             {% if prod.foto %}
             <img src="/media/{{ prod.foto }}" class="card-img-top"
-                 style="height:180px; object-fit:cover;" alt="{{ prod.nombre }}">
+                 style="height:200px; object-fit:cover;" alt="{{ prod.nombre }}">
             {% else %}
-            <div class="d-flex align-items-center justify-content-center bg-light"
-                 style="height:180px; font-size:3rem;">🔷</div>
+            <div class="d-flex align-items-center justify-content-center bg-light text-primary"
+                 style="height:200px; font-size:3.5rem;">🔷</div>
             {% endif %}
+            
             <div class="card-body d-flex flex-column">
-                <h5 class="card-title mb-1">{{ prod.nombre }}</h5>
-                <p class="text-muted small mb-2">{{ prod.detalle|default:"Sin descripción" }}</p>
+                <h5 class="card-title fw-bold mb-1">{{ prod.nombre }}</h5>
+                <p class="text-muted small mb-3">{{ prod.detalle|default:"Sin descripción técnica"|truncatechars:80 }}</p>
+                
                 <div class="mt-auto">
-                    {% if prod.precio_fijo %}
-                        <span class="badge bg-primary fs-6 mb-3">💰 Precio fijo: ${{ prod.precio_fijo }}</span>
-                    {% else %}
-                        <span class="badge bg-success fs-6 mb-3">{{ prod.porcentaje_utilidad }}% utilidad</span>
-                    {% endif %}
+                    <div class="mb-3">
+                        {% if prod.precio_fijo %}
+                            <span class="badge rounded-pill bg-primary px-3">💰 ${{ prod.precio_fijo }} (Fijo)</span>
+                        {% else %}
+                            <span class="badge rounded-pill bg-success px-3">{{ prod.porcentaje_utilidad }}% utilidad</span>
+                        {% endif %}
+                    </div>
+                    
                     <div class="d-flex gap-2">
                         <a href="{% url 'editar_producto' prod.id_producto %}"
-                           class="btn btn-sm btn-outline-dark flex-fill">✏️ Editar</a>
+                           class="btn btn-sm btn-outline-dark flex-fill py-2">✏️ Editar</a>
                         <a href="{% url 'eliminar_producto' prod.id_producto %}"
-                           class="btn btn-sm btn-outline-danger flex-fill">🗑️ Eliminar</a>
+                           class="btn btn-sm btn-outline-danger flex-fill py-2">🗑️ Eliminar</a>
                     </div>
                 </div>
             </div>
@@ -41,10 +65,21 @@
 </div>
 {% else %}
 <div class="text-center py-5">
-    <div style="font-size:4rem;">📦</div>
-    <h4 class="mt-3">No hay productos registrados</h4>
-    <p class="text-muted">Agrega el primer producto para usarlo en cotizaciones.</p>
-    <a href="{% url 'crear_producto' %}" class="btn btn-success btn-lg mt-2">+ Agregar primer producto</a>
+    <div style="font-size:4rem;">🔎</div>
+    <h4 class="mt-3">{% if query %}No se encontraron resultados para "{{ query }}"{% else %}No hay productos registrados{% endif %}</h4>
+    <p class="text-muted">Intenta con otro término o agrega un nuevo producto al catálogo.</p>
+    <a href="{% url 'crear_producto' %}" class="btn btn-success btn-lg mt-2">+ Agregar Producto</a>
 </div>
 {% endif %}
+
+<style>
+    /* Mejora visual para las cards */
+    .card { transition: transform 0.2s; }
+    .card:hover { transform: translateY(-5px); }
+    
+    /* Ajuste para móviles: los botones ocupan todo el ancho si es necesario */
+    @media (max-width: 576px) {
+        .btn-sm { font-size: 0.9rem; }
+    }
+</style>
 {% endblock %}

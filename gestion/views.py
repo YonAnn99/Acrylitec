@@ -342,8 +342,20 @@ def eliminar_material(request, id):
 # ─────────────────────────────────────────
 
 def lista_productos(request):
-    return render(request, 'gestion/productos_list.html',
-                  {'productos': Productos.objects.all()})
+    query = request.GET.get('q', '')  # Captura el texto del buscador
+    productos = Productos.objects.all()
+    
+    if query:
+        # Filtra por nombre o detalle (ignora mayúsculas/minúsculas)
+        productos = productos.filter(
+            Q(nombre__icontains=query) | 
+            Q(detalle__icontains=query)
+        )
+        
+    return render(request, 'gestion/productos_list.html', {
+        'productos': productos,
+        'query': query
+    })
 
 
 def crear_producto(request):
