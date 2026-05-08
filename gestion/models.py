@@ -124,6 +124,7 @@ class Ventas(models.Model):
 
     id_venta = models.AutoField(primary_key=True)
     id_cotizacion = models.ForeignKey(Cotizaciones, models.DO_NOTHING, db_column='id_cotizacion', blank=True, null=True)
+    id_cliente = models.ForeignKey('Clientes', on_delete=models.SET_NULL, null=True, blank=True, db_column='id_cliente_directo')
     monto_abonado = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, verbose_name="Anticipo/Abono")
     estatus = models.CharField(max_length=20, choices=ESTATUS_CHOICES, default='pendiente')
     fecha_entrega = models.DateField(blank=True, null=True)
@@ -131,15 +132,15 @@ class Ventas(models.Model):
 
     @property
     def saldo_restante(self):
-        """Calcula automáticamente cuánto debe el cliente """
-        total = self.id_cotizacion.monto_total if self.id_cotizacion else 0
-        return total - self.monto_abonado
-
-    class Meta:
-        managed = True
-        db_table = 'ventas'
-        verbose_name = "Venta"
-        verbose_name_plural = "Ventas"
+        """Calcula automáticamente cuánto debe el cliente sumando el carrito"""
+        # Si es una venta antigua (1 a 1 con cotización)
+        if self.id_cotizacion:
+            total = self.id_cotizacion.monto_total
+        else:
+            # Si es una venta nueva (carrito), suma los subtotales de DetalleVenta
+            total = sum(detalle.subtotal for detalle in self.detalles.all())
+            
+        return (total or Decimal('0.00')) - self.monto_abonado
 
 
 class ConfiguracionPrecios(models.Model):
@@ -163,3 +164,26 @@ class ConfiguracionPrecios(models.Model):
     def get_config(cls):
         obj, _ = cls.objects.get_or_create(pk=1)
         return obj
+    
+    # models.py
+
+class DetalleVenta(models.Model):
+    id_detalle = models.AutoField(primary_key=True)
+    # Vinculamos muchos detalles a una sola venta maestra
+    id_venta = models.ForeignKey('Ventas', on_delete=models.CASCADE, related_name='detalles')
+    
+    # Datos del producto específico
+    id_producto = models.ForeignKey('Productos', on_delete=models.CASCADE)
+    id_material = models.ForeignKey('Materiales', on_delete=models.CASCADE)
+    
+    cantidad = models.IntegerField(default=1)
+    largo_pza = models.DecimalField(max_digits=10, decimal_places=2)
+    ancho_pza = models.DecimalField(max_digits=10, decimal_places=2)
+    espesor_mm = models.DecimalField(max_digits=5, decimal_places=2)
+    minutos_lazer = models.IntegerField(default=0)
+    
+    # Precio de este renglón específico
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2)
+
+    class Meta:
+        db_table = 'detalle_venta'

@@ -5,64 +5,56 @@
     <div class="col-md-5 text-center">
 
         {% if tiene_refs %}
-        <!-- ══ BLOQUEADO: el producto tiene ventas / cotizaciones ══ -->
+        <!-- ══ BLOQUEADO: el material tiene cotizaciones / ventas ══ -->
         <div class="card shadow-sm border-warning mt-4">
             <div class="card-header bg-warning text-dark fw-semibold">
                 ⚠️ No se puede eliminar
             </div>
             <div class="card-body py-4">
-                {% if producto.foto %}
-                    <img src="/media/{{ producto.foto }}" class="rounded mb-3" style="max-height:110px;">
-                {% else %}
-                    <div style="font-size:3rem;" class="mb-3">🔷</div>
-                {% endif %}
+                <div style="font-size:3rem;" class="mb-3">🪣</div>
 
                 <h5 class="mb-3">
-                    <strong>{{ producto.nombre }}</strong> tiene registros asociados
+                    <strong>{{ material.descripcion }}</strong> tiene registros asociados
                 </h5>
 
                 <div class="d-flex justify-content-center gap-3 mb-4">
-                    {% if ventas_count %}
-                    <span class="badge bg-danger fs-6 px-3 py-2">
-                        🛒 {{ ventas_count }} venta{{ ventas_count|pluralize:",s" }}
-                    </span>
-                    {% endif %}
                     {% if cot_count %}
                     <span class="badge bg-secondary fs-6 px-3 py-2">
                         📄 {{ cot_count }} cotización{{ cot_count|pluralize:",es" }}
                     </span>
                     {% endif %}
+                    {% if det_count %}
+                    <span class="badge bg-danger fs-6 px-3 py-2">
+                        🛒 {{ det_count }} venta{{ det_count|pluralize:",s" }}
+                    </span>
+                    {% endif %}
                 </div>
 
                 <p class="text-muted small mb-4">
-                    Eliminar este producto borraría el historial de esas ventas.<br>
+                    Eliminar este material borraría el historial de esas ventas.<br>
                     Si ya no lo usas, simplemente deja de asignarlo en nuevos pedidos.
                 </p>
 
-                <a href="{% url 'lista_productos' %}" class="btn btn-outline-secondary btn-lg w-100">
-                    ← Volver a Productos
+                <a href="{% url 'lista_materiales' %}" class="btn btn-outline-secondary btn-lg w-100">
+                    ← Volver a Materiales
                 </a>
             </div>
         </div>
 
         {% else %}
-        <!-- ══ LIBRE: el producto no tiene referencias, se puede borrar ══ -->
+        <!-- ══ LIBRE: sin referencias, se puede borrar ══ -->
         <div class="card shadow-sm border-danger mt-4">
             <div class="card-header bg-danger text-white fw-semibold">
                 ⚠️ Confirmar eliminación
             </div>
             <div class="card-body py-4">
-                {% if producto.foto %}
-                    <img src="/media/{{ producto.foto }}" class="rounded mb-3" style="max-height:110px;">
-                {% else %}
-                    <div style="font-size:3rem;" class="mb-3">🔷</div>
-                {% endif %}
+                <div style="font-size:3rem;" class="mb-3">🪣</div>
 
-                <h5>¿Eliminar <strong>{{ producto.nombre }}</strong>?</h5>
+                <h5>¿Eliminar <strong>{{ material.descripcion }}</strong>?</h5>
                 <p class="text-muted">Esta acción es permanente y no se puede deshacer.</p>
 
                 <div class="d-flex gap-3 justify-content-center mt-4">
-                    <a href="{% url 'lista_productos' %}" class="btn btn-outline-secondary btn-lg">
+                    <a href="{% url 'lista_materiales' %}" class="btn btn-outline-secondary btn-lg">
                         Cancelar
                     </a>
                     <form method="POST">

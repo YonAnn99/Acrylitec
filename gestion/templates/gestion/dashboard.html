@@ -5,7 +5,7 @@
 
 <!-- KPIs -->
 <div class="row g-3 mb-4">
-    <div class="col-6 col-md-2">
+    <div class="col-md-2">
         <div class="card text-white bg-success shadow-sm">
             <div class="card-body text-center">
                 <div class="fs-4 fw-bold">${{ kpis.ingresos_mes|floatformat:0 }}</div>
@@ -13,7 +13,7 @@
             </div>
         </div>
     </div>
-    <div class="col-6 col-md-2">
+    <div class="col-md-2">
         <div class="card text-white bg-primary shadow-sm">
             <div class="card-body text-center">
                 <div class="fs-4 fw-bold">{{ kpis.ventas_mes }}</div>
@@ -21,7 +21,7 @@
             </div>
         </div>
     </div>
-    <div class="col-6 col-md-2">
+    <div class="col-md-2">
         <div class="card text-white bg-dark shadow-sm">
             <div class="card-body text-center">
                 <div class="fs-4 fw-bold">${{ kpis.ingresos_total|floatformat:0 }}</div>
@@ -29,7 +29,7 @@
             </div>
         </div>
     </div>
-    <div class="col-6 col-md-2">
+    <div class="col-md-2">
         <div class="card text-white bg-secondary shadow-sm">
             <div class="card-body text-center">
                 <div class="fs-4 fw-bold">{{ kpis.ventas_total }}</div>
@@ -37,7 +37,7 @@
             </div>
         </div>
     </div>
-    <div class="col-6 col-md-2">
+    <div class="col-md-2">
         <div class="card text-white bg-info shadow-sm">
             <div class="card-body text-center">
                 <div class="fs-4 fw-bold">{{ kpis.clientes_total }}</div>
@@ -45,7 +45,7 @@
             </div>
         </div>
     </div>
-    <div class="col-6 col-md-2">
+    <div class="col-md-2">
         <div class="card text-white bg-warning shadow-sm">
             <div class="card-body text-center">
                 <div class="fs-4 fw-bold">{{ kpis.cotizaciones_mes }}</div>
@@ -253,8 +253,8 @@
                         {% for v in pedidos_activos %}
                         <tr>
                             <td><small>{{ v.id_venta }}</small></td>
-                            <td><small>{{ v.id_cotizacion.id_cliente.nombre }}</small></td>
-                            <td><small>{{ v.id_cotizacion.id_producto.nombre }}</small></td>
+                            <td><small>{{ v.cliente_nombre|default:"—" }}</small></td>
+                            <td><small>{{ v.producto_nombre|default:"—" }}</small></td>
                             <td>
                                 {% if v.estatus == 'pendiente' %}
                                     <span class="badge bg-secondary">⏳ Pendiente</span>
@@ -280,7 +280,7 @@
 <!-- Accesos rápidos -->
 <div class="row g-3">
     <div class="col-md-3">
-        <a href="{% url 'crear_cotizacion' %}" class="btn btn-success w-100 btn-lg">➕ Nueva cotización</a>
+        <a href="{% url 'nuevo_pedido' %}" class="btn btn-success w-100 btn-lg">➕ Nuevo Pedido</a>
     </div>
     <div class="col-md-3">
         <a href="{% url 'lista_ventas' %}" class="btn btn-primary w-100 btn-lg">📦 Ver ventas</a>

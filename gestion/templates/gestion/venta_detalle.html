@@ -28,10 +28,6 @@
                         <p class="mb-0 fw-bold">{{ venta.id_cotizacion.id_producto.nombre }}</p>
                         <h6 class="text-muted mt-2">MATERIAL</h6>
                         <p class="mb-0">{{ venta.id_cotizacion.id_material.descripcion }}</p>
-                        <h6 class="text-muted mt-2">COTIZACIÓN ORIGEN</h6>
-                        <a href="{% url 'detalle_cotizacion' venta.id_cotizacion.id_cotizacion %}">
-                            COT-{{ venta.id_cotizacion.id_cotizacion|stringformat:"04d" }}
-                        </a>
                     </div>
                 </div>
                 <hr>

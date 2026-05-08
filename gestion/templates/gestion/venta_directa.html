@@ -2,149 +2,178 @@
 {% block content %}
 <div class="container-fluid">
     <div class="row">
+        
+        <!-- ══════════════════════════════════════
+             COLUMNA IZQUIERDA — Formulario POS
+        ══════════════════════════════════════ -->
         <div class="col-md-7">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2>💰 Nueva Venta Directa</h2>
+                <h2>🛒 Punto de Venta (POS)</h2>
                 <a href="{% url 'lista_ventas' %}" class="btn btn-outline-secondary">← Volver</a>
             </div>
-            <p class="text-muted">Registra una venta sin necesidad de crear una cotización previa.</p>
 
-            <form method="POST" id="formVentaDirecta">
-                {% csrf_token %}
-
-                <!-- Cliente -->
-                <div class="card shadow-sm mb-3">
-                    <div class="card-header bg-dark text-white">👤 Cliente</div>
-                    <div class="card-body">
-                        <select name="cliente" id="id_cliente" class="form-select select2" required>
-                            <option value="">-- Selecciona cliente --</option>
-                            {% for c in clientes %}
-                            <option value="{{ c.id_cliente }}">{{ c.nombre }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
+            <!-- ── PASO 1: Cliente ── -->
+            <div class="card shadow-sm mb-3 border-primary">
+                <div class="card-header bg-primary text-white fw-semibold">
+                    1. Seleccionar Cliente
                 </div>
-
-                <!-- Producto -->
-                <div class="card shadow-sm mb-3">
-                    <div class="card-header bg-dark text-white">📦 Producto</div>
-                    <div class="card-body">
-                        <select name="producto" id="id_producto" class="form-select select2" required>
-                            <option value="">-- Selecciona producto --</option>
-                            {% for p in productos %}
-                            <option value="{{ p.id_producto }}"
-                                data-precio-fijo="{{ p.precio_fijo|default:'' }}"
-                                data-utilidad="{{ p.porcentaje_utilidad }}">
-                                {{ p.nombre }}
-                            </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Material -->
-                <div class="card shadow-sm mb-3">
-                    <div class="card-header bg-dark text-white">🧪 Material</div>
-                    <div class="card-body">
-                        <select name="material" id="id_material" class="form-select select2" required>
-                            <option value="">-- Selecciona material --</option>
-                            {% for m in materiales %}
-                            <option value="{{ m.id_material }}">{{ m.descripcion }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Medidas -->
-                <div class="card shadow-sm mb-3">
-                    <div class="card-header bg-dark text-white">📐 Medidas y Servicios</div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Largo (cm)</label>
-                                <input type="number" name="largo_pza" step="0.01"
-                                       class="form-control" placeholder="ej. 20" required>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Ancho (cm)</label>
-                                <input type="number" name="ancho_pza" step="0.01"
-                                       class="form-control" placeholder="ej. 10" required>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Minutos Láser</label>
-                                <input type="number" name="minutos_lazer" step="1"
-                                       value="0" class="form-control">
-                            </div>
+                <div class="card-body">
+                    <div class="d-flex gap-2 align-items-start">
+                        <div class="flex-grow-1">
+                            <select id="id_cliente" class="form-select select2" required>
+                                <option value="">-- Busca o selecciona un cliente --</option>
+                                {% for c in clientes %}
+                                <option value="{{ c.id_cliente }}">{{ c.nombre }}{% if c.telefono %} · {{ c.telefono }}{% endif %}</option>
+                                {% endfor %}
+                            </select>
+                            <small class="text-muted">El cliente se bloqueará al agregar el primer artículo.</small>
                         </div>
+                        <!-- Botón que abre el modal -->
+                        <button type="button"
+                                class="btn btn-outline-primary btn-sm mt-1 text-nowrap"
+                                data-bs-toggle="modal"
+                                data-bs-target="#modalNuevoCliente"
+                                title="Registrar nuevo cliente">
+                            ➕ Nuevo cliente
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── PASO 2: Artículo ── -->
+            <form id="formProducto" onsubmit="event.preventDefault(); agregarAlCarrito();">
+                <div class="card shadow-sm mb-3">
+                    <div class="card-header bg-dark text-white fw-semibold">2. Agregar Artículo</div>
+                    <div class="card-body">
+                        
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Espesor (mm)</label>
-                                <select name="espesor_mm" id="id_espesor" class="form-select" required>
-                                    <option value="">-- Selecciona --</option>
-                                    {% for t in materiales_tabulador %}
-                                    <option value="{{ t.espesor_mm }}" data-factor="{{ t.factor_costo }}">
-                                        {{ t.espesor_mm }} mm
+                                <label class="form-label">Producto</label>
+                                <select id="id_producto" class="form-select select2" required>
+                                    <option value="">-- Selecciona producto --</option>
+                                    {% for p in productos %}
+                                    <option value="{{ p.id_producto }}" data-precio-fijo="{{ p.precio_fijo|default:'' }}">
+                                        {{ p.nombre }}
                                     </option>
                                     {% endfor %}
                                 </select>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Utilidad (%)</label>
-                                <input type="number" name="porcentaje_utilidad"
-                                       id="id_utilidad" value="40" min="0" max="200"
-                                       class="form-control">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Datos de venta -->
-                <div class="card shadow-sm mb-3">
-                    <div class="card-header bg-dark text-white">💳 Datos de Pago</div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Monto abonado ($)</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">$</span>
-                                    <input type="number" name="monto_abonado" step="0.01"
-                                           min="0" class="form-control"
-                                           placeholder="0.00" id="id_monto_abonado">
-                                </div>
-                                <small class="text-muted">Deja en 0 si aún no paga.</small>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Estatus inicial</label>
-                                <select name="estatus" class="form-select">
-                                    <option value="pendiente">⏳ Pendiente</option>
-                                    <option value="en_produccion">🔧 En producción</option>
-                                    <option value="pagada">💰 Pagada</option>
-                                    <option value="entregada">✅ Entregada</option>
+                                <label class="form-label">Material</label>
+                                <select id="id_material" class="form-select select2" required>
+                                    <option value="">-- Selecciona material --</option>
+                                    {% for m in materiales %}
+                                    <option value="{{ m.id_material }}">{{ m.descripcion }}</option>
+                                    {% endfor %}
                                 </select>
                             </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Fecha de entrega estimada</label>
-                            <input type="date" name="fecha_entrega" class="form-control">
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Cantidad</label>
+                                <input type="number" id="id_cantidad" value="1" min="1" class="form-control" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Largo (cm)</label>
+                                <input type="number" name="largo_pza" step="0.01" class="form-control" placeholder="ej. 20" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Ancho (cm)</label>
+                                <input type="number" name="ancho_pza" step="0.01" class="form-control" placeholder="ej. 10" required>
+                            </div>
                         </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Espesor (mm)</label>
+                                <select name="espesor_mm" id="id_espesor" class="form-select" required>
+                                    <option value="">-- Selecciona --</option>
+                                    {% for t in materiales_tabulador %}
+                                    <option value="{{ t.espesor_mm }}" data-factor="{{ t.factor_costo }}">{{ t.espesor_mm }} mm</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Min. Láser</label>
+                                <input type="number" name="minutos_lazer" step="1" value="0" class="form-control">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Utilidad (%)</label>
+                                <input type="number" id="id_utilidad" value="40" min="0" class="form-control">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 mt-2">
+                            ➕ Agregar al Carrito
+                        </button>
                     </div>
                 </div>
-
-                <button type="submit" class="btn btn-success btn-lg w-100">
-                    ✅ Registrar Venta
-                </button>
             </form>
-        </div>
 
-        <!-- Panel cálculo -->
+            <!-- ── PASO 3: Carrito ── -->
+            <div class="card shadow-sm mb-3 border-success">
+                <div class="card-header bg-success text-white fw-semibold">3. Resumen del Pedido (Carrito)</div>
+                <div class="card-body p-0">
+                    <table class="table table-hover mb-0" id="tabla-carrito">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Artículo</th>
+                                <th>Cant.</th>
+                                <th>Subtotal</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="4" class="text-center text-muted py-4">El carrito está vacío</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ── PASO 4: Cobro ── -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-dark text-white fw-semibold">4. Cobro y Confirmación</div>
+                <div class="card-body">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Monto abonado ($)</label>
+                            <input type="number" id="id_monto_abonado" step="0.01" min="0" class="form-control text-success fw-bold">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Estatus inicial</label>
+                            <select name="estatus" id="id_estatus" class="form-select">
+                                <option value="pendiente">⏳ Pendiente</option>
+                                <option value="en_produccion">🔧 En producción</option>
+                                <option value="pagada">💰 Pagada</option>
+                                <option value="entregada">✅ Entregada</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Fecha de entrega</label>
+                        <input type="date" id="id_fecha_entrega" class="form-control">
+                    </div>
+
+                    <button type="button" id="btn-finalizar" onclick="guardarVentaCompleta()" class="btn btn-success btn-lg w-100">
+                        💾 Registrar Pedido Completo
+                    </button>
+                </div>
+            </div>
+        </div><!-- /col-md-7 -->
+
+        <!-- ══════════════════════════════════════
+             COLUMNA DERECHA — Calculadora
+        ══════════════════════════════════════ -->
         <div class="col-md-5">
             <div class="card shadow border-0 sticky-top" style="top:20px">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0">💰 Cálculo en tiempo real</h5>
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">Calculadora del renglón</h5>
                 </div>
                 <div class="card-body py-4">
                     <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted">Área:</span>
+                        <span class="text-muted">Área (por pza):</span>
                         <strong id="display_area">0.00 cm²</strong>
                     </div>
                     <div class="d-flex justify-content-between mb-2">
@@ -161,76 +190,449 @@
                     </div>
                     <hr>
                     <div class="text-center">
-                        <p class="text-muted mb-1">Total estimado:</p>
-                        <h2 class="text-success fw-bold" id="display_total">$0.00</h2>
+                        <p class="text-muted mb-1">Costo estimado de este renglón:</p>
+                        <h2 class="text-primary fw-bold" id="display_total">$0.00</h2>
                     </div>
                     <p class="small text-warning mt-2 text-center" id="nota_precio_fijo" style="display:none">
                         ⚠️ Este producto tiene precio fijo
                     </p>
+                    <div class="mt-4 p-3 bg-success text-white rounded text-center shadow-sm">
+                        <p class="mb-1">GRAN TOTAL PEDIDO</p>
+                        <h1 id="gran-total-display" class="fw-bold mb-0">$0.00</h1>
+                    </div>
                 </div>
             </div>
+        </div><!-- /col-md-5 -->
+
+    </div><!-- /row -->
+</div><!-- /container -->
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     MODAL — Nuevo Cliente
+     Backend ya preparado en: POST /ajax/crear-cliente/
+═══════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="modalNuevoCliente" tabindex="-1" aria-labelledby="modalNuevoClienteLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="modalNuevoClienteLabel">➕ Nuevo Cliente</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <!-- Alerta de error (oculta por defecto) -->
+                <div id="alerta-cliente" class="alert alert-danger d-none" role="alert"></div>
+
+                <!-- ── Campo obligatorio ── -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Nombre <span class="text-danger">*</span></label>
+                    <input type="text" id="nc_nombre" class="form-control" placeholder="Nombre del cliente" autofocus>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Teléfono</label>
+                    <div class="input-group">
+                        <span class="input-group-text">📞</span>
+                        <input type="tel" id="nc_telefono" class="form-control" placeholder="10 dígitos">
+                    </div>
+                </div>
+
+                <!-- ── Toggle datos adicionales ── -->
+                <div class="mb-2">
+                    <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none text-muted"
+                            id="btn-ver-mas"
+                            onclick="toggleDatosExtra()">
+                        <span id="icono-toggle">▶</span> Agregar correo y dirección (opcional)
+                    </button>
+                </div>
+
+                <div id="datos-extra" style="display:none;">
+                    <div class="mb-3">
+                        <label class="form-label">Correo electrónico</label>
+                        <div class="input-group">
+                            <span class="input-group-text">✉️</span>
+                            <input type="email" id="nc_email" class="form-control" placeholder="correo@ejemplo.com">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Dirección</label>
+                        <textarea id="nc_direccion" class="form-control" rows="2" placeholder="Calle, colonia, ciudad..."></textarea>
+                    </div>
+                </div>
+
+                <hr class="my-3">
+
+                <!-- ── Checkbox: guardar como recurrente ── -->
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="nc_guardar_recurrente" checked>
+                    <label class="form-check-label" for="nc_guardar_recurrente">
+                        <strong>Guardar en lista de clientes</strong>
+                        <span class="text-muted d-block small">
+                            Deja activado para clientes frecuentes. Desactívalo si es una venta de una sola vez
+                            (el cliente seguirá registrado en la venta, pero no aparecerá en el módulo de Clientes).
+                        </span>
+                    </label>
+                </div>
+
+                <!-- Preview del nombre cuando se desactiva -->
+                <div id="aviso-eventual" class="alert alert-warning mt-3 mb-0 py-2 small d-none">
+                    ⚠️ Se guardará como <strong>"(Eventual) [nombre]"</strong> para diferenciarlo de tus clientes habituales.
+                </div>
+
+            </div><!-- /modal-body -->
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btn-guardar-cliente" onclick="guardarNuevoCliente()">
+                    💾 Guardar y seleccionar
+                </button>
+            </div>
+
         </div>
     </div>
-</div>
+</div><!-- /modal -->
 
+
+<!-- ═══════════════════════════════════
+     SCRIPTS
+═══════════════════════════════════ -->
 <script>
-const tarifaLaser = {{ tarifa_laser }};
+// ── Constantes ─────────────────────────────────────────
+const tarifaLaser = parseFloat("{{ tarifa_laser|default:'0' }}".replace(',', '.')) || 0;
+const CSRF = document.querySelector('[name=csrfmiddlewaretoken]').value;
+const URL_CREAR_CLIENTE = "{% url 'crear_cliente_ajax' %}";
+const URL_NUEVO_PEDIDO  = "{% url 'nuevo_pedido' %}";
 
-$(document).ready(function() {
-    $('.select2').select2({
-        theme: 'bootstrap-5',
-        placeholder: '-- Busca o selecciona --',
-        allowClear: true,
+let carrito    = [];
+let granTotal  = 0;
+
+// ══════════════════════════════════════════════════════
+// MODAL — NUEVO CLIENTE
+// ══════════════════════════════════════════════════════
+
+function toggleDatosExtra() {
+    const panel = document.getElementById('datos-extra');
+    const icono = document.getElementById('icono-toggle');
+    const abierto = panel.style.display !== 'none';
+    panel.style.display = abierto ? 'none' : 'block';
+    icono.textContent   = abierto ? '▶' : '▼';
+}
+
+// Mostrar/ocultar aviso "Eventual" según el switch
+document.addEventListener('DOMContentLoaded', function () {
+    document.getElementById('nc_guardar_recurrente').addEventListener('change', function () {
+        document.getElementById('aviso-eventual').classList.toggle('d-none', this.checked);
     });
 
-    // Select2 también dispara change
-    $('#id_cliente, #id_producto, #id_material').on('change', calcularMontoRealTime);
-    $('#id_espesor').on('change', calcularMontoRealTime);
+    // Limpiar modal al cerrarse
+    document.getElementById('modalNuevoCliente').addEventListener('hidden.bs.modal', limpiarModal);
 });
 
+function limpiarModal() {
+    ['nc_nombre','nc_telefono','nc_email','nc_direccion'].forEach(id => {
+        document.getElementById(id).value = '';
+    });
+    document.getElementById('nc_guardar_recurrente').checked = true;
+    document.getElementById('aviso-eventual').classList.add('d-none');
+    document.getElementById('alerta-cliente').classList.add('d-none');
+    // Cerrar panel extra si estaba abierto
+    document.getElementById('datos-extra').style.display = 'none';
+    document.getElementById('icono-toggle').textContent = '▶';
+}
+
+function mostrarErrorModal(msg) {
+    const el = document.getElementById('alerta-cliente');
+    el.textContent = msg;
+    el.classList.remove('d-none');
+}
+
+async function guardarNuevoCliente() {
+    const nombre = document.getElementById('nc_nombre').value.trim();
+    if (!nombre) {
+        mostrarErrorModal('El nombre del cliente es obligatorio.');
+        document.getElementById('nc_nombre').focus();
+        return;
+    }
+
+    const esRecurrente = document.getElementById('nc_guardar_recurrente').checked;
+    const nombreFinal  = esRecurrente ? nombre : `(Eventual) ${nombre}`;
+
+    const payload = {
+        nombre:    nombreFinal,
+        telefono:  document.getElementById('nc_telefono').value.trim() || null,
+        email:     document.getElementById('nc_email').value.trim()    || null,
+        direccion: document.getElementById('nc_direccion').value.trim()|| null,
+    };
+
+    // Deshabilitar botón mientras espera
+    const btn = document.getElementById('btn-guardar-cliente');
+    btn.disabled = true;
+    btn.innerHTML = '⏳ Guardando...';
+
+    try {
+        const resp = await fetch(URL_CREAR_CLIENTE, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': CSRF,
+            },
+            body: JSON.stringify(payload),
+        });
+        const data = await resp.json();
+
+        if (data.ok) {
+            // ── Agregar la nueva opción al Select2 y seleccionarla ──────
+            const select  = document.getElementById('id_cliente');
+            const opcion  = new Option(data.nombre, data.id_cliente, true, true);
+            select.append(opcion);
+
+            // Si Select2 está inicializado, notificarlo
+            if (typeof jQuery !== 'undefined' && $(select).data('select2')) {
+                $(select).trigger('change');
+            }
+
+            // Cerrar modal y mostrar confirmación suave
+            bootstrap.Modal.getInstance(document.getElementById('modalNuevoCliente')).hide();
+            mostrarToast(`✅ Cliente "${data.nombre}" listo para usarse.`, 'success');
+        } else {
+            mostrarErrorModal('Error: ' + (data.error || 'Inténtalo de nuevo.'));
+        }
+    } catch (e) {
+        mostrarErrorModal('Error de conexión. Revisa tu internet.');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '💾 Guardar y seleccionar';
+    }
+}
+
+// Toast ligero (sin librerías extra)
+function mostrarToast(mensaje, tipo = 'success') {
+    let container = document.getElementById('toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        container.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;';
+        document.body.appendChild(container);
+    }
+    const toast = document.createElement('div');
+    toast.className = `alert alert-${tipo} shadow mb-0 py-2 px-3`;
+    toast.style.cssText = 'min-width:260px;animation:fadeIn .2s ease;';
+    toast.innerHTML = mensaje;
+    container.appendChild(toast);
+    setTimeout(() => toast.remove(), 3500);
+}
+
+// ══════════════════════════════════════════════════════
+// CALCULADORA EN TIEMPO REAL
+// ══════════════════════════════════════════════════════
 function calcularMontoRealTime() {
-    const largo = parseFloat(document.querySelector('input[name="largo_pza"]').value) || 0;
-    const ancho = parseFloat(document.querySelector('input[name="ancho_pza"]').value) || 0;
-    const minutos = parseFloat(document.querySelector('input[name="minutos_lazer"]').value) || 0;
-    const utilidad = parseFloat(document.getElementById('id_utilidad').value) || 40;
+    const getVal = (sel) => parseFloat(document.querySelector(sel)?.value?.replace(',', '.')) || 0;
 
-    const espesorSelect = document.getElementById('id_espesor');
-    const factor = parseFloat(espesorSelect.options[espesorSelect.selectedIndex]?.getAttribute('data-factor')) || 0;
+    const largo    = getVal('input[name="largo_pza"]');
+    const ancho    = getVal('input[name="ancho_pza"]');
+    const minutos  = getVal('input[name="minutos_lazer"]');
+    const utilidad = getVal('#id_utilidad') || 40;
+    const cantidad = getVal('#id_cantidad') || 1;
 
-    const productoSelect = document.getElementById('id_producto');
-    const precioFijo = productoSelect.options[productoSelect.selectedIndex]?.getAttribute('data-precio-fijo');
+    const espesorSel = document.getElementById('id_espesor');
+    let factor = 0;
+    if (espesorSel?.selectedIndex >= 0) {
+        factor = parseFloat(espesorSel.options[espesorSel.selectedIndex].getAttribute('data-factor')?.replace(',', '.')) || 0;
+    }
 
-    if (precioFijo) {
-        document.getElementById('display_total').innerText = '$' + parseFloat(precioFijo).toFixed(2);
+    const prodSel = document.getElementById('id_producto');
+    let precioFijo = 0;
+    if (prodSel?.selectedIndex >= 0) {
+        const attr = prodSel.options[prodSel.selectedIndex].getAttribute('data-precio-fijo');
+        if (attr && attr !== "None" && attr.trim() !== "") {
+            precioFijo = parseFloat(attr.replace(',', '.')) || 0;
+        }
+    }
+
+    const setText = (id, t) => { const el = document.getElementById(id); if (el) el.innerText = t; };
+    const fmt = (v) => '$' + v.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    if (precioFijo > 0) {
+        const total = precioFijo * cantidad;
+        setText('display_area', '-'); setText('display_material', '-');
+        setText('display_utilidad', '-'); setText('display_laser', '-');
+        setText('display_total', fmt(total));
         document.getElementById('nota_precio_fijo').style.display = 'block';
-        document.getElementById('display_area').innerText = '-';
-        document.getElementById('display_material').innerText = '-';
-        document.getElementById('display_utilidad').innerText = '-';
-        document.getElementById('display_laser').innerText = '-';
-        document.getElementById('id_monto_abonado').value = precioFijo;
         return;
     }
 
     document.getElementById('nota_precio_fijo').style.display = 'none';
 
-    const area = largo * ancho;
-    const areaMt2 = area / 10000;
-    const costoMaterial = areaMt2 * factor;
-    const costoUtilidad = costoMaterial * (utilidad / 100);
-    const costoLaser = minutos * tarifaLaser;
-    const total = costoMaterial + costoUtilidad + costoLaser;
+    const areaCm2       = largo * ancho;
+    const costoMaterial = (areaCm2 / 10000) * factor;
+    const costoUtil     = costoMaterial * (utilidad / 100);
+    const costoLaser    = minutos * tarifaLaser;
+    const totalUnitario = costoMaterial + costoUtil + costoLaser;
+    const totalRenglon  = totalUnitario * cantidad;
 
-    document.getElementById('display_area').innerText = area.toFixed(2) + ' cm²';
-    document.getElementById('display_material').innerText = '$' + costoMaterial.toFixed(2);
-    document.getElementById('display_utilidad').innerText = '$' + costoUtilidad.toFixed(2);
-    document.getElementById('display_laser').innerText = '$' + costoLaser.toFixed(2);
-    document.getElementById('display_total').innerText = '$' + total.toLocaleString('es-MX', {minimumFractionDigits: 2});
-    document.getElementById('id_monto_abonado').innerText = total.toFixed(2);
+    setText('display_area',     (areaCm2 * cantidad).toFixed(2) + ' cm²');
+    setText('display_material', fmt(costoMaterial * cantidad));
+    setText('display_utilidad', fmt(costoUtil * cantidad));
+    setText('display_laser',    fmt(costoLaser));
+    setText('display_total',    fmt(totalRenglon));
 }
 
-document.querySelectorAll('input[type="number"], select:not(.select2)').forEach(el => {
-    el.addEventListener('input', calcularMontoRealTime);
-    el.addEventListener('change', calcularMontoRealTime);
+// ══════════════════════════════════════════════════════
+// LÓGICA DEL CARRITO
+// ══════════════════════════════════════════════════════
+function agregarAlCarrito() {
+    const clienteId = document.getElementById('id_cliente').value;
+    if (!clienteId) { alert('Primero selecciona al cliente (Paso 1).'); return; }
+
+    const prodSel = document.getElementById('id_producto');
+    const matSel  = document.getElementById('id_material');
+    if (!prodSel.value || !matSel.value) { alert('Selecciona un producto y un material.'); return; }
+
+    const subtotalText = document.getElementById('display_total').innerText.replace(/[$,]/g, '');
+    const subtotal     = parseFloat(subtotalText);
+    if (subtotal <= 0) { alert('Agrega medidas para calcular el precio.'); return; }
+
+    document.getElementById('id_cliente').disabled = true;
+
+    carrito.push({
+        producto_id:     prodSel.value,
+        producto_nombre: prodSel.options[prodSel.selectedIndex].text,
+        material_id:     matSel.value,
+        material_nombre: matSel.options[matSel.selectedIndex].text,
+        largo:    document.querySelector('input[name="largo_pza"]').value || 0,
+        ancho:    document.querySelector('input[name="ancho_pza"]').value || 0,
+        minutos_laser: document.querySelector('input[name="minutos_lazer"]').value || 0,
+        espesor:  document.getElementById('id_espesor').value || 0,
+        cantidad: parseInt(document.getElementById('id_cantidad').value) || 1,
+        subtotal,
+    });
+
+    renderCarrito();
+
+    // Limpiar formulario para el siguiente artículo
+    prodSel.value = ''; matSel.value = '';
+    if (typeof jQuery !== 'undefined') $('.select2').trigger('change.select2');
+    document.querySelector('input[name="largo_pza"]').value  = '';
+    document.querySelector('input[name="ancho_pza"]').value  = '';
+    document.getElementById('id_cantidad').value = '1';
+    calcularMontoRealTime();
+}
+
+function renderCarrito() {
+    const tbody = document.querySelector('#tabla-carrito tbody');
+    tbody.innerHTML = '';
+    granTotal = 0;
+
+    if (carrito.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-4">El carrito está vacío</td></tr>';
+        document.getElementById('id_cliente').disabled = false;
+    } else {
+        carrito.forEach((item, i) => {
+            granTotal += item.subtotal;
+            tbody.innerHTML += `
+                <tr>
+                    <td>
+                        <strong>${item.producto_nombre}</strong>
+                        <br><small class="text-muted">${item.material_nombre} · ${item.largo}×${item.ancho} cm</small>
+                    </td>
+                    <td>${item.cantidad}</td>
+                    <td class="text-success fw-bold">$${item.subtotal.toFixed(2)}</td>
+                    <td>
+                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="eliminar(${i})" title="Quitar">❌</button>
+                    </td>
+                </tr>`;
+        });
+    }
+
+    const fmt = (v) => '$' + v.toLocaleString('es-MX', { minimumFractionDigits: 2 });
+    document.getElementById('gran-total-display').innerText = fmt(granTotal);
+
+    const elAbono = document.getElementById('id_monto_abonado');
+    if (!elAbono.dataset.modificado) elAbono.value = granTotal.toFixed(2);
+}
+
+function eliminar(i) { carrito.splice(i, 1); renderCarrito(); }
+
+// ══════════════════════════════════════════════════════
+// ENVIAR AL SERVIDOR
+// ══════════════════════════════════════════════════════
+async function guardarVentaCompleta() {
+    if (carrito.length === 0) { alert('No hay artículos en el pedido.'); return; }
+
+    const btn = document.getElementById('btn-finalizar');
+    btn.disabled = true;
+    btn.innerText = '⏳ Guardando Pedido...';
+
+    const payload = {
+        cliente_id:    document.getElementById('id_cliente').value,
+        monto_abonado: document.getElementById('id_monto_abonado').value,
+        estatus:       document.getElementById('id_estatus').value,
+        fecha_entrega: document.getElementById('id_fecha_entrega').value,
+        carrito,
+    };
+
+    try {
+        const resp = await fetch(URL_NUEVO_PEDIDO, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+            body: JSON.stringify(payload),
+        });
+        const data = await resp.json();
+
+        if (data.ok) {
+            // Mostrar advertencia de stock bajo antes de redirigir
+            if (data.alertas_stock && data.alertas_stock.length > 0) {
+                const lista = data.alertas_stock
+                    .map(a => `• ${a.nombre}: ${a.actual} láminas (mín. ${a.minimo})`)
+                    .join('\n');
+                alert(`⚠️ Pedido guardado correctamente.\n\nLos siguientes materiales están en stock bajo:\n${lista}\n\nRevisa tu inventario.`);
+            }
+            window.location.href = `/ventas/${data.venta_id}/`;
+        } else {
+            alert('Error en el servidor: ' + data.error);
+            btn.disabled = false;
+            btn.innerText = '💾 Registrar Pedido Completo';
+        }
+    } catch {
+        alert('Error de conexión');
+        btn.disabled = false;
+        btn.innerText = '💾 Registrar Pedido Completo';
+    }
+}
+
+// ══════════════════════════════════════════════════════
+// INICIALIZAR EVENTOS
+// ══════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('input, select').forEach(el => {
+        el.addEventListener('input',  calcularMontoRealTime);
+        el.addEventListener('change', calcularMontoRealTime);
+    });
+
+    document.getElementById('id_monto_abonado').addEventListener('input', function () {
+        this.dataset.modificado = 'true';
+    });
+
+    // Select2 ya inicializado en base.html
+    setTimeout(() => {
+        if (typeof jQuery !== 'undefined') {
+            $('.select2').on('change', calcularMontoRealTime);
+        }
+    }, 100);
+
+    // Enter en el modal → guardar cliente
+    document.getElementById('modalNuevoCliente').addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            guardarNuevoCliente();
+        }
+    });
 });
 </script>
+
+<style>
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+</style>
 {% endblock %}
