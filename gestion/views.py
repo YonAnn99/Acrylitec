@@ -45,7 +45,7 @@ def login_view(request):
          if es_admin(request.user):
             return redirect('dashboard')
          else:
-             return redirect('lista_cotizaciones')
+             return redirect('lista_ventas')
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
@@ -55,7 +55,7 @@ def login_view(request):
             if es_admin(user):
                 return redirect('dashboard')
             else:
-                return redirect('lista_cotizaciones')         
+                return redirect('lista_ventas')         
     else:
             error='Usuario o contraseña incorrectos.'
 
