@@ -116,6 +116,7 @@ class TabuladorCostos(models.Model):
 
 class Ventas(models.Model):
     ESTATUS_CHOICES = [
+        ('cotizacion', 'Cotización'),
         ('pendiente', 'Pendiente'),
         ('en_produccion', 'En producción'),
         ('pagada', 'Pagada'),

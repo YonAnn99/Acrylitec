@@ -453,6 +453,8 @@ def _producto_nombre(venta):
     return '—'
 
 def lista_ventas(request):
+    limite = datetime.date.today() - datetime.timedelta(days=15)
+    Ventas.objects.filter(estatus='cotizacion', fecha_venta__lt=limite).delete()
     ventas = Ventas.objects.select_related(
         'id_cotizacion__id_cliente',
         'id_cotizacion__id_producto',
@@ -484,17 +486,57 @@ def lista_ventas(request):
 
 
 def detalle_venta(request, pk):
-    venta = get_object_or_404(Ventas.objects.select_related(
-        'id_cotizacion__id_cliente', 'id_cotizacion__id_producto',
-        'id_cotizacion__id_material'), pk=pk)
-    return render(request, 'gestion/venta_detalle.html', {'venta': venta})
+    venta = get_object_or_404(
+        Ventas.objects.select_related(
+            'id_cotizacion__id_cliente',
+            'id_cotizacion__id_producto',
+            'id_cotizacion__id_material',
+            'id_cliente',
+        ).prefetch_related('detalles__id_producto', 'detalles__id_material'),
+        pk=pk
+    )
+    # Datos resueltos para el template (híbrido POS + cotización)
+    venta.cliente_nombre  = _cliente_nombre(venta)
+    venta.producto_nombre = _producto_nombre(venta)
+    venta.total_calculado = _total_venta(venta)
+
+    # Teléfono del cliente (para WhatsApp)
+    if venta.id_cotizacion_id and venta.id_cotizacion.id_cliente:
+        cliente_tel = venta.id_cotizacion.id_cliente.telefono or ''
+    elif venta.id_cliente_id:
+        cliente_tel = venta.id_cliente.telefono or ''
+    else:
+        cliente_tel = ''
+
+    # Stepper de progreso
+    orden = ['cotizacion','pendiente', 'en_produccion', 'pagada', 'entregada']
+    iconos = ['📝','⏳', '🔧', '💰', '✅']
+    labels = ['Cotización', 'Pendiente', 'En producción', 'Pagada', 'Entregada']
+    idx_actual = orden.index(venta.estatus) if venta.estatus in orden else 0
+
+    class Etapa:
+        def __init__(self, activo, linea):
+            self.activo = activo
+            self.linea  = linea
+
+    progreso = [
+        (Etapa(i <= idx_actual, i < idx_actual), icono, label)
+        for i, (icono, label) in enumerate(zip(iconos, labels))
+    ]
+
+    return render(request, 'gestion/venta_detalle.html', {
+        'venta':        venta,
+        'cliente_tel':  cliente_tel,
+        'progreso':     progreso,
+        'whatsapp_url': '#',  # se reemplaza en JS con el mensaje dinámico
+    })
 
 
 def actualizar_estatus_venta(request, pk):
     venta = get_object_or_404(Ventas, pk=pk)
     if request.method == 'POST':
         nuevo = request.POST.get('estatus')
-        if nuevo in ['pendiente','en_produccion', 'pagada', 'entregada']:
+        if nuevo in ['cotizacion','pendiente','en_produccion', 'pagada', 'entregada']:
             venta.estatus = nuevo
         fecha = request.POST.get('fecha_entrega')
         if fecha:
@@ -505,12 +547,22 @@ def actualizar_estatus_venta(request, pk):
 def actualizar_abono_venta(request, pk):
     venta = get_object_or_404(Ventas, pk=pk)
     if request.method == 'POST':
-        nuevo_abono = request.POST.get('monto_abonado')
+        nuevo_abono_str = request.POST.get('monto_abonado')
         try:
-            venta.monto_abonado = Decimal(nuevo_abono)
-            venta.save()
+            nuevo_abono = Decimal(nuevo_abono_str)
+            total_pedido = _total_venta(venta) # Utilizamos tu helper que suma los detalles
+            
+            # Validación: El abono no puede superar el total
+            if nuevo_abono > total_pedido:
+                messages.error(request, f'No se puede registrar un abono (${nuevo_abono}) mayor al total del pedido (${total_pedido}).')
+            else:
+                venta.monto_abonado = nuevo_abono
+                venta.save()
+                messages.success(request, 'Monto abonado actualizado correctamente.')
+                
         except Exception as e:
             messages.error(request, f'Error: {e}')
+            
     return redirect('detalle_venta', pk=pk)
 
 # ─────────────────────────────────────────
