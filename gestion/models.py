@@ -175,7 +175,7 @@ class DetalleVenta(models.Model):
     
     # Datos del producto específico
     id_producto = models.ForeignKey('Productos', on_delete=models.CASCADE)
-    id_material = models.ForeignKey('Materiales', on_delete=models.CASCADE)
+    id_material = models.ForeignKey('Materiales', on_delete=models.SET_NULL, null=True, blank=True)
     
     cantidad = models.IntegerField(default=1)
     largo_pza = models.DecimalField(max_digits=10, decimal_places=2)

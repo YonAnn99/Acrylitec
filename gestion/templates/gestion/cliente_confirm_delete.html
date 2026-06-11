@@ -1,0 +1,38 @@
+{% extends 'gestion/base.html' %}
+
+{% block content %}
+<div class="row justify-content-center mt-4">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-danger">
+            <div class="card-header bg-danger text-white fw-bold">
+                ⚠️ Confirmar Eliminación
+            </div>
+            <div class="card-body text-center p-4">
+                <h5 class="card-title">¿Estás seguro de que deseas eliminar al cliente <br><strong>"{{ cliente.nombre }}"</strong>?</h5>
+                
+                {% if tiene_refs > 0 %}
+                    <div class="alert alert-warning mt-4 text-start">
+                        <strong>¡Operación bloqueada!</strong> <br>
+                        Este cliente no se puede eliminar porque tiene historial en el sistema:
+                        <ul class="mt-2 mb-2">
+                            <li>{{ ventas_count }} venta(s) asociada(s)</li>
+                            <li>{{ cot_count }} cotización(es) asociada(s)</li>
+                        </ul>
+                        <p class="mb-0 small">Por seguridad contable, un cliente con historial no puede ser borrado.</p>
+                    </div>
+                    <div class="mt-4">
+                        <a href="{% url 'lista_clientes' %}" class="btn btn-secondary w-100">← Volver a la lista de clientes</a>
+                    </div>
+                {% else %}
+                    <p class="text-muted mt-2">Esta acción borrará sus datos de contacto y no se puede deshacer.</p>
+                    <form method="POST" class="mt-4 d-flex justify-content-between">
+                        {% csrf_token %}
+                        <a href="{% url 'lista_clientes' %}" class="btn btn-outline-secondary px-4">Cancelar</a>
+                        <button type="submit" class="btn btn-danger px-4">Sí, eliminar cliente</button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

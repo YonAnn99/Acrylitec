@@ -16,6 +16,7 @@ urlpatterns = [
     # ── Clientes ────────────────────────────────────────────
     path('clientes/', views.lista_clientes, name='lista_clientes'),
     path('clientes/nuevo/', views.crear_cliente, name='crear_cliente'),
+    path('clientes/<int:pk>/eliminar/', views.eliminar_cliente, name='eliminar_cliente'),
 
     # ── Productos ───────────────────────────────────────────
     path('productos/', views.lista_productos, name='lista_productos'),
@@ -36,6 +37,8 @@ urlpatterns = [
     path('ventas/<int:pk>/abono/', views.actualizar_abono_venta, name='actualizar_abono_venta'),
     #path('cotizaciones/<int:cotizacion_pk>/registrar-venta/', views.registrar_venta, name='registrar_venta'),
     path('pedidos/nuevo/', views.nuevo_pedido, name='nuevo_pedido'),
+    # 🌟 NUEVA RUTA PARA LA PANTALLA DEL TALLER
+    path('pantalla-taller/', views.pantalla_pendientes, name='pantalla_pendientes'),
     #path('ventas/nueva-directa/', views.venta_directa, name='venta_directa'),
 
     # ── Configuración de Precios ────────────────────────────

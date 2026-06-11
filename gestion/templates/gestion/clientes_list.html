@@ -10,11 +10,8 @@
 
 <form method="GET" action="">
     <div class="input-group mb-3">
-        <input type="text" 
-               class="form-control" 
-               name="q" 
-               value="{{ query }}" 
-               placeholder="Buscar por nombre, teléfono o email...">
+        <input type="text" class="form-control" name="q" value="{{ query }}"
+            placeholder="Buscar por nombre, teléfono o email...">
         <button class="btn btn-primary" type="submit">
             <i class="fas fa-search"></i> Buscar
         </button>
@@ -46,6 +43,10 @@
                 <td>{{ cliente.direccion|truncatewords:10 }}</td>
                 <td>
                     <button class="btn btn-sm btn-info text-white">Editar</button>
+                    <a href="{% url 'eliminar_cliente' cliente.id_cliente %}" class="btn btn-sm btn-outline-danger"
+                        title="Eliminar cliente">
+                        🗑️
+                    </a>
                 </td>
             </tr>
             {% empty %}

@@ -178,6 +178,35 @@ def crear_cliente(request):
         return redirect('lista_clientes')
     return render(request, 'gestion/cliente_form.html')
 
+def eliminar_cliente(request, pk):
+    cliente = get_object_or_404(Clientes, pk=pk)
+    
+    # 1. Contar si el cliente tiene historial para evitar errores de integridad
+    ventas_count = Ventas.objects.filter(id_cliente=cliente).count()
+    cot_count = Cotizaciones.objects.filter(id_cliente=cliente).count()
+    tiene_refs = ventas_count + cot_count
+
+    if request.method == 'POST':
+        if tiene_refs > 0:
+            messages.error(request, f'No se puede eliminar a "{cliente.nombre}" porque tiene {ventas_count} venta(s) y {cot_count} cotización(es) asociada(s).')
+            return redirect('lista_clientes')
+            
+        try:
+            cliente.delete()
+            messages.success(request, f'Cliente "{cliente.nombre}" eliminado correctamente.')
+        except Exception as e:
+            messages.error(request, f'No se pudo eliminar el cliente: {e}')
+            
+        return redirect('lista_clientes')
+
+    # Si es GET, mostramos la pantalla de confirmación
+    return render(request, 'gestion/cliente_confirm_delete.html', {
+        'cliente': cliente,
+        'tiene_refs': tiene_refs,
+        'ventas_count': ventas_count,
+        'cot_count': cot_count,
+    })
+
 
 # ─────────────────────────────────────────
 #  MATERIALES
@@ -333,10 +362,14 @@ def nuevo_pedido(request):
         if request.headers.get('Content-Type') == 'application/json':
             try:
                 data = json.loads(request.body)
-                cliente = get_object_or_404(Clientes, pk=data.get('cliente_id'))
+                
+                # 1. Buscar cliente (Si viene vacío, se queda como None para "Público General")
+                cliente_id = data.get('cliente_id')
+                cliente = Clientes.objects.filter(pk=cliente_id).first() if cliente_id else None
+                
                 monto_abonado = Decimal(str(data.get('monto_abonado') or 0))
                 
-                # 1. Crear la Venta Maestra (guardamos el cliente directamente)
+                # Crear la Venta Maestra
                 venta = Ventas.objects.create(
                     id_cliente=cliente,
                     monto_abonado=monto_abonado,
@@ -345,16 +378,17 @@ def nuevo_pedido(request):
                     fecha_venta=datetime.date.today(),
                 )
 
-                # 2. Guardar cada producto del carrito en DetalleVenta
                 from .models import DetalleVenta
-                alertas_stock = []  # Materiales que quedan por debajo del mínimo
+                alertas_stock = []
 
                 for item in data.get('carrito', []):
                     producto = get_object_or_404(Productos, pk=item['producto_id'])
-                    material = get_object_or_404(Materiales, pk=item['material_id'])
-                    cantidad  = int(item.get('cantidad', 1))
-
-                    # Convertimos comas a puntos por si acaso antes de hacer el Decimal
+                    
+                    # 2. Buscar material (Si viene vacío, se queda como None)
+                    material_id = item.get('material_id')
+                    material = Materiales.objects.filter(pk=material_id).first() if material_id else None
+                    
+                    cantidad = int(item.get('cantidad', 1))
                     sub_str = str(item.get('subtotal') or 0).replace(',', '.')
 
                     DetalleVenta.objects.create(
@@ -369,17 +403,23 @@ def nuevo_pedido(request):
                         subtotal=Decimal(sub_str)
                     )
 
-                    # ── Descontar stock ──────────────────────────────────
-                    material.stock_actual = max(0, material.stock_actual - cantidad)
-                    material.save(update_fields=['stock_actual'])
+                    # 3. Descontar stock SOLO si se seleccionó un material
+                    if material:
+                        material.stock_actual = max(0, material.stock_actual - cantidad)
+                        material.save(update_fields=['stock_actual'])
 
-                    # Verificar si quedó por debajo del mínimo
-                    if material.stock_actual <= material.stock_minimo:
-                        alertas_stock.append({
-                            'nombre':   material.descripcion,
-                            'actual':   material.stock_actual,
-                            'minimo':   material.stock_minimo,
-                        })
+                        if material.stock_actual <= material.stock_minimo:
+                            alertas_stock.append({
+                                'nombre': material.descripcion,
+                                'actual': material.stock_actual,
+                                'minimo': material.stock_minimo,
+                            })
+
+                return JsonResponse({
+                    'ok': True,
+                    'venta_id': venta.id_venta,
+                    'alertas_stock': alertas_stock,
+                })
 
                 # Devolvemos éxito, ruta al ticket y alertas de stock bajo
                 return JsonResponse({
@@ -684,7 +724,7 @@ def dashboard(request):
 
     # ── Pedidos activos (pendiente + en producción) ───────────────────────
     pedidos_activos_qs = (Ventas.objects
-                          .filter(estatus__in=['pendiente', 'en_produccion'])
+                          .filter(estatus__in=['cotizacion', 'pendiente', 'en_produccion'])
                           .select_related('id_cotizacion__id_cliente',
                                           'id_cotizacion__id_producto',
                                           'id_cliente')
@@ -753,4 +793,25 @@ def configuracion_precios(request):
 
     return render(request, 'gestion/configuracion_precios.html', {
         'config': config, 'productos': productos, 'tabuladores': tabuladores,
+    })
+
+@login_required
+def pantalla_pendientes(request):
+    # Traemos los mismos pedidos activos que el Dashboard
+    pedidos_activos_qs = (Ventas.objects
+                          .filter(estatus__in=['cotizacion', 'pendiente', 'en_produccion'])
+                          .select_related('id_cotizacion__id_cliente',
+                                          'id_cotizacion__id_producto',
+                                          'id_cliente')
+                          .prefetch_related('detalles__id_producto')
+                          .order_by('-fecha_venta'))
+
+    pedidos_activos = []
+    for v in pedidos_activos_qs:
+        v.cliente_nombre  = _cliente_nombre(v)
+        v.producto_nombre = _producto_nombre(v)
+        pedidos_activos.append(v)
+
+    return render(request, 'gestion/pantalla_pendientes.html', {
+        'pedidos_activos': pedidos_activos,
     })

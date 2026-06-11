@@ -20,7 +20,7 @@
                 <div class="card-body">
                     <div class="d-flex gap-2 align-items-start">
                         <div class="flex-grow-1">
-                            <select id="id_cliente" class="form-select select2" required>
+                            <select id="id_cliente" class="form-select select2" >
                                 <option value="">-- Busca o selecciona un cliente --</option>
                                 {% for c in clientes %}
                                 <option value="{{ c.id_cliente }}">{{ c.nombre }}{% if c.telefono %} · {{ c.telefono }}{% endif %}</option>
@@ -60,10 +60,12 @@
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Material</label>
-                                <select id="id_material" class="form-select select2" required>
+                                <select id="id_material" class="form-select select2">
                                     <option value="">-- Selecciona material --</option>
                                     {% for m in materiales %}
-                                    <option value="{{ m.id_material }}">{{ m.descripcion }}</option>
+                                    <option value="{{ m.id_material }}" data-precio-fijo="{{ m.precio_fijo|default:'' }}">
+                                        {{ m.descripcion }}
+                                    </option>
                                     {% endfor %}
                                 </select>
                             </div>
@@ -485,38 +487,75 @@ function calcularMontoRealTime() {
 // ══════════════════════════════════════════════════════
 function agregarAlCarrito() {
     const clienteId = document.getElementById('id_cliente').value;
-    if (!clienteId) { alert('Primero selecciona al cliente (Paso 1).'); return; }
+    
+    // 1. Cliente es opcional (Eliminamos el alert que bloqueaba si estaba vacío)
 
     const prodSel = document.getElementById('id_producto');
     const matSel  = document.getElementById('id_material');
-    if (!prodSel.value || !matSel.value) { alert('Selecciona un producto y un material.'); return; }
+    
+    // 2. Solo el producto es estrictamente necesario
+    if (!prodSel.value) { 
+        alert('Por favor, selecciona un producto.'); 
+        return; 
+    }
 
-    const subtotalText = document.getElementById('display_total').innerText.replace(/[$,]/g, '');
-    const subtotal     = parseFloat(subtotalText);
-    if (subtotal <= 0) { alert('Agrega medidas para calcular el precio.'); return; }
+    // 3. Lógica para Precio Fijo vs Calculado
+    const optionSeleccionada = prodSel.options[prodSel.selectedIndex];
+    const precioFijo = optionSeleccionada.getAttribute('data-precio');
+    let subtotal = 0;
 
-    document.getElementById('id_cliente').disabled = true;
+    if (precioFijo && precioFijo.trim() !== '' && precioFijo !== 'None') {
+        // Si el producto tiene precio fijo, ignoramos la calculadora
+        subtotal = parseFloat(precioFijo);
+    } else {
+        // Si no tiene precio fijo, exigimos que las medidas den un subtotal mayor a 0
+        const subtotalText = document.getElementById('display_total').innerText.replace(/[$,]/g, '');
+        subtotal = parseFloat(subtotalText);
+        if (isNaN(subtotal) || subtotal <= 0) { 
+            alert('Agrega medidas para calcular el precio, o selecciona un producto con precio fijo.'); 
+            return; 
+        }
+    }
 
+    // Bloquear el selector de cliente solo si seleccionaron a alguien
+    if (clienteId) {
+        document.getElementById('id_cliente').disabled = true;
+    }
+
+    // 4. Manejo seguro del nombre del material (porque puede venir vacío)
+    let materialNombre = "-- Sin material específico --";
+    if (matSel.value && matSel.selectedIndex >= 0) {
+        materialNombre = matSel.options[matSel.selectedIndex].text;
+    }
+
+    // 5. Agregar el objeto al carrito
     carrito.push({
         producto_id:     prodSel.value,
-        producto_nombre: prodSel.options[prodSel.selectedIndex].text,
-        material_id:     matSel.value,
-        material_nombre: matSel.options[matSel.selectedIndex].text,
-        largo:    document.querySelector('input[name="largo_pza"]').value || 0,
-        ancho:    document.querySelector('input[name="ancho_pza"]').value || 0,
-        minutos_laser: document.querySelector('input[name="minutos_lazer"]').value || 0,
-        espesor:  document.getElementById('id_espesor').value || 0,
-        cantidad: parseInt(document.getElementById('id_cantidad').value) || 1,
-        subtotal,
+        producto_nombre: optionSeleccionada.text,
+        material_id:     matSel.value || null, // Enviamos null si no seleccionó material
+        material_nombre: materialNombre,
+        largo:           document.querySelector('input[name="largo_pza"]').value || 0,
+        ancho:           document.querySelector('input[name="ancho_pza"]').value || 0,
+        minutos_laser:   document.querySelector('input[name="minutos_lazer"]').value || 0,
+        espesor:         document.getElementById('id_espesor').value || 0,
+        cantidad:        parseInt(document.getElementById('id_cantidad').value) || 1,
+        subtotal:        subtotal, // Ya validado arriba
     });
 
+    // 6. Tu lógica de renderizado y limpieza se mantiene intacta
     renderCarrito();
 
     // Limpiar formulario para el siguiente artículo
-    prodSel.value = ''; matSel.value = '';
+    prodSel.value = ''; 
+    matSel.value = '';
     if (typeof jQuery !== 'undefined') $('.select2').trigger('change.select2');
     document.querySelector('input[name="largo_pza"]').value  = '';
     document.querySelector('input[name="ancho_pza"]').value  = '';
+    
+    // Agregué la limpieza de los minutos láser para que no se queden pegados por error
+    const inputLaser = document.querySelector('input[name="minutos_lazer"]');
+    if(inputLaser) inputLaser.value = ''; 
+    
     document.getElementById('id_cantidad').value = '1';
     calcularMontoRealTime();
 }

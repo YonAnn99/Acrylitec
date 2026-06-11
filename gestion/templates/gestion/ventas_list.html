@@ -82,7 +82,9 @@
                 <!-- Anticipo/abono pagado -->
                 <td class="text-success">${{ v.monto_abonado|floatformat:2 }}</td>
                 <td>
-                    {% if v.estatus == 'pendiente' %}
+                    {% if v.estatus == 'cotizacion' %}
+                        <span class="badge bg-info text-dark">📝 Cotización</span>
+                    {% elif v.estatus == 'pendiente' %}
                         <span class="badge bg-secondary">⏳ Pendiente</span>
                     {% elif v.estatus == 'en_produccion' %}
                         <span class="badge bg-warning text-dark">🔧 En producción</span>
