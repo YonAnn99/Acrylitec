@@ -23,6 +23,7 @@ urlpatterns = [
     path('productos/nuevo/', views.crear_producto, name='crear_producto'),
     path('productos/<int:pk>/editar/', views.editar_producto, name='editar_producto'),
     path('productos/<int:pk>/eliminar/', views.eliminar_producto, name='eliminar_producto'),
+    path('api/productos/crear-rapido/', views.crear_producto_rapido, name='crear_producto_rapido'),
 
     # ── Cotizaciones ────────────────────────────────────────
     #path('cotizaciones/', views.lista_cotizaciones, name='lista_cotizaciones'),

@@ -2,7 +2,7 @@
 {% block content %}
 <div class="container-fluid">
     <div class="row">
-        
+
         <!-- ══════════════════════════════════════
              COLUMNA IZQUIERDA — Formulario POS
         ══════════════════════════════════════ -->
@@ -20,20 +20,18 @@
                 <div class="card-body">
                     <div class="d-flex gap-2 align-items-start">
                         <div class="flex-grow-1">
-                            <select id="id_cliente" class="form-select select2" >
+                            <select id="id_cliente" class="form-select select2">
                                 <option value="">-- Busca o selecciona un cliente --</option>
                                 {% for c in clientes %}
-                                <option value="{{ c.id_cliente }}">{{ c.nombre }}{% if c.telefono %} · {{ c.telefono }}{% endif %}</option>
+                                <option value="{{ c.id_cliente }}">{{ c.nombre }}{% if c.telefono %} · {{ c.telefono
+                                    }}{% endif %}</option>
                                 {% endfor %}
                             </select>
                             <small class="text-muted">El cliente se bloqueará al agregar el primer artículo.</small>
                         </div>
                         <!-- Botón que abre el modal -->
-                        <button type="button"
-                                class="btn btn-outline-primary btn-sm mt-1 text-nowrap"
-                                data-bs-toggle="modal"
-                                data-bs-target="#modalNuevoCliente"
-                                title="Registrar nuevo cliente">
+                        <button type="button" class="btn btn-outline-primary btn-sm mt-1 text-nowrap"
+                            data-bs-toggle="modal" data-bs-target="#modalNuevoCliente" title="Registrar nuevo cliente">
                             ➕ Nuevo cliente
                         </button>
                     </div>
@@ -45,25 +43,33 @@
                 <div class="card shadow-sm mb-3">
                     <div class="card-header bg-dark text-white fw-semibold">2. Agregar Artículo</div>
                     <div class="card-body">
-                        
+
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Producto</label>
-                                <select id="id_producto" class="form-select select2" required>
-                                    <option value="">-- Selecciona producto --</option>
-                                    {% for p in productos %}
-                                    <option value="{{ p.id_producto }}" data-precio-fijo="{{ p.precio_fijo|default:'' }}">
-                                        {{ p.nombre }}
-                                    </option>
-                                    {% endfor %}
-                                </select>
+                                <div class="input-group">
+                                    <select id="id_producto" class="form-select select2" required>
+                                        <option value="">-- Selecciona producto --</option>
+                                        {% for p in productos %}
+                                        <option value="{{ p.id_producto }}"
+                                            data-precio-fijo="{{ p.precio_fijo|default:'' }}">
+                                            {{ p.nombre }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal"
+                                        data-bs-target="#modalNuevoProducto">
+                                        ➕ Nuevo
+                                    </button>
+                                </div>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Material</label>
                                 <select id="id_material" class="form-select select2">
                                     <option value="">-- Selecciona material --</option>
                                     {% for m in materiales %}
-                                    <option value="{{ m.id_material }}" data-precio-fijo="{{ m.precio_fijo|default:'' }}">
+                                    <option value="{{ m.id_material }}"
+                                        data-precio-fijo="{{ m.precio_fijo|default:'' }}">
                                         {{ m.descripcion }}
                                     </option>
                                     {% endfor %}
@@ -78,11 +84,13 @@
                             </div>
                             <div class="col-md-4 mb-3">
                                 <label class="form-label">Largo (cm)</label>
-                                <input type="number" name="largo_pza" step="0.01" class="form-control" placeholder="ej. 20" required>
+                                <input type="number" name="largo_pza" step="0.01" class="form-control"
+                                    placeholder="ej. 20" required>
                             </div>
                             <div class="col-md-4 mb-3">
                                 <label class="form-label">Ancho (cm)</label>
-                                <input type="number" name="ancho_pza" step="0.01" class="form-control" placeholder="ej. 10" required>
+                                <input type="number" name="ancho_pza" step="0.01" class="form-control"
+                                    placeholder="ej. 10" required>
                             </div>
                         </div>
 
@@ -92,7 +100,8 @@
                                 <select name="espesor_mm" id="id_espesor" class="form-select" required>
                                     <option value="">-- Selecciona --</option>
                                     {% for t in materiales_tabulador %}
-                                    <option value="{{ t.espesor_mm }}" data-factor="{{ t.factor_costo }}">{{ t.espesor_mm }} mm</option>
+                                    <option value="{{ t.espesor_mm }}" data-factor="{{ t.factor_costo }}">{{
+                                        t.espesor_mm }} mm</option>
                                     {% endfor %}
                                 </select>
                             </div>
@@ -127,7 +136,9 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr><td colspan="4" class="text-center text-muted py-4">El carrito está vacío</td></tr>
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-4">El carrito está vacío</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -141,7 +152,8 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Monto abonado ($)</label>
-                            <input type="number" id="id_monto_abonado" step="0.01" min="0" class="form-control text-success fw-bold">
+                            <input type="number" id="id_monto_abonado" step="0.01" min="0"
+                                class="form-control text-success fw-bold">
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Estatus inicial</label>
@@ -159,7 +171,8 @@
                         <input type="date" id="id_fecha_entrega" class="form-control">
                     </div>
 
-                    <button type="button" id="btn-finalizar" onclick="guardarVentaCompleta()" class="btn btn-success btn-lg w-100">
+                    <button type="button" id="btn-finalizar" onclick="guardarVentaCompleta()"
+                        class="btn btn-success btn-lg w-100">
                         💾 Registrar Pedido Completo
                     </button>
                 </div>
@@ -210,12 +223,49 @@
     </div><!-- /row -->
 </div><!-- /container -->
 
-
+<div class="modal fade" id="modalNuevoProducto" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title">📦 Agregar Nuevo Producto</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="formNuevoProducto">
+          <div class="mb-3">
+            <label class="form-label">Nombre del Producto <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="np_nombre" placeholder="Ej. Llavero grabado" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Descripción (Opcional)</label>
+            <input type="text" class="form-control" id="np_descripcion">
+          </div>
+          <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label">% Utilidad <span class="text-danger">*</span></label>
+                <input type="number" class="form-control" id="np_utilidad" value="40" required>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Precio Fijo ($) (Opcional)</label>
+                <input type="number" step="0.01" class="form-control" id="np_precio_fijo" placeholder="Ej. 500.00">
+                <div class="form-text" style="font-size: 0.75rem;">Vacío = cálculo por m²</div>
+              </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-primary" id="btnGuardarProducto">Guardar Producto</button>
+      </div>
+    </div>
+  </div>
+</div>
 <!-- ═══════════════════════════════════════════════════════════
      MODAL — Nuevo Cliente
      Backend ya preparado en: POST /ajax/crear-cliente/
 ═══════════════════════════════════════════════════════════ -->
-<div class="modal fade" id="modalNuevoCliente" tabindex="-1" aria-labelledby="modalNuevoClienteLabel" aria-hidden="true">
+<div class="modal fade" id="modalNuevoCliente" tabindex="-1" aria-labelledby="modalNuevoClienteLabel"
+    aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
 
@@ -245,8 +295,7 @@
                 <!-- ── Toggle datos adicionales ── -->
                 <div class="mb-2">
                     <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none text-muted"
-                            id="btn-ver-mas"
-                            onclick="toggleDatosExtra()">
+                        id="btn-ver-mas" onclick="toggleDatosExtra()">
                         <span id="icono-toggle">▶</span> Agregar correo y dirección (opcional)
                     </button>
                 </div>
@@ -261,7 +310,8 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Dirección</label>
-                        <textarea id="nc_direccion" class="form-control" rows="2" placeholder="Calle, colonia, ciudad..."></textarea>
+                        <textarea id="nc_direccion" class="form-control" rows="2"
+                            placeholder="Calle, colonia, ciudad..."></textarea>
                     </div>
                 </div>
 
@@ -281,7 +331,8 @@
 
                 <!-- Preview del nombre cuando se desactiva -->
                 <div id="aviso-eventual" class="alert alert-warning mt-3 mb-0 py-2 small d-none">
-                    ⚠️ Se guardará como <strong>"(Eventual) [nombre]"</strong> para diferenciarlo de tus clientes habituales.
+                    ⚠️ Se guardará como <strong>"(Eventual) [nombre]"</strong> para diferenciarlo de tus clientes
+                    habituales.
                 </div>
 
             </div><!-- /modal-body -->
@@ -302,298 +353,298 @@
      SCRIPTS
 ═══════════════════════════════════ -->
 <script>
-// ── Constantes ─────────────────────────────────────────
-const tarifaLaser = parseFloat("{{ tarifa_laser|default:'0' }}".replace(',', '.')) || 0;
-const CSRF = document.querySelector('[name=csrfmiddlewaretoken]').value;
-const URL_CREAR_CLIENTE = "{% url 'crear_cliente_ajax' %}";
-const URL_NUEVO_PEDIDO  = "{% url 'nuevo_pedido' %}";
+    // ── Constantes ─────────────────────────────────────────
+    const tarifaLaser = parseFloat("{{ tarifa_laser|default:'0' }}".replace(',', '.')) || 0;
+    const CSRF = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const URL_CREAR_CLIENTE = "{% url 'crear_cliente_ajax' %}";
+    const URL_NUEVO_PEDIDO = "{% url 'nuevo_pedido' %}";
 
-let carrito    = [];
-let granTotal  = 0;
+    let carrito = [];
+    let granTotal = 0;
 
-// ══════════════════════════════════════════════════════
-// MODAL — NUEVO CLIENTE
-// ══════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════
+    // MODAL — NUEVO CLIENTE
+    // ══════════════════════════════════════════════════════
 
-function toggleDatosExtra() {
-    const panel = document.getElementById('datos-extra');
-    const icono = document.getElementById('icono-toggle');
-    const abierto = panel.style.display !== 'none';
-    panel.style.display = abierto ? 'none' : 'block';
-    icono.textContent   = abierto ? '▶' : '▼';
-}
-
-// Mostrar/ocultar aviso "Eventual" según el switch
-document.addEventListener('DOMContentLoaded', function () {
-    document.getElementById('nc_guardar_recurrente').addEventListener('change', function () {
-        document.getElementById('aviso-eventual').classList.toggle('d-none', this.checked);
-    });
-
-    // Limpiar modal al cerrarse
-    document.getElementById('modalNuevoCliente').addEventListener('hidden.bs.modal', limpiarModal);
-});
-
-function limpiarModal() {
-    ['nc_nombre','nc_telefono','nc_email','nc_direccion'].forEach(id => {
-        document.getElementById(id).value = '';
-    });
-    document.getElementById('nc_guardar_recurrente').checked = true;
-    document.getElementById('aviso-eventual').classList.add('d-none');
-    document.getElementById('alerta-cliente').classList.add('d-none');
-    // Cerrar panel extra si estaba abierto
-    document.getElementById('datos-extra').style.display = 'none';
-    document.getElementById('icono-toggle').textContent = '▶';
-}
-
-function mostrarErrorModal(msg) {
-    const el = document.getElementById('alerta-cliente');
-    el.textContent = msg;
-    el.classList.remove('d-none');
-}
-
-async function guardarNuevoCliente() {
-    const nombre = document.getElementById('nc_nombre').value.trim();
-    if (!nombre) {
-        mostrarErrorModal('El nombre del cliente es obligatorio.');
-        document.getElementById('nc_nombre').focus();
-        return;
+    function toggleDatosExtra() {
+        const panel = document.getElementById('datos-extra');
+        const icono = document.getElementById('icono-toggle');
+        const abierto = panel.style.display !== 'none';
+        panel.style.display = abierto ? 'none' : 'block';
+        icono.textContent = abierto ? '▶' : '▼';
     }
 
-    const esRecurrente = document.getElementById('nc_guardar_recurrente').checked;
-    const nombreFinal  = esRecurrente ? nombre : `(Eventual) ${nombre}`;
-
-    const payload = {
-        nombre:    nombreFinal,
-        telefono:  document.getElementById('nc_telefono').value.trim() || null,
-        email:     document.getElementById('nc_email').value.trim()    || null,
-        direccion: document.getElementById('nc_direccion').value.trim()|| null,
-    };
-
-    // Deshabilitar botón mientras espera
-    const btn = document.getElementById('btn-guardar-cliente');
-    btn.disabled = true;
-    btn.innerHTML = '⏳ Guardando...';
-
-    try {
-        const resp = await fetch(URL_CREAR_CLIENTE, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': CSRF,
-            },
-            body: JSON.stringify(payload),
+    // Mostrar/ocultar aviso "Eventual" según el switch
+    document.addEventListener('DOMContentLoaded', function () {
+        document.getElementById('nc_guardar_recurrente').addEventListener('change', function () {
+            document.getElementById('aviso-eventual').classList.toggle('d-none', this.checked);
         });
-        const data = await resp.json();
 
-        if (data.ok) {
-            // ── Agregar la nueva opción al Select2 y seleccionarla ──────
-            const select  = document.getElementById('id_cliente');
-            const opcion  = new Option(data.nombre, data.id_cliente, true, true);
-            select.append(opcion);
-
-            // Si Select2 está inicializado, notificarlo
-            if (typeof jQuery !== 'undefined' && $(select).data('select2')) {
-                $(select).trigger('change');
-            }
-
-            // Cerrar modal y mostrar confirmación suave
-            bootstrap.Modal.getInstance(document.getElementById('modalNuevoCliente')).hide();
-            mostrarToast(`✅ Cliente "${data.nombre}" listo para usarse.`, 'success');
-        } else {
-            mostrarErrorModal('Error: ' + (data.error || 'Inténtalo de nuevo.'));
-        }
-    } catch (e) {
-        mostrarErrorModal('Error de conexión. Revisa tu internet.');
-    } finally {
-        btn.disabled = false;
-        btn.innerHTML = '💾 Guardar y seleccionar';
-    }
-}
-
-// Toast ligero (sin librerías extra)
-function mostrarToast(mensaje, tipo = 'success') {
-    let container = document.getElementById('toast-container');
-    if (!container) {
-        container = document.createElement('div');
-        container.id = 'toast-container';
-        container.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;';
-        document.body.appendChild(container);
-    }
-    const toast = document.createElement('div');
-    toast.className = `alert alert-${tipo} shadow mb-0 py-2 px-3`;
-    toast.style.cssText = 'min-width:260px;animation:fadeIn .2s ease;';
-    toast.innerHTML = mensaje;
-    container.appendChild(toast);
-    setTimeout(() => toast.remove(), 3500);
-}
-
-// ══════════════════════════════════════════════════════
-// CALCULADORA EN TIEMPO REAL
-// ══════════════════════════════════════════════════════
-function calcularMontoRealTime() {
-    const getVal = (sel) => parseFloat(document.querySelector(sel)?.value?.replace(',', '.')) || 0;
-
-    const largo    = getVal('input[name="largo_pza"]');
-    const ancho    = getVal('input[name="ancho_pza"]');
-    const minutos  = getVal('input[name="minutos_lazer"]');
-    const utilidad = getVal('#id_utilidad') || 40;
-    const cantidad = getVal('#id_cantidad') || 1;
-
-    const espesorSel = document.getElementById('id_espesor');
-    let factor = 0;
-    if (espesorSel?.selectedIndex >= 0) {
-        factor = parseFloat(espesorSel.options[espesorSel.selectedIndex].getAttribute('data-factor')?.replace(',', '.')) || 0;
-    }
-
-    const prodSel = document.getElementById('id_producto');
-    let precioFijo = 0;
-    if (prodSel?.selectedIndex >= 0) {
-        const attr = prodSel.options[prodSel.selectedIndex].getAttribute('data-precio-fijo');
-        if (attr && attr !== "None" && attr.trim() !== "") {
-            precioFijo = parseFloat(attr.replace(',', '.')) || 0;
-        }
-    }
-
-    // 🚨 MAGIA AQUÍ: Bloqueamos/Desbloqueamos las casillas directamente en la calculadora
-    const inputLargo = document.querySelector('input[name="largo_pza"]');
-    const inputAncho = document.querySelector('input[name="ancho_pza"]');
-    const selectEspesor = document.getElementById('id_espesor');
-    const selectMaterial = document.getElementById('id_material');
-
-    if (precioFijo > 0) {
-        // Apagamos required y bloqueamos visualmente (se pondrán en gris)
-        if(inputLargo) { inputLargo.required = false; inputLargo.disabled = true; inputLargo.value = ''; }
-        if(inputAncho) { inputAncho.required = false; inputAncho.disabled = true; inputAncho.value = ''; }
-        if(selectEspesor) { selectEspesor.required = false; selectEspesor.disabled = true; selectEspesor.value = ''; }
-        if(selectMaterial) { selectMaterial.disabled = true; selectMaterial.value = ''; }
-    } else {
-        // Encendemos required y desbloqueamos (regresan a la normalidad)
-        if(inputLargo) { inputLargo.required = true; inputLargo.disabled = false; }
-        if(inputAncho) { inputAncho.required = true; inputAncho.disabled = false; }
-        if(selectEspesor) { selectEspesor.required = true; selectEspesor.disabled = false; }
-        if(selectMaterial) { selectMaterial.disabled = false; }
-    }
-
-    const setText = (id, t) => { const el = document.getElementById(id); if (el) el.innerText = t; };
-    const fmt = (v) => '$' + v.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-    // Si el precio es fijo, actualiza el monto y detiene el resto de la función
-    if (precioFijo > 0) {
-        const total = precioFijo * cantidad;
-        setText('display_area', '-'); setText('display_material', '-');
-        setText('display_utilidad', '-'); setText('display_laser', '-');
-        setText('display_total', fmt(total));
-        document.getElementById('nota_precio_fijo').style.display = 'block';
-        return;
-    }
-
-    document.getElementById('nota_precio_fijo').style.display = 'none';
-
-    // Cálculos normales si NO es precio fijo
-    const areaCm2       = largo * ancho;
-    const costoMaterial = (areaCm2 / 10000) * factor;
-    const costoUtil     = costoMaterial * (utilidad / 100);
-    const costoLaser    = minutos * tarifaLaser;
-    const totalUnitario = costoMaterial + costoUtil + costoLaser;
-    const totalRenglon  = totalUnitario * cantidad;
-
-    setText('display_area',     (areaCm2 * cantidad).toFixed(2) + ' cm²');
-    setText('display_material', fmt(costoMaterial * cantidad));
-    setText('display_utilidad', fmt(costoUtil * cantidad));
-    setText('display_laser',    fmt(costoLaser));
-    setText('display_total',    fmt(totalRenglon));
-}
-
-// ══════════════════════════════════════════════════════
-// LÓGICA DEL CARRITO
-// ══════════════════════════════════════════════════════
-function agregarAlCarrito() {
-    const clienteId = document.getElementById('id_cliente').value;
-    
-    // 1. Cliente es opcional (Eliminamos el alert que bloqueaba si estaba vacío)
-
-    const prodSel = document.getElementById('id_producto');
-    const matSel  = document.getElementById('id_material');
-    
-    // 2. Solo el producto es estrictamente necesario
-    if (!prodSel.value) { 
-        alert('Por favor, selecciona un producto.'); 
-        return; 
-    }
-
-    // 3. Lógica para Precio Fijo vs Calculado
-    const optionSeleccionada = prodSel.options[prodSel.selectedIndex];
-    const precioFijo = optionSeleccionada.getAttribute('data-precio-fijo');
-    let subtotal = 0;
-
-    if (precioFijo && precioFijo.trim() !== '' && precioFijo !== 'None') {
-        // Si el producto tiene precio fijo, ignoramos la calculadora
-        subtotal = parseFloat(precioFijo);
-    } else {
-        // Si no tiene precio fijo, exigimos que las medidas den un subtotal mayor a 0
-        const subtotalText = document.getElementById('display_total').innerText.replace(/[$,]/g, '');
-        subtotal = parseFloat(subtotalText);
-        if (isNaN(subtotal) || subtotal <= 0) { 
-            alert('Agrega medidas para calcular el precio, o selecciona un producto con precio fijo.'); 
-            return; 
-        }
-    }
-
-    // Bloquear el selector de cliente solo si seleccionaron a alguien
-    if (clienteId) {
-        document.getElementById('id_cliente').disabled = true;
-    }
-
-    // 4. Manejo seguro del nombre del material (porque puede venir vacío)
-    let materialNombre = "-- Sin material específico --";
-    if (matSel.value && matSel.selectedIndex >= 0) {
-        materialNombre = matSel.options[matSel.selectedIndex].text;
-    }
-
-    // 5. Agregar el objeto al carrito
-    carrito.push({
-        producto_id:     prodSel.value,
-        producto_nombre: optionSeleccionada.text,
-        material_id:     matSel.value || null, // Enviamos null si no seleccionó material
-        material_nombre: materialNombre,
-        largo:           document.querySelector('input[name="largo_pza"]').value || 0,
-        ancho:           document.querySelector('input[name="ancho_pza"]').value || 0,
-        minutos_laser:   document.querySelector('input[name="minutos_lazer"]').value || 0,
-        espesor:         document.getElementById('id_espesor').value || 0,
-        cantidad:        parseInt(document.getElementById('id_cantidad').value) || 1,
-        subtotal:        subtotal, // Ya validado arriba
+        // Limpiar modal al cerrarse
+        document.getElementById('modalNuevoCliente').addEventListener('hidden.bs.modal', limpiarModal);
     });
 
-    // 6. Tu lógica de renderizado y limpieza se mantiene intacta
-    renderCarrito();
+    function limpiarModal() {
+        ['nc_nombre', 'nc_telefono', 'nc_email', 'nc_direccion'].forEach(id => {
+            document.getElementById(id).value = '';
+        });
+        document.getElementById('nc_guardar_recurrente').checked = true;
+        document.getElementById('aviso-eventual').classList.add('d-none');
+        document.getElementById('alerta-cliente').classList.add('d-none');
+        // Cerrar panel extra si estaba abierto
+        document.getElementById('datos-extra').style.display = 'none';
+        document.getElementById('icono-toggle').textContent = '▶';
+    }
 
-    // Limpiar formulario para el siguiente artículo
-    prodSel.value = ''; 
-    matSel.value = '';
-    if (typeof jQuery !== 'undefined') $('.select2').trigger('change.select2');
-    document.querySelector('input[name="largo_pza"]').value  = '';
-    document.querySelector('input[name="ancho_pza"]').value  = '';
-    
-    // Agregué la limpieza de los minutos láser para que no se queden pegados por error
-    const inputLaser = document.querySelector('input[name="minutos_lazer"]');
-    if(inputLaser) inputLaser.value = ''; 
-    
-    document.getElementById('id_cantidad').value = '1';
-    calcularMontoRealTime();
-}
+    function mostrarErrorModal(msg) {
+        const el = document.getElementById('alerta-cliente');
+        el.textContent = msg;
+        el.classList.remove('d-none');
+    }
 
-function renderCarrito() {
-    const tbody = document.querySelector('#tabla-carrito tbody');
-    tbody.innerHTML = '';
-    granTotal = 0;
+    async function guardarNuevoCliente() {
+        const nombre = document.getElementById('nc_nombre').value.trim();
+        if (!nombre) {
+            mostrarErrorModal('El nombre del cliente es obligatorio.');
+            document.getElementById('nc_nombre').focus();
+            return;
+        }
 
-    if (carrito.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-4">El carrito está vacío</td></tr>';
-        document.getElementById('id_cliente').disabled = false;
-    } else {
-        carrito.forEach((item, i) => {
-            granTotal += item.subtotal;
-            tbody.innerHTML += `
+        const esRecurrente = document.getElementById('nc_guardar_recurrente').checked;
+        const nombreFinal = esRecurrente ? nombre : `(Eventual) ${nombre}`;
+
+        const payload = {
+            nombre: nombreFinal,
+            telefono: document.getElementById('nc_telefono').value.trim() || null,
+            email: document.getElementById('nc_email').value.trim() || null,
+            direccion: document.getElementById('nc_direccion').value.trim() || null,
+        };
+
+        // Deshabilitar botón mientras espera
+        const btn = document.getElementById('btn-guardar-cliente');
+        btn.disabled = true;
+        btn.innerHTML = '⏳ Guardando...';
+
+        try {
+            const resp = await fetch(URL_CREAR_CLIENTE, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': CSRF,
+                },
+                body: JSON.stringify(payload),
+            });
+            const data = await resp.json();
+
+            if (data.ok) {
+                // ── Agregar la nueva opción al Select2 y seleccionarla ──────
+                const select = document.getElementById('id_cliente');
+                const opcion = new Option(data.nombre, data.id_cliente, true, true);
+                select.append(opcion);
+
+                // Si Select2 está inicializado, notificarlo
+                if (typeof jQuery !== 'undefined' && $(select).data('select2')) {
+                    $(select).trigger('change');
+                }
+
+                // Cerrar modal y mostrar confirmación suave
+                bootstrap.Modal.getInstance(document.getElementById('modalNuevoCliente')).hide();
+                mostrarToast(`✅ Cliente "${data.nombre}" listo para usarse.`, 'success');
+            } else {
+                mostrarErrorModal('Error: ' + (data.error || 'Inténtalo de nuevo.'));
+            }
+        } catch (e) {
+            mostrarErrorModal('Error de conexión. Revisa tu internet.');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '💾 Guardar y seleccionar';
+        }
+    }
+
+    // Toast ligero (sin librerías extra)
+    function mostrarToast(mensaje, tipo = 'success') {
+        let container = document.getElementById('toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toast-container';
+            container.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;';
+            document.body.appendChild(container);
+        }
+        const toast = document.createElement('div');
+        toast.className = `alert alert-${tipo} shadow mb-0 py-2 px-3`;
+        toast.style.cssText = 'min-width:260px;animation:fadeIn .2s ease;';
+        toast.innerHTML = mensaje;
+        container.appendChild(toast);
+        setTimeout(() => toast.remove(), 3500);
+    }
+
+    // ══════════════════════════════════════════════════════
+    // CALCULADORA EN TIEMPO REAL
+    // ══════════════════════════════════════════════════════
+    function calcularMontoRealTime() {
+        const getVal = (sel) => parseFloat(document.querySelector(sel)?.value?.replace(',', '.')) || 0;
+
+        const largo = getVal('input[name="largo_pza"]');
+        const ancho = getVal('input[name="ancho_pza"]');
+        const minutos = getVal('input[name="minutos_lazer"]');
+        const utilidad = getVal('#id_utilidad') || 40;
+        const cantidad = getVal('#id_cantidad') || 1;
+
+        const espesorSel = document.getElementById('id_espesor');
+        let factor = 0;
+        if (espesorSel?.selectedIndex >= 0) {
+            factor = parseFloat(espesorSel.options[espesorSel.selectedIndex].getAttribute('data-factor')?.replace(',', '.')) || 0;
+        }
+
+        const prodSel = document.getElementById('id_producto');
+        let precioFijo = 0;
+        if (prodSel?.selectedIndex >= 0) {
+            const attr = prodSel.options[prodSel.selectedIndex].getAttribute('data-precio-fijo');
+            if (attr && attr !== "None" && attr.trim() !== "") {
+                precioFijo = parseFloat(attr.replace(',', '.')) || 0;
+            }
+        }
+
+        // 🚨 MAGIA AQUÍ: Bloqueamos/Desbloqueamos las casillas directamente en la calculadora
+        const inputLargo = document.querySelector('input[name="largo_pza"]');
+        const inputAncho = document.querySelector('input[name="ancho_pza"]');
+        const selectEspesor = document.getElementById('id_espesor');
+        const selectMaterial = document.getElementById('id_material');
+
+        if (precioFijo > 0) {
+            // Apagamos required y bloqueamos visualmente (se pondrán en gris)
+            if (inputLargo) { inputLargo.required = false; inputLargo.disabled = true; inputLargo.value = ''; }
+            if (inputAncho) { inputAncho.required = false; inputAncho.disabled = true; inputAncho.value = ''; }
+            if (selectEspesor) { selectEspesor.required = false; selectEspesor.disabled = true; selectEspesor.value = ''; }
+            if (selectMaterial) { selectMaterial.disabled = true; selectMaterial.value = ''; }
+        } else {
+            // Encendemos required y desbloqueamos (regresan a la normalidad)
+            if (inputLargo) { inputLargo.required = true; inputLargo.disabled = false; }
+            if (inputAncho) { inputAncho.required = true; inputAncho.disabled = false; }
+            if (selectEspesor) { selectEspesor.required = true; selectEspesor.disabled = false; }
+            if (selectMaterial) { selectMaterial.disabled = false; }
+        }
+
+        const setText = (id, t) => { const el = document.getElementById(id); if (el) el.innerText = t; };
+        const fmt = (v) => '$' + v.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+        // Si el precio es fijo, actualiza el monto y detiene el resto de la función
+        if (precioFijo > 0) {
+            const total = precioFijo * cantidad;
+            setText('display_area', '-'); setText('display_material', '-');
+            setText('display_utilidad', '-'); setText('display_laser', '-');
+            setText('display_total', fmt(total));
+            document.getElementById('nota_precio_fijo').style.display = 'block';
+            return;
+        }
+
+        document.getElementById('nota_precio_fijo').style.display = 'none';
+
+        // Cálculos normales si NO es precio fijo
+        const areaCm2 = largo * ancho;
+        const costoMaterial = (areaCm2 / 10000) * factor;
+        const costoUtil = costoMaterial * (utilidad / 100);
+        const costoLaser = minutos * tarifaLaser;
+        const totalUnitario = costoMaterial + costoUtil + costoLaser;
+        const totalRenglon = totalUnitario * cantidad;
+
+        setText('display_area', (areaCm2 * cantidad).toFixed(2) + ' cm²');
+        setText('display_material', fmt(costoMaterial * cantidad));
+        setText('display_utilidad', fmt(costoUtil * cantidad));
+        setText('display_laser', fmt(costoLaser));
+        setText('display_total', fmt(totalRenglon));
+    }
+
+    // ══════════════════════════════════════════════════════
+    // LÓGICA DEL CARRITO
+    // ══════════════════════════════════════════════════════
+    function agregarAlCarrito() {
+        const clienteId = document.getElementById('id_cliente').value;
+
+        // 1. Cliente es opcional (Eliminamos el alert que bloqueaba si estaba vacío)
+
+        const prodSel = document.getElementById('id_producto');
+        const matSel = document.getElementById('id_material');
+
+        // 2. Solo el producto es estrictamente necesario
+        if (!prodSel.value) {
+            alert('Por favor, selecciona un producto.');
+            return;
+        }
+
+        // 3. Lógica para Precio Fijo vs Calculado
+        const optionSeleccionada = prodSel.options[prodSel.selectedIndex];
+        const precioFijo = optionSeleccionada.getAttribute('data-precio-fijo');
+        let subtotal = 0;
+
+        if (precioFijo && precioFijo.trim() !== '' && precioFijo !== 'None') {
+            // Si el producto tiene precio fijo, ignoramos la calculadora
+            subtotal = parseFloat(precioFijo);
+        } else {
+            // Si no tiene precio fijo, exigimos que las medidas den un subtotal mayor a 0
+            const subtotalText = document.getElementById('display_total').innerText.replace(/[$,]/g, '');
+            subtotal = parseFloat(subtotalText);
+            if (isNaN(subtotal) || subtotal <= 0) {
+                alert('Agrega medidas para calcular el precio, o selecciona un producto con precio fijo.');
+                return;
+            }
+        }
+
+        // Bloquear el selector de cliente solo si seleccionaron a alguien
+        if (clienteId) {
+            document.getElementById('id_cliente').disabled = true;
+        }
+
+        // 4. Manejo seguro del nombre del material (porque puede venir vacío)
+        let materialNombre = "-- Sin material específico --";
+        if (matSel.value && matSel.selectedIndex >= 0) {
+            materialNombre = matSel.options[matSel.selectedIndex].text;
+        }
+
+        // 5. Agregar el objeto al carrito
+        carrito.push({
+            producto_id: prodSel.value,
+            producto_nombre: optionSeleccionada.text,
+            material_id: matSel.value || null, // Enviamos null si no seleccionó material
+            material_nombre: materialNombre,
+            largo: document.querySelector('input[name="largo_pza"]').value || 0,
+            ancho: document.querySelector('input[name="ancho_pza"]').value || 0,
+            minutos_laser: document.querySelector('input[name="minutos_lazer"]').value || 0,
+            espesor: document.getElementById('id_espesor').value || 0,
+            cantidad: parseInt(document.getElementById('id_cantidad').value) || 1,
+            subtotal: subtotal, // Ya validado arriba
+        });
+
+        // 6. Tu lógica de renderizado y limpieza se mantiene intacta
+        renderCarrito();
+
+        // Limpiar formulario para el siguiente artículo
+        prodSel.value = '';
+        matSel.value = '';
+        if (typeof jQuery !== 'undefined') $('.select2').trigger('change.select2');
+        document.querySelector('input[name="largo_pza"]').value = '';
+        document.querySelector('input[name="ancho_pza"]').value = '';
+
+        // Agregué la limpieza de los minutos láser para que no se queden pegados por error
+        const inputLaser = document.querySelector('input[name="minutos_lazer"]');
+        if (inputLaser) inputLaser.value = '';
+
+        document.getElementById('id_cantidad').value = '1';
+        calcularMontoRealTime();
+    }
+
+    function renderCarrito() {
+        const tbody = document.querySelector('#tabla-carrito tbody');
+        tbody.innerHTML = '';
+        granTotal = 0;
+
+        if (carrito.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-4">El carrito está vacío</td></tr>';
+            document.getElementById('id_cliente').disabled = false;
+        } else {
+            carrito.forEach((item, i) => {
+                granTotal += item.subtotal;
+                tbody.innerHTML += `
                 <tr>
                     <td>
                         <strong>${item.producto_nombre}</strong>
@@ -605,129 +656,207 @@ function renderCarrito() {
                         <button type="button" class="btn btn-sm btn-outline-danger" onclick="eliminar(${i})" title="Quitar">❌</button>
                     </td>
                 </tr>`;
-        });
+            });
+        }
+
+        const fmt = (v) => '$' + v.toLocaleString('es-MX', { minimumFractionDigits: 2 });
+        document.getElementById('gran-total-display').innerText = fmt(granTotal);
+
+        const elAbono = document.getElementById('id_monto_abonado');
+        if (!elAbono.dataset.modificado) elAbono.value = granTotal.toFixed(2);
     }
 
-    const fmt = (v) => '$' + v.toLocaleString('es-MX', { minimumFractionDigits: 2 });
-    document.getElementById('gran-total-display').innerText = fmt(granTotal);
+    function eliminar(i) { carrito.splice(i, 1); renderCarrito(); }
 
-    const elAbono = document.getElementById('id_monto_abonado');
-    if (!elAbono.dataset.modificado) elAbono.value = granTotal.toFixed(2);
-}
+    // ══════════════════════════════════════════════════════
+    // ENVIAR AL SERVIDOR
+    // ══════════════════════════════════════════════════════
+    async function guardarVentaCompleta() {
+        if (carrito.length === 0) { alert('No hay artículos en el pedido.'); return; }
 
-function eliminar(i) { carrito.splice(i, 1); renderCarrito(); }
+        const btn = document.getElementById('btn-finalizar');
+        btn.disabled = true;
+        btn.innerText = '⏳ Guardando Pedido...';
 
-// ══════════════════════════════════════════════════════
-// ENVIAR AL SERVIDOR
-// ══════════════════════════════════════════════════════
-async function guardarVentaCompleta() {
-    if (carrito.length === 0) { alert('No hay artículos en el pedido.'); return; }
+        const payload = {
+            cliente_id: document.getElementById('id_cliente').value,
+            monto_abonado: document.getElementById('id_monto_abonado').value,
+            estatus: document.getElementById('id_estatus').value,
+            fecha_entrega: document.getElementById('id_fecha_entrega').value,
+            carrito,
+        };
 
-    const btn = document.getElementById('btn-finalizar');
-    btn.disabled = true;
-    btn.innerText = '⏳ Guardando Pedido...';
+        try {
+            const resp = await fetch(URL_NUEVO_PEDIDO, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+                body: JSON.stringify(payload),
+            });
+            const data = await resp.json();
 
-    const payload = {
-        cliente_id:    document.getElementById('id_cliente').value,
-        monto_abonado: document.getElementById('id_monto_abonado').value,
-        estatus:       document.getElementById('id_estatus').value,
-        fecha_entrega: document.getElementById('id_fecha_entrega').value,
-        carrito,
-    };
-
-    try {
-        const resp = await fetch(URL_NUEVO_PEDIDO, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
-            body: JSON.stringify(payload),
-        });
-        const data = await resp.json();
-
-        if (data.ok) {
-            // Mostrar advertencia de stock bajo antes de redirigir
-            if (data.alertas_stock && data.alertas_stock.length > 0) {
-                const lista = data.alertas_stock
-                    .map(a => `• ${a.nombre}: ${a.actual} láminas (mín. ${a.minimo})`)
-                    .join('\n');
-                alert(`⚠️ Pedido guardado correctamente.\n\nLos siguientes materiales están en stock bajo:\n${lista}\n\nRevisa tu inventario.`);
+            if (data.ok) {
+                // Mostrar advertencia de stock bajo antes de redirigir
+                if (data.alertas_stock && data.alertas_stock.length > 0) {
+                    const lista = data.alertas_stock
+                        .map(a => `• ${a.nombre}: ${a.actual} láminas (mín. ${a.minimo})`)
+                        .join('\n');
+                    alert(`⚠️ Pedido guardado correctamente.\n\nLos siguientes materiales están en stock bajo:\n${lista}\n\nRevisa tu inventario.`);
+                }
+                window.location.href = `/ventas/${data.venta_id}/`;
+            } else {
+                alert('Error en el servidor: ' + data.error);
+                btn.disabled = false;
+                btn.innerText = '💾 Registrar Pedido Completo';
             }
-            window.location.href = `/ventas/${data.venta_id}/`;
-        } else {
-            alert('Error en el servidor: ' + data.error);
+        } catch {
+            alert('Error de conexión');
             btn.disabled = false;
             btn.innerText = '💾 Registrar Pedido Completo';
         }
-    } catch {
-        alert('Error de conexión');
-        btn.disabled = false;
-        btn.innerText = '💾 Registrar Pedido Completo';
     }
-}
 
-// ══════════════════════════════════════════════════════
-// INICIALIZAR EVENTOS
-// ══════════════════════════════════════════════════════
-document.addEventListener('DOMContentLoaded', function () {
-    document.querySelectorAll('input, select').forEach(el => {
-        el.addEventListener('input',  calcularMontoRealTime);
-        el.addEventListener('change', calcularMontoRealTime);
+    // ══════════════════════════════════════════════════════
+    // INICIALIZAR EVENTOS
+    // ══════════════════════════════════════════════════════
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('input, select').forEach(el => {
+            el.addEventListener('input', calcularMontoRealTime);
+            el.addEventListener('change', calcularMontoRealTime);
+        });
+
+        document.getElementById('id_monto_abonado').addEventListener('input', function () {
+            this.dataset.modificado = 'true';
+        });
+
+        // Select2 ya inicializado en base.html
+        setTimeout(() => {
+            if (typeof jQuery !== 'undefined') {
+                $('.select2').on('change', calcularMontoRealTime);
+            }
+        }, 100);
+
+        // Enter en el modal → guardar cliente
+        document.getElementById('modalNuevoCliente').addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                guardarNuevoCliente();
+            }
+        });
     });
+    // 🛠️ PARCHE: Control de validación de campos requeridos
+    if (typeof jQuery !== 'undefined') {
+        $('#id_producto').on('change', function () {
+            if (this.selectedIndex < 0) return;
+            const optionSeleccionada = this.options[this.selectedIndex];
 
-    document.getElementById('id_monto_abonado').addEventListener('input', function () {
-        this.dataset.modificado = 'true';
-    });
+            // 🚨 CORRECCIÓN AQUÍ: Tiene que ser data-precio-fijo
+            const precioFijo = optionSeleccionada.getAttribute('data-precio-fijo');
+            const esFijo = (precioFijo && precioFijo.trim() !== '' && precioFijo !== 'None');
 
-    // Select2 ya inicializado en base.html
-    setTimeout(() => {
-        if (typeof jQuery !== 'undefined') {
-            $('.select2').on('change', calcularMontoRealTime);
-        }
-    }, 100);
+            // Seleccionamos los campos
+            const inputLargo = document.querySelector('input[name="largo_pza"]');
+            const inputAncho = document.querySelector('input[name="ancho_pza"]');
+            const selectEspesor = document.getElementById('id_espesor');
+            const selectMaterial = document.getElementById('id_material');
 
-    // Enter en el modal → guardar cliente
-    document.getElementById('modalNuevoCliente').addEventListener('keydown', function (e) {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            guardarNuevoCliente();
-        }
-    });
-});
-// 🛠️ PARCHE: Control de validación de campos requeridos
-if (typeof jQuery !== 'undefined') {
-    $('#id_producto').on('change', function() {
-        if (this.selectedIndex < 0) return;
-        const optionSeleccionada = this.options[this.selectedIndex];
+            if (esFijo) {
+                // Apagamos required y bloqueamos (Gris)
+                if (inputLargo) { inputLargo.required = false; inputLargo.disabled = true; inputLargo.value = ''; }
+                if (inputAncho) { inputAncho.required = false; inputAncho.disabled = true; inputAncho.value = ''; }
+                if (selectEspesor) { selectEspesor.required = false; selectEspesor.disabled = true; selectEspesor.value = ''; }
+                if (selectMaterial) { selectMaterial.disabled = true; selectMaterial.value = ''; }
+                if (typeof jQuery !== 'undefined') $(selectMaterial).trigger('change.select2');
+
+            } else {
+                // Encendemos required y desbloqueamos
+                if (inputLargo) { inputLargo.required = true; inputLargo.disabled = false; }
+                if (inputAncho) { inputAncho.required = true; inputAncho.disabled = false; }
+                if (selectEspesor) { selectEspesor.required = true; selectEspesor.disabled = false; }
+                if (selectMaterial) { selectMaterial.disabled = false; }
+            }
+        });
         
-        // 🚨 CORRECCIÓN AQUÍ: Tiene que ser data-precio-fijo
-        const precioFijo = optionSeleccionada.getAttribute('data-precio-fijo');
-        const esFijo = (precioFijo && precioFijo.trim() !== '' && precioFijo !== 'None');
+    }
+// ══════════════════════════════════════════════════════
+// CREAR PRODUCTO RÁPIDO (AJAX)
+// ══════════════════════════════════════════════════════
+document.getElementById('btnGuardarProducto')?.addEventListener('click', function() {
+    const nombre = document.getElementById('np_nombre').value;
+    const desc = document.getElementById('np_descripcion').value;
+    const utilidad = document.getElementById('np_utilidad').value;
+    const precioFijo = document.getElementById('np_precio_fijo').value;
 
-        // Seleccionamos los campos
-        const inputLargo = document.querySelector('input[name="largo_pza"]');
-        const inputAncho = document.querySelector('input[name="ancho_pza"]');
-        const selectEspesor = document.getElementById('id_espesor');
-        const selectMaterial = document.getElementById('id_material');
+    if (!nombre || !utilidad) {
+        alert('El nombre y el % de utilidad son obligatorios.');
+        return;
+    }
 
-        if (esFijo) {
-            // Apagamos required y bloqueamos (Gris)
-            if(inputLargo) { inputLargo.required = false; inputLargo.disabled = true; inputLargo.value = ''; }
-            if(inputAncho) { inputAncho.required = false; inputAncho.disabled = true; inputAncho.value = ''; }
-            if(selectEspesor) { selectEspesor.required = false; selectEspesor.disabled = true; selectEspesor.value = ''; }
-            if(selectMaterial) { selectMaterial.disabled = true; selectMaterial.value = ''; }
-            if (typeof jQuery !== 'undefined') $(selectMaterial).trigger('change.select2');
+    this.disabled = true;
+    this.innerText = 'Guardando...';
+
+    // Asegúrate de tener la URL configurada en urls.py como 'crear_producto_rapido'
+    fetch("{% url 'crear_producto_rapido' %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': CSRF 
+        },
+        body: JSON.stringify({
+            nombre: nombre,
+            descripcion: desc,
+            utilidad: utilidad,
+            precio_fijo: precioFijo
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        this.disabled = false;
+        this.innerText = 'Guardar Producto';
+
+        if (data.ok) {
+            // 1. Cerrar el modal
+            const modalEl = document.getElementById('modalNuevoProducto');
+            const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+            modal.hide();
+
+            // 2. Agregar el nuevo producto a la lista desplegable y seleccionarlo
+            const select = document.getElementById('id_producto');
+            const newOption = new Option(data.nombre, data.id, false, true);
+            // Inyectamos el atributo con el nombre correcto: data-precio-fijo
+            newOption.setAttribute('data-precio-fijo', data.precio_fijo);
+            select.add(newOption);
+            
+            // 3. Forzar el recálculo
+            select.dispatchEvent(new Event('change'));
+            if (typeof jQuery !== 'undefined') $(select).trigger('change.select2');
+
+            // 4. Limpiar el formulario
+            document.getElementById('formNuevoProducto').reset();
+            document.getElementById('np_utilidad').value = "40"; 
             
         } else {
-            // Encendemos required y desbloqueamos
-            if(inputLargo) { inputLargo.required = true; inputLargo.disabled = false; }
-            if(inputAncho) { inputAncho.required = true; inputAncho.disabled = false; }
-            if(selectEspesor) { selectEspesor.required = true; selectEspesor.disabled = false; }
-            if(selectMaterial) { selectMaterial.disabled = false; }
+            alert('Error: ' + data.error);
         }
+    })
+    .catch(error => {
+        this.disabled = false;
+        this.innerText = 'Guardar Producto';
+        alert('Ocurrió un error de conexión al guardar el producto.');
     });
-}
+});  
 </script>
 
 <style>
-@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(6px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
 </style>
 {% endblock %}

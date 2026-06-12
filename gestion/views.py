@@ -37,6 +37,38 @@ def es_admin(user):
 def es_operador(user):
     return user.is_authenticated
 
+def crear_producto_rapido(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            nombre = data.get('nombre')
+            utilidad = data.get('utilidad', 40)
+            precio_fijo = data.get('precio_fijo')
+
+            if not nombre:
+                return JsonResponse({'ok': False, 'error': 'El nombre es obligatorio.'})
+
+            precio_val = Decimal(precio_fijo) if precio_fijo else None
+            
+            # Crear el producto en la base de datos
+            nuevo_prod = Productos.objects.create(
+                nombre=nombre,
+                descripcion=data.get('descripcion', ''),
+                porcentaje_utilidad=Decimal(utilidad),
+                precio_fijo=precio_val
+            )
+
+            return JsonResponse({
+                'ok': True,
+                'id': nuevo_prod.id_producto,
+                'nombre': nuevo_prod.nombre,
+                'precio_fijo': str(nuevo_prod.precio_fijo) if nuevo_prod.precio_fijo else ''
+            })
+        except Exception as e:
+            return JsonResponse({'ok': False, 'error': str(e)})
+            
+    return JsonResponse({'ok': False, 'error': 'Método no permitido'})
+
 # ── Login / Logout ──────────────────────────────────────────
 def login_view(request):
     error = None
