@@ -454,9 +454,30 @@ function calcularMontoRealTime() {
         }
     }
 
+    // 🚨 MAGIA AQUÍ: Bloqueamos/Desbloqueamos las casillas directamente en la calculadora
+    const inputLargo = document.querySelector('input[name="largo_pza"]');
+    const inputAncho = document.querySelector('input[name="ancho_pza"]');
+    const selectEspesor = document.getElementById('id_espesor');
+    const selectMaterial = document.getElementById('id_material');
+
+    if (precioFijo > 0) {
+        // Apagamos required y bloqueamos visualmente (se pondrán en gris)
+        if(inputLargo) { inputLargo.required = false; inputLargo.disabled = true; inputLargo.value = ''; }
+        if(inputAncho) { inputAncho.required = false; inputAncho.disabled = true; inputAncho.value = ''; }
+        if(selectEspesor) { selectEspesor.required = false; selectEspesor.disabled = true; selectEspesor.value = ''; }
+        if(selectMaterial) { selectMaterial.disabled = true; selectMaterial.value = ''; }
+    } else {
+        // Encendemos required y desbloqueamos (regresan a la normalidad)
+        if(inputLargo) { inputLargo.required = true; inputLargo.disabled = false; }
+        if(inputAncho) { inputAncho.required = true; inputAncho.disabled = false; }
+        if(selectEspesor) { selectEspesor.required = true; selectEspesor.disabled = false; }
+        if(selectMaterial) { selectMaterial.disabled = false; }
+    }
+
     const setText = (id, t) => { const el = document.getElementById(id); if (el) el.innerText = t; };
     const fmt = (v) => '$' + v.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+    // Si el precio es fijo, actualiza el monto y detiene el resto de la función
     if (precioFijo > 0) {
         const total = precioFijo * cantidad;
         setText('display_area', '-'); setText('display_material', '-');
@@ -468,6 +489,7 @@ function calcularMontoRealTime() {
 
     document.getElementById('nota_precio_fijo').style.display = 'none';
 
+    // Cálculos normales si NO es precio fijo
     const areaCm2       = largo * ancho;
     const costoMaterial = (areaCm2 / 10000) * factor;
     const costoUtil     = costoMaterial * (utilidad / 100);
@@ -501,7 +523,7 @@ function agregarAlCarrito() {
 
     // 3. Lógica para Precio Fijo vs Calculado
     const optionSeleccionada = prodSel.options[prodSel.selectedIndex];
-    const precioFijo = optionSeleccionada.getAttribute('data-precio');
+    const precioFijo = optionSeleccionada.getAttribute('data-precio-fijo');
     let subtotal = 0;
 
     if (precioFijo && precioFijo.trim() !== '' && precioFijo !== 'None') {
@@ -670,6 +692,39 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 });
+// 🛠️ PARCHE: Control de validación de campos requeridos
+if (typeof jQuery !== 'undefined') {
+    $('#id_producto').on('change', function() {
+        if (this.selectedIndex < 0) return;
+        const optionSeleccionada = this.options[this.selectedIndex];
+        
+        // 🚨 CORRECCIÓN AQUÍ: Tiene que ser data-precio-fijo
+        const precioFijo = optionSeleccionada.getAttribute('data-precio-fijo');
+        const esFijo = (precioFijo && precioFijo.trim() !== '' && precioFijo !== 'None');
+
+        // Seleccionamos los campos
+        const inputLargo = document.querySelector('input[name="largo_pza"]');
+        const inputAncho = document.querySelector('input[name="ancho_pza"]');
+        const selectEspesor = document.getElementById('id_espesor');
+        const selectMaterial = document.getElementById('id_material');
+
+        if (esFijo) {
+            // Apagamos required y bloqueamos (Gris)
+            if(inputLargo) { inputLargo.required = false; inputLargo.disabled = true; inputLargo.value = ''; }
+            if(inputAncho) { inputAncho.required = false; inputAncho.disabled = true; inputAncho.value = ''; }
+            if(selectEspesor) { selectEspesor.required = false; selectEspesor.disabled = true; selectEspesor.value = ''; }
+            if(selectMaterial) { selectMaterial.disabled = true; selectMaterial.value = ''; }
+            if (typeof jQuery !== 'undefined') $(selectMaterial).trigger('change.select2');
+            
+        } else {
+            // Encendemos required y desbloqueamos
+            if(inputLargo) { inputLargo.required = true; inputLargo.disabled = false; }
+            if(inputAncho) { inputAncho.required = true; inputAncho.disabled = false; }
+            if(selectEspesor) { selectEspesor.required = true; selectEspesor.disabled = false; }
+            if(selectMaterial) { selectMaterial.disabled = false; }
+        }
+    });
+}
 </script>
 
 <style>
