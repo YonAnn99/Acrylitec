@@ -23,8 +23,7 @@
                             <select id="id_cliente" class="form-select select2">
                                 <option value="">-- Busca o selecciona un cliente --</option>
                                 {% for c in clientes %}
-                                <option value="{{ c.id_cliente }}">{{ c.nombre }}{% if c.telefono %} · {{ c.telefono
-                                    }}{% endif %}</option>
+                                <option value="{{ c.id_cliente }}">{{ c.nombre }}{% if c.telefono %} · {{ c.telefono }}{% endif %}</option>
                                 {% endfor %}
                             </select>
                             <small class="text-muted">El cliente se bloqueará al agregar el primer artículo.</small>
@@ -100,8 +99,7 @@
                                 <select name="espesor_mm" id="id_espesor" class="form-select" required>
                                     <option value="">-- Selecciona --</option>
                                     {% for t in materiales_tabulador %}
-                                    <option value="{{ t.espesor_mm }}" data-factor="{{ t.factor_costo }}">{{
-                                        t.espesor_mm }} mm</option>
+                                    <option value="{{ t.espesor_mm }}" data-factor="{{ t.factor_costo }}">{{ t.espesor_mm }} mm</option>
                                     {% endfor %}
                                 </select>
                             </div>
@@ -439,6 +437,7 @@
             if (data.ok) {
                 // ── Agregar la nueva opción al Select2 y seleccionarla ──────
                 const select = document.getElementById('id_cliente');
+                const textoCliente = data.telefono ? `${data.nombre} · ${data.telefono}` : data.nombre;
                 const opcion = new Option(data.nombre, data.id_cliente, true, true);
                 select.append(opcion);
 
@@ -578,8 +577,9 @@
         let subtotal = 0;
 
         if (precioFijo && precioFijo.trim() !== '' && precioFijo !== 'None') {
-            // Si el producto tiene precio fijo, ignoramos la calculadora
-            subtotal = parseFloat(precioFijo);
+            
+            const cantidadPza = parseInt(document.getElementById('id_cantidad').value) || 1;
+            subtotal = parseFloat(precioFijo.replace(',', '.')) * cantidadPza;
         } else {
             // Si no tiene precio fijo, exigimos que las medidas den un subtotal mayor a 0
             const subtotalText = document.getElementById('display_total').innerText.replace(/[$,]/g, '');
@@ -743,40 +743,7 @@
             }
         });
     });
-    // 🛠️ PARCHE: Control de validación de campos requeridos
-    if (typeof jQuery !== 'undefined') {
-        $('#id_producto').on('change', function () {
-            if (this.selectedIndex < 0) return;
-            const optionSeleccionada = this.options[this.selectedIndex];
 
-            // 🚨 CORRECCIÓN AQUÍ: Tiene que ser data-precio-fijo
-            const precioFijo = optionSeleccionada.getAttribute('data-precio-fijo');
-            const esFijo = (precioFijo && precioFijo.trim() !== '' && precioFijo !== 'None');
-
-            // Seleccionamos los campos
-            const inputLargo = document.querySelector('input[name="largo_pza"]');
-            const inputAncho = document.querySelector('input[name="ancho_pza"]');
-            const selectEspesor = document.getElementById('id_espesor');
-            const selectMaterial = document.getElementById('id_material');
-
-            if (esFijo) {
-                // Apagamos required y bloqueamos (Gris)
-                if (inputLargo) { inputLargo.required = false; inputLargo.disabled = true; inputLargo.value = ''; }
-                if (inputAncho) { inputAncho.required = false; inputAncho.disabled = true; inputAncho.value = ''; }
-                if (selectEspesor) { selectEspesor.required = false; selectEspesor.disabled = true; selectEspesor.value = ''; }
-                if (selectMaterial) { selectMaterial.disabled = true; selectMaterial.value = ''; }
-                if (typeof jQuery !== 'undefined') $(selectMaterial).trigger('change.select2');
-
-            } else {
-                // Encendemos required y desbloqueamos
-                if (inputLargo) { inputLargo.required = true; inputLargo.disabled = false; }
-                if (inputAncho) { inputAncho.required = true; inputAncho.disabled = false; }
-                if (selectEspesor) { selectEspesor.required = true; selectEspesor.disabled = false; }
-                if (selectMaterial) { selectMaterial.disabled = false; }
-            }
-        });
-        
-    }
 // ══════════════════════════════════════════════════════
 // CREAR PRODUCTO RÁPIDO (AJAX)
 // ══════════════════════════════════════════════════════

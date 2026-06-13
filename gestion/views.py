@@ -53,7 +53,7 @@ def crear_producto_rapido(request):
             # Crear el producto en la base de datos
             nuevo_prod = Productos.objects.create(
                 nombre=nombre,
-                descripcion=data.get('descripcion', ''),
+                detalle=data.get('descripcion', ''),
                 porcentaje_utilidad=Decimal(utilidad),
                 precio_fijo=precio_val
             )
@@ -662,7 +662,8 @@ def crear_cliente_ajax(request):
             return JsonResponse({
                 'ok': True, 
                 'id_cliente': nuevo_cliente.id_cliente,
-                'nombre': nuevo_cliente.nombre
+                'nombre': nuevo_cliente.nombre,
+                'telefono': nuevo_cliente.telefono,
             })
         except Exception as e:
             return JsonResponse({'ok': False, 'error': str(e)})
