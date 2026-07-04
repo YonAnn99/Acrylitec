@@ -1,0 +1,74 @@
+{% extends 'gestion/base.html' %}
+
+{% block content %}
+<div class="section">
+    <div class="section-header">
+        <h2 class="section-title">
+            <i class="bi bi-pencil-square"></i>
+            Editar Stock
+        </h2>
+        <a href="{% url 'inventario_productos' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Volver
+        </a>
+    </div>
+
+    <div class="card mx-auto" style="max-width: 500px;">
+        <div class="card-header bg-dark text-center">
+            <h5 class="text-white mb-0">{{ producto.nombre }}</h5>
+        </div>
+        <div class="card-body">
+            <!-- Info del producto -->
+            <div class="d-flex align-items-center gap-3 mb-4 p-3 bg-light rounded">
+                {% if producto.foto %}
+                <img src="/media/{{ producto.foto }}" alt="{{ producto.nombre }}" 
+                     style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;">
+                {% else %}
+                <div style="width: 60px; height: 60px; background: #e8f4f8; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-image text-info" style="font-size: 1.5rem;"></i>
+                </div>
+                {% endif %}
+                <div>
+                    <div class="fw-bold">{{ producto.nombre }}</div>
+                    <div class="text-muted small">{{ producto.detalle|default:"Sin descripción" }}</div>
+                    <div class="mt-1">
+                        <span class="badge bg-primary">${{ producto.precio_fijo }} (Fijo)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulario de stock -->
+            <form method="POST">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label">Stock Actual</label>
+                    <input type="number" name="stock_actual" class="form-control" 
+                           value="{{ producto.stock_actual }}" min="0" required>
+                    <div class="form-text">Cantidad disponible en inventario.</div>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label">Stock Mínimo</label>
+                    <input type="number" name="stock_minimo" class="form-control" 
+                           value="{{ producto.stock_minimo }}" min="0" required>
+                    <div class="form-text">Se mostrará alerta cuando el stock llegue a este nivel.</div>
+                </div>
+                
+                {% if producto.stock_actual <= producto.stock_minimo and producto.stock_minimo > 0 %}
+                <div class="alert alert-warning d-flex align-items-center gap-2 mb-3">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <span>Este producto está en o por debajo del stock mínimo.</span>
+                </div>
+                {% endif %}
+
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check-lg"></i> Guardar Cambios
+                    </button>
+                    <a href="{% url 'inventario_productos' %}" class="btn btn-outline-secondary">
+                        Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

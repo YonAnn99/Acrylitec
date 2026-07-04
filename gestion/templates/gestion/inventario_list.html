@@ -1,0 +1,121 @@
+{% extends 'gestion/base.html' %}
+
+{% block content %}
+<div class="section">
+    <div class="section-header">
+        <h2 class="section-title">
+            <i class="bi bi-box-seam"></i>
+            Inventario de Productos
+        </h2>
+    </div>
+
+    <!-- Mensajes de éxito / error de Django -->
+    {% if messages %}
+    {% for msg in messages %}
+    <div class="alert alert-{{ msg.tags }} alert-dismissible fade show" role="alert">
+        {{ msg }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <!-- Alerta global si hay productos con stock bajo -->
+    {% if productos_bajos %}
+    <div class="alert alert-warning d-flex align-items-start gap-2 mb-3" role="alert">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <div>
+            <strong>Stock bajo en {{ productos_bajos }} producto{{ productos_bajos|pluralize:",s" }}.</strong>
+            Los marcados en naranja están en o por debajo del mínimo configurado.
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Barra de búsqueda -->
+    <form method="GET" class="mb-4">
+        <div class="input-group">
+            <input type="text" name="q" class="form-control"
+                   placeholder="Buscar producto..."
+                   value="{{ query }}">
+            <button class="btn btn-primary" type="submit">
+                <i class="bi bi-search"></i> Buscar
+            </button>
+            {% if query %}
+            <a href="{% url 'inventario_productos' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-x"></i> Limpiar
+            </a>
+            {% endif %}
+        </div>
+    </form>
+
+    {% if productos %}
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Foto</th>
+                    <th>Nombre</th>
+                    <th>Descripción</th>
+                    <th class="text-center">Stock Actual</th>
+                    <th class="text-center">Stock Mínimo</th>
+                    <th class="text-center">Precio Fijo</th>
+                    <th class="text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for prod in productos %}
+                <tr class="{% if prod.stock_actual <= prod.stock_minimo and prod.stock_minimo > 0 %}table-warning{% endif %}">
+                    <td>
+                        {% if prod.foto %}
+                        <img src="/media/{{ prod.foto }}" alt="{{ prod.nombre }}" 
+                             style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px;">
+                        {% else %}
+                        <div style="width: 50px; height: 50px; background: #e8f4f8; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                            <i class="bi bi-image text-info"></i>
+                        </div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <strong>{{ prod.nombre }}</strong>
+                        {% if prod.stock_actual == 0 %}
+                            <span class="badge bg-danger ms-1">Sin stock</span>
+                        {% elif prod.stock_actual <= prod.stock_minimo and prod.stock_minimo > 0 %}
+                            <span class="badge bg-warning text-dark ms-1">Stock bajo</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-muted">{{ prod.detalle|default:"—" }}</td>
+                    <td class="text-center fw-bold
+                        {% if prod.stock_actual == 0 %}text-danger
+                        {% elif prod.stock_actual <= prod.stock_minimo and prod.stock_minimo > 0 %}text-warning
+                        {% else %}text-success{% endif %}">
+                        {{ prod.stock_actual }}
+                    </td>
+                    <td class="text-center text-muted">{{ prod.stock_minimo }}</td>
+                    <td class="text-center">
+                        <span class="badge bg-primary">${{ prod.precio_fijo }}</span>
+                    </td>
+                    <td class="text-center">
+                        <a href="{% url 'editar_stock_producto' prod.id_producto %}"
+                           class="btn btn-sm btn-outline-dark">
+                            <i class="bi bi-pencil-square"></i> Editar Stock
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="bi bi-box-seam"></i>
+        <p>
+            {% if query %}
+                No se encontraron resultados para "{{ query }}"
+            {% else %}
+                No hay productos con precio fijo registrados.
+            {% endif %}
+        </p>
+        <p class="small">Los productos con precio fijo aparecerán aquí automáticamente.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -8,7 +8,11 @@ urlpatterns = [
     path('', views.login_view, name='home'),
     path('dashboard/', views.dashboard, name='dashboard'),
 
-    # ── Materiales ──────────────────────────────────────────
+    # ── Inventario (Productos con precio fijo) ───────────────
+    path('inventario/', views.inventario_productos, name='inventario_productos'),
+    path('inventario/<int:pk>/stock/', views.editar_stock_producto, name='editar_stock_producto'),
+
+    # ── Materiales (mantener por compatibilidad) ────────────
     path('materiales/', views.lista_materiales, name='lista_materiales'),
     path('materiales/nuevo/', views.crear_material, name='crear_material'),
     path('materiales/eliminar/<int:id>/', views.eliminar_material, name='eliminar_material'),

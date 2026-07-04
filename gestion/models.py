@@ -94,6 +94,8 @@ class Productos(models.Model):
     precio_fijo = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True, verbose_name="Precio Fijo (Opcional)")
     porcentaje_utilidad = models.IntegerField(default=40)
     foto = models.CharField(max_length=255, blank=True, null=True)
+    stock_actual = models.IntegerField(default=0, verbose_name="Stock Actual")
+    stock_minimo = models.IntegerField(default=0, verbose_name="Stock Mínimo")
 
     class Meta:
         managed = True

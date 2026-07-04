@@ -302,6 +302,47 @@ def eliminar_material(request, id):
 
 
 # ─────────────────────────────────────────
+#  INVENTARIO (Productos con precio fijo)
+# ─────────────────────────────────────────
+
+def inventario_productos(request):
+    """Muestra productos que tienen precio_fijo definido, con información de stock."""
+    query = request.GET.get('q', '')
+    productos = Productos.objects.filter(precio_fijo__isnull=False)
+    
+    if query:
+        productos = productos.filter(
+            Q(nombre__icontains=query) | 
+            Q(detalle__icontains=query)
+        )
+    
+    # Contar productos con stock bajo
+    productos_bajos = sum(1 for p in productos if p.stock_actual <= p.stock_minimo and p.stock_minimo > 0)
+    
+    return render(request, 'gestion/inventario_list.html', {
+        'productos': productos,
+        'query': query,
+        'productos_bajos': productos_bajos,
+    })
+
+
+def editar_stock_producto(request, pk):
+    """Permite editar el stock de un producto específico."""
+    producto = get_object_or_404(Productos, pk=pk)
+    
+    if request.method == 'POST':
+        producto.stock_actual = int(request.POST.get('stock_actual', 0))
+        producto.stock_minimo = int(request.POST.get('stock_minimo', 0))
+        producto.save()
+        messages.success(request, f'Stock de "{producto.nombre}" actualizado correctamente.')
+        return redirect('inventario_productos')
+    
+    return render(request, 'gestion/editar_stock.html', {
+        'producto': producto,
+    })
+
+
+# ─────────────────────────────────────────
 #  PRODUCTOS
 # ─────────────────────────────────────────
 
@@ -663,7 +704,7 @@ def crear_cliente_ajax(request):
                 'ok': True, 
                 'id_cliente': nuevo_cliente.id_cliente,
                 'nombre': nuevo_cliente.nombre,
-                'telefono': nuevo_cliente.telefono,
+                'telefono': nuevo_cliente.telefono
             })
         except Exception as e:
             return JsonResponse({'ok': False, 'error': str(e)})
