@@ -464,6 +464,13 @@ def nuevo_pedido(request):
                     cantidad = int(item.get('cantidad', 1))
                     sub_str = str(item.get('subtotal') or 0).replace(',', '.')
 
+                    # Validar stock del producto con precio fijo
+                    if producto.precio_fijo is not None and producto.stock_actual < cantidad:
+                        return JsonResponse({
+                            'ok': False,
+                            'error': f'Stock insuficiente para "{producto.nombre}". Disponible: {producto.stock_actual}, solicitado: {cantidad}.'
+                        })
+
                     DetalleVenta.objects.create(
                         id_venta=venta,
                         id_producto=producto,
@@ -488,13 +495,18 @@ def nuevo_pedido(request):
                                 'minimo': material.stock_minimo,
                             })
 
-                return JsonResponse({
-                    'ok': True,
-                    'venta_id': venta.id_venta,
-                    'alertas_stock': alertas_stock,
-                })
+                    # 4. Descontar stock del producto si tiene precio fijo
+                    if producto.precio_fijo is not None:
+                        producto.stock_actual = max(0, producto.stock_actual - cantidad)
+                        producto.save(update_fields=['stock_actual'])
 
-                # Devolvemos éxito, ruta al ticket y alertas de stock bajo
+                        if producto.stock_actual <= producto.stock_minimo:
+                            alertas_stock.append({
+                                'nombre': producto.nombre,
+                                'actual': producto.stock_actual,
+                                'minimo': producto.stock_minimo,
+                            })
+
                 return JsonResponse({
                     'ok': True,
                     'venta_id': venta.id_venta,

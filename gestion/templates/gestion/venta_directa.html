@@ -51,7 +51,8 @@
                                         <option value="">-- Selecciona producto --</option>
                                         {% for p in productos %}
                                         <option value="{{ p.id_producto }}"
-                                            data-precio-fijo="{{ p.precio_fijo|default:'' }}">
+                                            data-precio-fijo="{{ p.precio_fijo|default:'' }}"
+                                            data-stock-actual="{{ p.stock_actual }}">
                                             {{ p.nombre }}
                                         </option>
                                         {% endfor %}
@@ -574,7 +575,14 @@
         // 3. Lógica para Precio Fijo vs Calculado
         const optionSeleccionada = prodSel.options[prodSel.selectedIndex];
         const precioFijo = optionSeleccionada.getAttribute('data-precio-fijo');
+        const stockActual = parseInt(optionSeleccionada.getAttribute('data-stock-actual')) || 0;
         let subtotal = 0;
+
+        // Validar stock del producto con precio fijo
+        if (precioFijo && precioFijo.trim() !== '' && precioFijo !== 'None' && stockActual <= 0) {
+            alert(`No hay stock disponible para "${optionSeleccionada.text}".`);
+            return;
+        }
 
         if (precioFijo && precioFijo.trim() !== '' && precioFijo !== 'None') {
             
@@ -789,8 +797,9 @@ document.getElementById('btnGuardarProducto')?.addEventListener('click', functio
             // 2. Agregar el nuevo producto a la lista desplegable y seleccionarlo
             const select = document.getElementById('id_producto');
             const newOption = new Option(data.nombre, data.id, false, true);
-            // Inyectamos el atributo con el nombre correcto: data-precio-fijo
+            // Inyectamos los atributos: data-precio-fijo y data-stock-actual
             newOption.setAttribute('data-precio-fijo', data.precio_fijo);
+            newOption.setAttribute('data-stock-actual', data.stock_actual || 0);
             select.add(newOption);
             
             // 3. Forzar el recálculo
