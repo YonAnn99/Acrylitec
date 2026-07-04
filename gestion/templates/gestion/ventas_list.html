@@ -14,10 +14,12 @@
 
     <!-- KPIs -->
     <div class="bento-grid bento-grid--5" style="margin-bottom: var(--space-2xl);">
+        {% if request.user.is_superuser or request.user.groups.all.0.name == 'Administrador' %}
         <div class="kpi-card kpi-card--success">
             <div class="kpi-value">${{ resumen.total_ingresos|floatformat:2 }}</div>
             <div class="kpi-label">Ingresos totales</div>
         </div>
+        {% endif %}
         <div class="kpi-card kpi-card--accent">
             <div class="kpi-value">{{ resumen.total_ventas }}</div>
             <div class="kpi-label">Total ventas</div>
