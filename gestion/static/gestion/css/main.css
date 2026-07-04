@@ -381,37 +381,30 @@ a:hover {
 
 .bg-success {
   background: var(--clr-success) !important;
-  color: white;
 }
 
 .bg-warning {
   background: var(--clr-warning) !important;
-  color: white;
 }
 
 .bg-danger {
   background: var(--clr-danger) !important;
-  color: white;
 }
 
 .bg-info {
   background: var(--clr-info) !important;
-  color: white;
 }
 
 .bg-secondary {
   background: var(--clr-text-muted) !important;
-  color: white;
 }
 
 .bg-dark {
   background: var(--clr-accent) !important;
-  color: white;
 }
 
 .bg-primary {
   background: var(--clr-accent) !important;
-  color: white;
 }
 
 /* ── FORMS ──────────────────────────────────────────────────────── */
@@ -753,11 +746,26 @@ a:hover {
 .text-danger { color: var(--clr-danger) !important; }
 .text-info { color: var(--clr-info) !important; }
 .text-muted { color: var(--clr-text-muted) !important; }
+.text-dark { color: var(--clr-text) !important; }
+.text-white { color: white !important; }
 
 .bg-success { background-color: var(--clr-success) !important; }
 .bg-warning { background-color: var(--clr-warning) !important; }
 .bg-danger { background-color: var(--clr-danger) !important; }
 .bg-info { background-color: var(--clr-info) !important; }
+
+/* ── CALCULATOR SPECIFIC ────────────────────────────────────────── */
+.card-header.bg-dark {
+  color: white !important;
+}
+
+.card-header.bg-dark h5 {
+  color: white !important;
+}
+
+.bg-success .text-dark {
+  color: var(--clr-text) !important;
+}
 
 /* ── SCROLLBAR ──────────────────────────────────────────────────── */
 ::-webkit-scrollbar {
