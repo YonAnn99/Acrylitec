@@ -11,7 +11,6 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 import os
 from pathlib import Path
-from pathlib import Path
 import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -25,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-)ri21c!ubq8y!%fo_z%#o#yx9t60pt4&yyc-kos!txlubpx!+5'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'acrylitec.up.railway.app']
 CSRF_TRUSTED_ORIGINS = ['https://acrylitec.up.railway.app']
@@ -120,9 +119,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'es-mx'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'America/Mexico_City'
 
 USE_I18N = True
 
@@ -136,7 +135,7 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'gestion' / 'static']
 
 LOGIN_URL = '/login/'
-LOGIN_REDIRECT_URL = '/cotizaciones/'
+LOGIN_REDIRECT_URL = '/ventas/'
 LOGOUT_REDIRECT_URL = '/login/'
 
 MEDIA_URL = '/media/'

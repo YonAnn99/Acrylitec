@@ -2,31 +2,21 @@ import os
 import uuid
 import datetime
 import json
-import urllib.parse
 from decimal import Decimal, ROUND_HALF_UP
+from collections import defaultdict
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.core.files.storage import default_storage
-from django.db.models import Sum, Count
-from django.db.models.functions import TruncMonth, TruncWeek, TruncYear
 from django.db.models import Q
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
-from django.http import HttpResponse
-from reportlab.lib.pagesizes import letter
-from reportlab.lib import colors
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
-from reportlab.lib.styles import getSampleStyleSheet
 from django.conf import settings
-from reportlab.platypus import Image as RLImage
-import io
-from django.contrib import messages
 
 from .models import (
     Materiales, Clientes, Cotizaciones, Productos,
-    TabuladorCostos, Ventas, ConfiguracionPrecios
+    TabuladorCostos, Ventas, ConfiguracionPrecios, DetalleVenta
 )
 # ── Helpers de rol ──────────────────────────────────────────
 def es_admin(user):
@@ -34,9 +24,7 @@ def es_admin(user):
         user.is_superuser or user.groups.filter(name='Administrador').exists()
     )
 
-def es_operador(user):
-    return user.is_authenticated
-
+@login_required
 def crear_producto_rapido(request):
     if request.method == 'POST':
         try:
@@ -99,31 +87,6 @@ def logout_view(request):
     return redirect('login')
 
 
-# Vistas que TODOS los usuarios autenticados pueden ver:
-@login_required
-def lista_clientes(request): ...
-
-@login_required
-def nueva_cotizacion(request): ...
-
-@login_required
-def lista_cotizaciones(request): ...
-
-@login_required
-def detalle_venta(request, pk): ...
-
-@login_required
-def lista_ventas(request): ...   # la tabla de ventas la pueden ver todos
-
-# Vistas SOLO para Administrador (dinero, reportes, precios):
-@login_required
-@user_passes_test(es_admin, login_url='/sin-permiso/')
-def dashboard(request): ...      # gráficas + KPIs financieros
-
-@login_required
-@user_passes_test(es_admin, login_url='/sin-permiso/')
-def configuracion_precios(request): ...
-
 def sin_permiso(request):
     return render(request, 'gestion/sin_permiso.html')
 
@@ -184,6 +147,7 @@ def _calcular_monto(largo, ancho, espesor_mm, porcentaje_utilidad, minutos_laser
 #  CLIENTES
 # ─────────────────────────────────────────
 
+@login_required
 def lista_clientes(request):
     query = request.GET.get('q', '')
     clientes = Clientes.objects.all()
@@ -199,6 +163,7 @@ def lista_clientes(request):
     })
 
 
+@login_required
 def crear_cliente(request):
     if request.method == 'POST':
         Clientes.objects.create(
@@ -210,6 +175,7 @@ def crear_cliente(request):
         return redirect('lista_clientes')
     return render(request, 'gestion/cliente_form.html')
 
+@login_required
 def eliminar_cliente(request, pk):
     cliente = get_object_or_404(Clientes, pk=pk)
     
@@ -244,6 +210,7 @@ def eliminar_cliente(request, pk):
 #  MATERIALES
 # ─────────────────────────────────────────
 
+@login_required
 def lista_materiales(request):
     query = request.GET.get('q', '')
     materiales = Materiales.objects.all()
@@ -257,6 +224,7 @@ def lista_materiales(request):
     })
 
 
+@login_required
 def crear_material(request):
     if request.method == 'POST':
         Materiales.objects.create(
@@ -270,11 +238,11 @@ def crear_material(request):
     return render(request, 'gestion/material_form.html')
 
 
+@login_required
 def eliminar_material(request, id):
     material = get_object_or_404(Materiales, pk=id)
 
     # Contar referencias activas en cotizaciones y detalles de venta
-    from .models import DetalleVenta
     cot_count   = Cotizaciones.objects.filter(id_material=material).count()
     det_count   = DetalleVenta.objects.filter(id_material=material).count()
     tiene_refs  = cot_count + det_count
@@ -305,6 +273,7 @@ def eliminar_material(request, id):
 #  INVENTARIO (Productos con precio fijo)
 # ─────────────────────────────────────────
 
+@login_required
 def inventario_productos(request):
     """Muestra productos que tienen precio_fijo definido, con información de stock."""
     query = request.GET.get('q', '')
@@ -326,6 +295,7 @@ def inventario_productos(request):
     })
 
 
+@login_required
 def editar_stock_producto(request, pk):
     """Permite editar el stock de un producto específico."""
     producto = get_object_or_404(Productos, pk=pk)
@@ -346,6 +316,7 @@ def editar_stock_producto(request, pk):
 #  PRODUCTOS
 # ─────────────────────────────────────────
 
+@login_required
 def lista_productos(request):
     query = request.GET.get('q', '')  # Captura el texto del buscador
     productos = Productos.objects.all()
@@ -363,6 +334,7 @@ def lista_productos(request):
     })
 
 
+@login_required
 def crear_producto(request):
     if request.method == 'POST':
         precio_fijo = request.POST.get('precio_fijo') or None
@@ -383,6 +355,7 @@ def crear_producto(request):
     return render(request, 'gestion/producto_form.html', {'accion': 'Crear'})
 
 
+@login_required
 def editar_producto(request, pk):
     producto = get_object_or_404(Productos, pk=pk)
     if request.method == 'POST':
@@ -406,6 +379,7 @@ def editar_producto(request, pk):
                   {'accion': 'Editar', 'producto': producto})
 
 
+@login_required
 def eliminar_producto(request, pk):
     producto = get_object_or_404(Productos, pk=pk)
     if request.method == 'POST':
@@ -424,6 +398,7 @@ def eliminar_producto(request, pk):
 #  MÓDULO UNIFICADO: NUEVO PEDIDO
 # ─────────────────────────────────────────
 
+@login_required
 def nuevo_pedido(request):
     clientes = Clientes.objects.all()
     productos = Productos.objects.all()
@@ -451,7 +426,6 @@ def nuevo_pedido(request):
                     fecha_venta=datetime.date.today(),
                 )
 
-                from .models import DetalleVenta
                 alertas_stock = []
 
                 for item in data.get('carrito', []):
@@ -528,6 +502,7 @@ def nuevo_pedido(request):
 #  COTIZACIONES
 # ─────────────────────────────────────────
 
+@login_required
 def calcular_precio_ajax(request):
     if request.method == 'POST':
         try:
@@ -577,6 +552,7 @@ def _producto_nombre(venta):
         return f'{detalles[0].id_producto.nombre} +{len(detalles)-1} más'
     return '—'
 
+@login_required
 def lista_ventas(request):
     limite = datetime.date.today() - datetime.timedelta(days=15)
     Ventas.objects.filter(estatus='cotizacion', fecha_venta__lt=limite).delete()
@@ -610,6 +586,7 @@ def lista_ventas(request):
                   {'ventas': ventas, 'resumen': resumen})
 
 
+@login_required
 def detalle_venta(request, pk):
     venta = get_object_or_404(
         Ventas.objects.select_related(
@@ -657,6 +634,7 @@ def detalle_venta(request, pk):
     })
 
 
+@login_required
 def actualizar_estatus_venta(request, pk):
     venta = get_object_or_404(Ventas, pk=pk)
     if request.method == 'POST':
@@ -669,6 +647,7 @@ def actualizar_estatus_venta(request, pk):
         venta.save()
     return redirect('detalle_venta', pk=pk)
 
+@login_required
 def actualizar_abono_venta(request, pk):
     venta = get_object_or_404(Ventas, pk=pk)
     if request.method == 'POST':
@@ -694,6 +673,7 @@ def actualizar_abono_venta(request, pk):
 #  AJAX: CREAR CLIENTE DESDE POS
 # ─────────────────────────────────────────
 
+@login_required
 def crear_cliente_ajax(request):
     if request.method == 'POST':
         try:
@@ -729,10 +709,9 @@ def crear_cliente_ajax(request):
 
 def _get_total_venta_val(venta):
     """Total real de una venta: usa cotizacion legacy O suma DetalleVenta."""
-    if venta.id_cotizacion_id:
-        return float(venta.id_cotizacion.monto_total or 0)
-    return float(sum(d.subtotal for d in venta.detalles.all()) or 0)
+    return float(_total_venta(venta))
 
+@login_required
 def dashboard(request):
     hoy = datetime.date.today()
     ESTATUS_INGRESO = ('pagada', 'entregada')   # ambos cuentan como cobrado
@@ -745,9 +724,6 @@ def dashboard(request):
                     .order_by('fecha_venta'))
 
     # ── Calcular totales por venta en Python (híbrido POS + cotización) ───
-    from collections import defaultdict
-    from datetime import date
-
     meses_data   = defaultdict(float)   # key: (year, month)
     semanas_data = defaultdict(float)   # key: (year, iso_week, week_start_date)
     anios_data   = defaultdict(float)   # key: year
@@ -769,7 +745,6 @@ def dashboard(request):
         anios_data[y]                   += total
 
     # ── Construir dicts para los pickers ─────────────────────────────────
-    import calendar
     MESES_ES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic']
 
     meses_por_anio = {}
@@ -855,6 +830,7 @@ def nueva_cotizacion(request):
 #  CONFIGURACIÓN DE PRECIOS
 # ─────────────────────────────────────────
 
+@login_required
 def configuracion_precios(request):
     config = ConfiguracionPrecios.get_config()
     productos = Productos.objects.all()

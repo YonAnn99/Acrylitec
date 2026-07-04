@@ -10,6 +10,9 @@ class Clientes(models.Model):
     email = models.CharField(max_length=100, blank=True, null=True)
     direccion = models.TextField(blank=True, null=True)
 
+    def __str__(self):
+        return self.nombre or "Sin nombre"
+
     class Meta:
         managed = True
         db_table = 'clientes'
@@ -71,6 +74,10 @@ class Cotizaciones(models.Model):
         verbose_name = "Cotizacion"
         verbose_name_plural = "Cotizaciones"
 
+    def __str__(self):
+        cliente = self.id_cliente.nombre if self.id_cliente else "Sin cliente"
+        return f"Cotización #{self.id_cotizacion} - {cliente}"
+
 
 class Materiales(models.Model):
     id_material = models.AutoField(primary_key=True)
@@ -79,6 +86,9 @@ class Materiales(models.Model):
     ancho = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     stock_actual = models.IntegerField()
     stock_minimo = models.IntegerField()
+
+    def __str__(self):
+        return self.descripcion or "Sin descripción"
 
     class Meta:
         managed = True
@@ -97,6 +107,9 @@ class Productos(models.Model):
     stock_actual = models.IntegerField(default=0, verbose_name="Stock Actual")
     stock_minimo = models.IntegerField(default=0, verbose_name="Stock Mínimo")
 
+    def __str__(self):
+        return self.nombre or "Sin nombre"
+
     class Meta:
         managed = True
         db_table = 'productos'
@@ -108,6 +121,9 @@ class TabuladorCostos(models.Model):
     id_tabulador = models.AutoField(primary_key=True)
     espesor_mm = models.IntegerField()
     factor_costo = models.DecimalField(max_digits=10, decimal_places=4)
+
+    def __str__(self):
+        return f"{self.espesor_mm}mm - ${self.factor_costo}/cm²"
 
     class Meta:
         managed = True
@@ -133,6 +149,10 @@ class Ventas(models.Model):
     fecha_entrega = models.DateField(blank=True, null=True)
     fecha_venta = models.DateField(auto_now_add=True, null=True)
 
+    def __str__(self):
+        cliente = self.id_cliente.nombre if self.id_cliente else "Público"
+        return f"VTA-{self.id_venta:04d} - {cliente}"
+
     @property
     def saldo_restante(self):
         """Calcula automáticamente cuánto debe el cliente sumando el carrito"""
@@ -156,6 +176,9 @@ class ConfiguracionPrecios(models.Model):
         verbose_name="Tarifa láser por minuto ($)"
     )
     actualizado = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Tarifa láser: ${self.tarifa_laser_minuto}/min"
 
     class Meta:
         managed = True
@@ -187,6 +210,10 @@ class DetalleVenta(models.Model):
     
     # Precio de este renglón específico
     subtotal = models.DecimalField(max_digits=10, decimal_places=2)
+
+    def __str__(self):
+        producto = self.id_producto.nombre if self.id_producto else "Sin producto"
+        return f"{producto} x{self.cantidad}"
 
     class Meta:
         db_table = 'detalle_venta'

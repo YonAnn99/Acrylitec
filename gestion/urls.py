@@ -29,22 +29,13 @@ urlpatterns = [
     path('productos/<int:pk>/eliminar/', views.eliminar_producto, name='eliminar_producto'),
     path('api/productos/crear-rapido/', views.crear_producto_rapido, name='crear_producto_rapido'),
 
-    # ── Cotizaciones ────────────────────────────────────────
-    #path('cotizaciones/', views.lista_cotizaciones, name='lista_cotizaciones'),
-    #path('cotizaciones/nueva/', views.crear_cotizacion, name='crear_cotizacion'),
-    #path('cotizaciones/<int:pk>/', views.detalle_cotizacion, name='detalle_cotizacion'),
-    #path('cotizaciones/express/', views.cotizacion_express, name='cotizacion_express'),
-
     # ── Ventas ──────────────────────────────────────────────
     path('ventas/', views.lista_ventas, name='lista_ventas'),
     path('ventas/<int:pk>/', views.detalle_venta, name='detalle_venta'),
     path('ventas/<int:pk>/estatus/', views.actualizar_estatus_venta, name='actualizar_estatus_venta'),
     path('ventas/<int:pk>/abono/', views.actualizar_abono_venta, name='actualizar_abono_venta'),
-    #path('cotizaciones/<int:cotizacion_pk>/registrar-venta/', views.registrar_venta, name='registrar_venta'),
     path('pedidos/nuevo/', views.nuevo_pedido, name='nuevo_pedido'),
-    # 🌟 NUEVA RUTA PARA LA PANTALLA DEL TALLER
     path('pantalla-taller/', views.pantalla_pendientes, name='pantalla_pendientes'),
-    #path('ventas/nueva-directa/', views.venta_directa, name='venta_directa'),
 
     # ── Configuración de Precios ────────────────────────────
     path('configuracion/', views.configuracion_precios, name='configuracion_precios'),
