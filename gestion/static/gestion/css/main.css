@@ -1,37 +1,37 @@
 /* ═══════════════════════════════════════════════════════════════════
-   ACRYLITEC — High-End Visual Design System
+   ACRYLITEC — Premium Minimalist Design System
    ═══════════════════════════════════════════════════════════════════ */
 
 /* ── FONTS ──────────────────────────────────────────────────────── */
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Playfair+Display:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap');
 
 /* ── CSS VARIABLES ──────────────────────────────────────────────── */
 :root {
-  /* High-Contrast Palette */
-  --clr-bg: #f8f7f5;
+  /* Warm Monochrome Palette */
+  --clr-bg: #fafaf8;
   --clr-surface: #ffffff;
-  --clr-surface-alt: #f0efed;
-  --clr-border: #d9d7d2;
-  --clr-border-subtle: #e8e6e1;
-  --clr-text: #0f0e0d;
-  --clr-text-secondary: #4a4745;
-  --clr-text-muted: #6b6560;
-  --clr-accent: #1a1814;
-  --clr-accent-hover: #0f0e0d;
+  --clr-surface-alt: #f5f5f0;
+  --clr-border: #e8e6e1;
+  --clr-border-subtle: #f0eeea;
+  --clr-text: #1a1814;
+  --clr-text-secondary: #6b6560;
+  --clr-text-muted: #9c9590;
+  --clr-accent: #2d2a26;
+  --clr-accent-hover: #1a1814;
 
-  /* Functional Colors - Higher Contrast */
-  --clr-success: #1a5c3a;
-  --clr-success-bg: #d4edda;
-  --clr-warning: #a85d1c;
-  --clr-warning-bg: #fff3cd;
-  --clr-danger: #8b1a1a;
-  --clr-danger-bg: #f8d7da;
-  --clr-info: #2c5f7c;
-  --clr-info-bg: #d6eaf8;
+  /* Functional Colors */
+  --clr-success: #2d6a4f;
+  --clr-success-bg: #d8f3dc;
+  --clr-warning: #bc6c25;
+  --clr-warning-bg: #fefae0;
+  --clr-danger: #9b2226;
+  --clr-danger-bg: #fde8e8;
+  --clr-info: #457b9d;
+  --clr-info-bg: #e8f4f8;
 
   /* Typography */
-  --font-sans: 'DM Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-serif: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  --font-sans: 'Outfit', system-ui, -apple-system, sans-serif;
+  --font-serif: 'DM Serif Display', Georgia, serif;
 
   /* Spacing */
   --space-xs: 0.25rem;
@@ -48,9 +48,9 @@
   --radius-xl: 24px;
 
   /* Shadows */
-  --shadow-sm: 0 1px 3px rgba(15, 14, 13, 0.08);
-  --shadow-md: 0 4px 12px rgba(15, 14, 13, 0.1);
-  --shadow-lg: 0 8px 24px rgba(15, 14, 13, 0.12);
+  --shadow-sm: 0 1px 2px rgba(26, 24, 20, 0.04);
+  --shadow-md: 0 2px 8px rgba(26, 24, 20, 0.06);
+  --shadow-lg: 0 4px 16px rgba(26, 24, 20, 0.08);
 
   /* Transitions */
   --transition-fast: 120ms ease;
@@ -83,7 +83,7 @@ body {
 /* ── TYPOGRAPHY ─────────────────────────────────────────────────── */
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-serif);
-  font-weight: 600;
+  font-weight: 400;
   line-height: 1.2;
   color: var(--clr-text);
   letter-spacing: -0.01em;
@@ -97,14 +97,12 @@ h4 { font-size: 1.25rem; }
 p {
   color: var(--clr-text-secondary);
   margin-bottom: var(--space-md);
-  line-height: 1.6;
 }
 
 a {
   color: var(--clr-accent);
   text-decoration: none;
   transition: color var(--transition-fast);
-  font-weight: 500;
 }
 
 a:hover {
@@ -113,8 +111,8 @@ a:hover {
 
 /* ── NAVBAR ─────────────────────────────────────────────────────── */
 .navbar {
-  background: var(--clr-accent) !important;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  background: var(--clr-surface) !important;
+  border-bottom: 1px solid var(--clr-border);
   padding: var(--space-sm) var(--space-xl);
   box-shadow: var(--shadow-sm);
 }
@@ -122,22 +120,21 @@ a:hover {
 .navbar-brand {
   font-family: var(--font-serif);
   font-size: 1.25rem;
-  color: white !important;
+  color: var(--clr-text) !important;
   display: flex;
   align-items: center;
   gap: var(--space-sm);
-  font-weight: 600;
 }
 
 .navbar-brand img {
   height: 32px;
-  filter: brightness(0) invert(1);
+  filter: none;
 }
 
 .nav-link {
   font-size: 0.875rem;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.85) !important;
+  color: var(--clr-text-secondary) !important;
   padding: var(--space-sm) var(--space-md) !important;
   border-radius: var(--radius-sm);
   transition: all var(--transition-fast);
@@ -147,13 +144,13 @@ a:hover {
 }
 
 .nav-link:hover {
-  color: white !important;
-  background: rgba(255, 255, 255, 0.1);
+  color: var(--clr-text) !important;
+  background: var(--clr-surface-alt);
 }
 
 .nav-link i {
   font-size: 1rem;
-  opacity: 0.9;
+  opacity: 0.7;
 }
 
 /* ── CARDS ──────────────────────────────────────────────────────── */
@@ -171,19 +168,14 @@ a:hover {
 }
 
 .card-header {
-  background: var(--clr-accent);
-  border-bottom: none;
+  background: transparent;
+  border-bottom: 1px solid var(--clr-border-subtle);
   padding: var(--space-lg);
   font-weight: 600;
-  color: white;
+  color: var(--clr-text);
   display: flex;
   align-items: center;
   justify-content: space-between;
-}
-
-.card-header .badge {
-  background: rgba(255, 255, 255, 0.2) !important;
-  color: white;
 }
 
 .card-body {
@@ -208,33 +200,36 @@ a:hover {
   top: 0;
   left: 0;
   right: 0;
-  height: 4px;
+  height: 3px;
   background: var(--kpi-color, var(--clr-accent));
-  opacity: 1;
+  opacity: 0;
   transition: opacity var(--transition-base);
 }
 
 .kpi-card:hover {
   border-color: var(--kpi-color, var(--clr-accent));
   box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
+}
+
+.kpi-card:hover::before {
+  opacity: 1;
 }
 
 .kpi-value {
   font-family: var(--font-serif);
   font-size: 1.75rem;
-  font-weight: 700;
+  font-weight: 400;
   color: var(--clr-text);
   margin-bottom: var(--space-xs);
   line-height: 1;
 }
 
 .kpi-label {
-  font-size: 0.75rem;
-  color: var(--clr-text-secondary);
+  font-size: 0.8125rem;
+  color: var(--clr-text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-weight: 600;
+  letter-spacing: 0.05em;
+  font-weight: 500;
 }
 
 /* KPI Color Variants */
@@ -251,7 +246,7 @@ a:hover {
 }
 
 .table > thead {
-  background: var(--clr-accent);
+  background: var(--clr-surface-alt);
 }
 
 .table > thead th {
@@ -259,9 +254,9 @@ a:hover {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: white;
+  color: var(--clr-text-muted);
   padding: var(--space-md) var(--space-lg);
-  border-bottom: none;
+  border-bottom: 1px solid var(--clr-border);
 }
 
 .table > tbody td {
@@ -269,7 +264,6 @@ a:hover {
   border-bottom: 1px solid var(--clr-border-subtle);
   vertical-align: middle;
   font-size: 0.9375rem;
-  font-weight: 500;
 }
 
 .table > tbody tr {
@@ -291,7 +285,7 @@ a:hover {
 /* ── BUTTONS ────────────────────────────────────────────────────── */
 .btn {
   font-family: var(--font-sans);
-  font-weight: 600;
+  font-weight: 500;
   font-size: 0.875rem;
   padding: 0.5rem 1rem;
   border-radius: var(--radius-sm);
@@ -300,7 +294,6 @@ a:hover {
   align-items: center;
   gap: var(--space-xs);
   border: 1px solid transparent;
-  letter-spacing: 0.02em;
 }
 
 .btn-primary {
@@ -323,8 +316,8 @@ a:hover {
 }
 
 .btn-success:hover {
-  background: #154d32;
-  border-color: #154d32;
+  background: #245a42;
+  border-color: #245a42;
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
 }
@@ -379,11 +372,11 @@ a:hover {
 
 /* ── BADGES ─────────────────────────────────────────────────────── */
 .badge {
-  font-weight: 600;
+  font-weight: 500;
   font-size: 0.75rem;
-  padding: 0.4em 0.75em;
+  padding: 0.35em 0.65em;
   border-radius: var(--radius-sm);
-  letter-spacing: 0.03em;
+  letter-spacing: 0.02em;
 }
 
 .bg-success {
@@ -407,7 +400,7 @@ a:hover {
 }
 
 .bg-secondary {
-  background: var(--clr-text-secondary) !important;
+  background: var(--clr-text-muted) !important;
   color: white;
 }
 
@@ -431,19 +424,17 @@ a:hover {
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
   background: var(--clr-surface);
   color: var(--clr-text);
-  font-weight: 500;
 }
 
 .form-control:focus,
 .form-select:focus {
   border-color: var(--clr-accent);
-  box-shadow: 0 0 0 3px rgba(26, 24, 20, 0.1);
+  box-shadow: 0 0 0 3px rgba(45, 42, 38, 0.08);
   outline: none;
 }
 
 .form-control::placeholder {
   color: var(--clr-text-muted);
-  font-weight: 400;
 }
 
 .form-label {
@@ -452,7 +443,7 @@ a:hover {
   color: var(--clr-text);
   margin-bottom: var(--space-xs);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.03em;
 }
 
 .input-group {
@@ -474,25 +465,21 @@ a:hover {
   border-radius: var(--radius-md);
   font-size: 0.9375rem;
   padding: var(--space-md) var(--space-lg);
-  font-weight: 500;
 }
 
 .alert-info {
   background: var(--clr-info-bg);
   color: var(--clr-info);
-  border-left: 4px solid var(--clr-info);
 }
 
 .alert-danger {
   background: var(--clr-danger-bg);
   color: var(--clr-danger);
-  border-left: 4px solid var(--clr-danger);
 }
 
 .alert-success {
   background: var(--clr-success-bg);
   color: var(--clr-success);
-  border-left: 4px solid var(--clr-success);
 }
 
 /* ── BENTO GRID ─────────────────────────────────────────────────── */
@@ -548,8 +535,7 @@ a:hover {
 
 .section-title {
   font-family: var(--font-serif);
-  font-size: 1.5rem;
-  font-weight: 700;
+  font-size: 1.25rem;
   color: var(--clr-text);
   display: flex;
   align-items: center;
@@ -557,8 +543,8 @@ a:hover {
 }
 
 .section-title i {
-  font-size: 1.25rem;
-  color: var(--clr-accent);
+  font-size: 1rem;
+  opacity: 0.5;
 }
 
 /* ── LOGIN ──────────────────────────────────────────────────────── */
@@ -593,31 +579,27 @@ a:hover {
 
 .login-logo h1 {
   font-family: var(--font-serif);
-  font-size: 2rem;
-  font-weight: 700;
+  font-size: 1.75rem;
   margin-bottom: var(--space-xs);
-  color: var(--clr-text);
 }
 
 .login-logo p {
-  color: var(--clr-text-secondary);
+  color: var(--clr-text-muted);
   font-size: 0.875rem;
   margin-bottom: 0;
-  font-weight: 500;
 }
 
 .login-btn {
   width: 100%;
   padding: 0.875rem;
-  font-size: 1rem;
-  font-weight: 700;
+  font-size: 0.9375rem;
+  font-weight: 600;
   background: var(--clr-accent);
   color: white;
   border: none;
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all var(--transition-fast);
-  letter-spacing: 0.03em;
 }
 
 .login-btn:hover {
@@ -700,12 +682,12 @@ a:hover {
 
 .action-card i {
   font-size: 1.5rem;
-  color: var(--clr-accent);
+  color: var(--clr-text-muted);
   transition: color var(--transition-fast);
 }
 
 .action-card:hover i {
-  color: var(--clr-accent-hover);
+  color: var(--clr-accent);
 }
 
 .action-card-text {
@@ -714,17 +696,15 @@ a:hover {
 }
 
 .action-card-title {
-  font-weight: 700;
+  font-weight: 600;
   font-size: 0.9375rem;
   margin-bottom: 2px;
-  color: var(--clr-text);
 }
 
 .action-card-desc {
   font-size: 0.8125rem;
-  color: var(--clr-text-secondary);
+  color: var(--clr-text-muted);
   margin-bottom: 0;
-  font-weight: 500;
 }
 
 /* ── PERIOD PICKER ──────────────────────────────────────────────── */
@@ -742,7 +722,6 @@ a:hover {
   background: transparent;
   color: var(--clr-text-secondary);
   border-color: var(--clr-border);
-  font-weight: 600;
 }
 
 .periodo-btn-group .btn:not(.active):hover {
@@ -754,26 +733,25 @@ a:hover {
 .empty-state {
   text-align: center;
   padding: var(--space-2xl);
-  color: var(--clr-text-secondary);
+  color: var(--clr-text-muted);
 }
 
 .empty-state i {
   font-size: 3rem;
   margin-bottom: var(--space-md);
-  color: var(--clr-text-muted);
+  opacity: 0.3;
 }
 
 .empty-state p {
   margin-bottom: 0;
-  color: var(--clr-text-secondary);
-  font-weight: 500;
+  color: var(--clr-text-muted);
 }
 
 /* ── UTILITIES ──────────────────────────────────────────────────── */
-.text-success { color: var(--clr-success) !important; font-weight: 600; }
-.text-warning { color: var(--clr-warning) !important; font-weight: 600; }
-.text-danger { color: var(--clr-danger) !important; font-weight: 600; }
-.text-info { color: var(--clr-info) !important; font-weight: 600; }
+.text-success { color: var(--clr-success) !important; }
+.text-warning { color: var(--clr-warning) !important; }
+.text-danger { color: var(--clr-danger) !important; }
+.text-info { color: var(--clr-info) !important; }
 .text-muted { color: var(--clr-text-muted) !important; }
 
 .bg-success { background-color: var(--clr-success) !important; }
