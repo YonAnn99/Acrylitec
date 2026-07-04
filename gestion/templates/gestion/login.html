@@ -6,63 +6,37 @@
     <meta charset="UTF-8">
     <title>Acrylitec — Acceso</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            background: #1a1a2e;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-        }
-
-        .login-card {
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-        }
-
-        .btn-login {
-            background: #28a745;
-            border: none;
-            font-weight: 600;
-        }
-
-        .btn-login:hover {
-            background: #218838;
-        }
-    </style>
+    <link href="{% static 'gestion/css/main.css' %}" rel="stylesheet">
 </head>
 
-<body>
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-4">
-                <div class="card login-card p-4">
-                    <div class="text-center mb-4">
-                        <img src="{% static 'gestion/img/logo_acrylitec.png' %}" height="70" alt="Acrylitec">
-                        <p class="text-muted">Sistema de Gestión</p>
-                    </div>
-                    {% if form.errors %}
-                    <div class="alert alert-danger text-center">
-                        Usuario o contraseña incorrectos.
-                    </div>
-                    {% endif %}
-                    <form method="POST">
-                        {% csrf_token %}
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Usuario</label>
-                            <input type="text" name="username" class="form-control" placeholder="Tu usuario" autofocus
-                                required>
-                        </div>
-                        <div class="mb-4">
-                            <label class="form-label fw-semibold">Contraseña</label>
-                            <input type="password" name="password" class="form-control" placeholder="••••••••" required>
-                        </div>
-                        <button type="submit" class="btn btn-login text-white w-100 py-2">
-                            Entrar al sistema
-                        </button>
-                    </form>
-                </div>
-            </div>
+<body class="login-wrapper">
+    <div class="login-card">
+        <div class="login-logo">
+            <img src="{% static 'gestion/img/logo_acrylitec.png' %}" alt="Acrylitec">
+            <h1>Acrylitec</h1>
+            <p>Sistema de Gestión</p>
         </div>
+
+        {% if form.errors %}
+        <div class="alert alert-danger text-center">
+            Usuario o contraseña incorrectos.
+        </div>
+        {% endif %}
+
+        <form method="POST">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label">Usuario</label>
+                <input type="text" name="username" class="form-control" placeholder="Tu usuario" autofocus required>
+            </div>
+            <div class="mb-4">
+                <label class="form-label">Contraseña</label>
+                <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+            </div>
+            <button type="submit" class="login-btn">
+                Entrar al sistema
+            </button>
+        </form>
     </div>
 </body>
 

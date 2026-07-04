@@ -1,317 +1,281 @@
 {% extends 'gestion/base.html' %}
 
 {% block content %}
-<h2 class="mb-4">📊 Dashboard — Acrylitec</h2>
+<div class="section">
+    <div class="section-header">
+        <h2 class="section-title">
+            <i class="bi bi-bar-chart-fill"></i>
+            Dashboard
+        </h2>
+    </div>
 
-<!-- KPIs -->
-<div class="row g-3 mb-4">
-    <div class="col-md-2">
-        <div class="card text-white bg-success shadow-sm">
-            <div class="card-body text-center">
-                <div class="fs-4 fw-bold">${{ kpis.ingresos_mes|floatformat:0 }}</div>
-                <div class="small">Ingresos este mes</div>
-            </div>
+    <!-- KPIs -->
+    <div class="dashboard-kpis">
+        <div class="kpi-card kpi-card--success">
+            <div class="kpi-value">${{ kpis.ingresos_mes|floatformat:0 }}</div>
+            <div class="kpi-label">Ingresos este mes</div>
+        </div>
+        <div class="kpi-card kpi-card--accent">
+            <div class="kpi-value">{{ kpis.ventas_mes }}</div>
+            <div class="kpi-label">Ventas este mes</div>
+        </div>
+        <div class="kpi-card kpi-card--info">
+            <div class="kpi-value">${{ kpis.ingresos_total|floatformat:0 }}</div>
+            <div class="kpi-label">Ingresos totales</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value">{{ kpis.ventas_total }}</div>
+            <div class="kpi-label">Ventas totales</div>
+        </div>
+        <div class="kpi-card kpi-card--info">
+            <div class="kpi-value">{{ kpis.clientes_total }}</div>
+            <div class="kpi-label">Clientes</div>
+        </div>
+        <div class="kpi-card kpi-card--warning">
+            <div class="kpi-value">{{ kpis.cotizaciones_mes }}</div>
+            <div class="kpi-label">Cotizaciones este mes</div>
         </div>
     </div>
-    <div class="col-md-2">
-        <div class="card text-white bg-primary shadow-sm">
-            <div class="card-body text-center">
-                <div class="fs-4 fw-bold">{{ kpis.ventas_mes }}</div>
-                <div class="small">Ventas este mes</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-2">
-        <div class="card text-white bg-dark shadow-sm">
-            <div class="card-body text-center">
-                <div class="fs-4 fw-bold">${{ kpis.ingresos_total|floatformat:0 }}</div>
-                <div class="small">Ingresos totales</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-2">
-        <div class="card text-white bg-secondary shadow-sm">
-            <div class="card-body text-center">
-                <div class="fs-4 fw-bold">{{ kpis.ventas_total }}</div>
-                <div class="small">Ventas totales</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-2">
-        <div class="card text-white bg-info shadow-sm">
-            <div class="card-body text-center">
-                <div class="fs-4 fw-bold">{{ kpis.clientes_total }}</div>
-                <div class="small">Clientes</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-2">
-        <div class="card text-white bg-warning shadow-sm">
-            <div class="card-body text-center">
-                <div class="fs-4 fw-bold">{{ kpis.cotizaciones_mes }}</div>
-                <div class="small">Cotizaciones este mes</div>
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- ── Estilos del picker tipo calendario ─────────────────────────────── -->
-<style>
-    .periodo-btn-group .btn {
-        border-radius: 8px 0 0 8px;
-    }
-
-    .periodo-btn-group .btn:last-child {
-        border-radius: 0 8px 8px 0;
-    }
-
-    /* Botón disparador del picker */
-    .picker-trigger {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 6px 14px;
-        background: #fff;
-        border: 1.5px solid #ced4da;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: .92rem;
-        font-weight: 500;
-        color: #212529;
-        transition: border-color .15s, box-shadow .15s;
-        white-space: nowrap;
-        user-select: none;
-    }
-
-    .picker-trigger:hover {
-        border-color: #198754;
-        box-shadow: 0 0 0 3px rgba(25, 135, 84, .12);
-    }
-
-    .picker-trigger .picker-icon {
-        font-size: 1rem;
-    }
-
-    .picker-trigger .picker-caret {
-        font-size: .7rem;
-        color: #6c757d;
-        margin-left: 2px;
-    }
-
-    /* Panel desplegable */
-    .picker-panel {
-        position: absolute;
-        z-index: 1050;
-        background: #fff;
-        border: 1.5px solid #dee2e6;
-        border-radius: 12px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, .14);
-        padding: 16px;
-        min-width: 280px;
-        display: none;
-        animation: fadeInDown .15s ease;
-    }
-
-    .picker-panel.open {
-        display: block;
-    }
-
-    @keyframes fadeInDown {
-        from {
-            opacity: 0;
-            transform: translateY(-6px);
+    <!-- ── Estilos del picker tipo calendario ─────────────────────────────── -->
+    <style>
+        .picker-wrapper {
+            position: relative;
+            display: inline-block;
         }
 
-        to {
-            opacity: 1;
-            transform: translateY(0);
+        .picker-trigger {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            background: var(--clr-surface);
+            border: 1px solid var(--clr-border);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: .875rem;
+            font-weight: 500;
+            color: var(--clr-text);
+            transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+            white-space: nowrap;
+            user-select: none;
         }
-    }
 
-    /* Cabecera del panel con nav de año */
-    .picker-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 12px;
-    }
+        .picker-trigger:hover {
+            border-color: var(--clr-accent);
+            box-shadow: 0 0 0 3px rgba(45, 42, 38, 0.08);
+        }
 
-    .picker-header .picker-nav {
-        background: none;
-        border: none;
-        font-size: 1.1rem;
-        cursor: pointer;
-        color: #495057;
-        padding: 2px 8px;
-        border-radius: 6px;
-        transition: background .12s;
-    }
+        .picker-trigger .picker-icon {
+            font-size: 1rem;
+        }
 
-    .picker-header .picker-nav:hover {
-        background: #f0f0f0;
-    }
+        .picker-trigger .picker-caret {
+            font-size: .7rem;
+            color: var(--clr-text-muted);
+            margin-left: 2px;
+        }
 
-    .picker-header .picker-year-label {
-        font-weight: 700;
-        font-size: 1rem;
-        color: #212529;
-    }
+        .picker-panel {
+            position: absolute;
+            z-index: 1050;
+            background: var(--clr-surface);
+            border: 1px solid var(--clr-border);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-lg);
+            padding: 16px;
+            min-width: 280px;
+            display: none;
+            animation: fadeIn var(--transition-fast) ease;
+        }
 
-    /* Cuadrícula de celdas */
-    .picker-grid {
-        display: grid;
-        gap: 6px;
-    }
+        .picker-panel.open {
+            display: block;
+        }
 
-    .picker-grid.months {
-        grid-template-columns: repeat(3, 1fr);
-    }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-6px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
-    .picker-grid.weeks {
-        grid-template-columns: repeat(6, 1fr);
-    }
+        .picker-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
 
-    .picker-grid.years {
-        grid-template-columns: repeat(4, 1fr);
-    }
+        .picker-header .picker-nav {
+            background: none;
+            border: none;
+            font-size: 1.1rem;
+            cursor: pointer;
+            color: var(--clr-text-secondary);
+            padding: 2px 8px;
+            border-radius: var(--radius-sm);
+            transition: background var(--transition-fast);
+        }
 
-    .picker-cell {
-        padding: 7px 4px;
-        text-align: center;
-        border-radius: 7px;
-        cursor: pointer;
-        font-size: .82rem;
-        font-weight: 500;
-        color: #212529;
-        border: 1.5px solid transparent;
-        transition: background .12s, border-color .12s;
-        line-height: 1.2;
-    }
+        .picker-header .picker-nav:hover {
+            background: var(--clr-surface-alt);
+        }
 
-    .picker-cell:hover {
-        background: #e9f5ee;
-        border-color: #a3d9b3;
-        color: #198754;
-    }
+        .picker-header .picker-year-label {
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--clr-text);
+        }
 
-    .picker-cell.active {
-        background: #198754;
-        color: #fff;
-        border-color: #198754;
-    }
+        .picker-grid {
+            display: grid;
+            gap: 6px;
+        }
 
-    .picker-cell.has-data {
-        font-weight: 700;
-    }
+        .picker-grid.months {
+            grid-template-columns: repeat(3, 1fr);
+        }
 
-    .picker-cell.no-data {
-        color: #adb5bd;
-        font-weight: 400;
-    }
+        .picker-grid.weeks {
+            grid-template-columns: repeat(6, 1fr);
+        }
 
-    .picker-cell.no-data:hover {
-        background: #f8f9fa;
-        border-color: #dee2e6;
-        color: #adb5bd;
-        cursor: default;
-    }
+        .picker-grid.years {
+            grid-template-columns: repeat(4, 1fr);
+        }
 
-    /* Wrapper posición relativa para el panel */
-    .picker-wrapper {
-        position: relative;
-        display: inline-block;
-    }
-</style>
+        .picker-cell {
+            padding: 7px 4px;
+            text-align: center;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: .8125rem;
+            font-weight: 500;
+            color: var(--clr-text);
+            border: 1px solid transparent;
+            transition: background var(--transition-fast), border-color var(--transition-fast);
+            line-height: 1.2;
+        }
 
-<!-- ── Controles de período + pickers ────────────────────────────────── -->
-<div class="mb-3 d-flex align-items-center gap-3 flex-wrap">
+        .picker-cell:hover {
+            background: var(--clr-surface-alt);
+            border-color: var(--clr-border);
+            color: var(--clr-accent);
+        }
 
-    <!-- Botones de período -->
-    <div class="btn-group periodo-btn-group" role="group">
-        <button class="btn btn-dark active" onclick="cambiarPeriodo('mes', this)">Por Mes</button>
-        <button class="btn btn-outline-dark" onclick="cambiarPeriodo('semana', this)">Por Semana</button>
-        <button class="btn btn-outline-dark" onclick="cambiarPeriodo('anio', this)">Por Año</button>
-    </div>
+        .picker-cell.active {
+            background: var(--clr-accent);
+            color: white;
+            border-color: var(--clr-accent);
+        }
 
-    <!-- ── Picker MES ──────────────────────────────────────────────── -->
-    <div id="picker-mes-wrapper" class="picker-wrapper">
-        <div class="picker-trigger" onclick="togglePicker('picker-mes')">
-            <span class="picker-icon">📅</span>
-            <span id="label-mes">— Mes —</span>
-            <span class="picker-caret">▼</span>
+        .picker-cell.has-data {
+            font-weight: 700;
+        }
+
+        .picker-cell.no-data {
+            color: var(--clr-text-muted);
+            font-weight: 400;
+        }
+
+        .picker-cell.no-data:hover {
+            background: var(--clr-surface-alt);
+            border-color: var(--clr-border);
+            color: var(--clr-text-muted);
+            cursor: default;
+        }
+    </style>
+
+    <!-- ── Controles de período + pickers ────────────────────────────────── -->
+    <div class="mb-4 d-flex align-items-center gap-3 flex-wrap">
+        <!-- Botones de período -->
+        <div class="btn-group periodo-btn-group" role="group">
+            <button class="btn active" onclick="cambiarPeriodo('mes', this)">Por Mes</button>
+            <button class="btn" onclick="cambiarPeriodo('semana', this)">Por Semana</button>
+            <button class="btn" onclick="cambiarPeriodo('anio', this)">Por Año</button>
         </div>
-        <div id="picker-mes" class="picker-panel">
-            <div class="picker-header">
-                <button class="picker-nav" onclick="navMes(-1)">&#8249;</button>
-                <span class="picker-year-label" id="mes-year-nav"></span>
-                <button class="picker-nav" onclick="navMes(1)">&#8250;</button>
+
+        <!-- ── Picker MES ──────────────────────────────────────────────── -->
+        <div id="picker-mes-wrapper" class="picker-wrapper">
+            <div class="picker-trigger" onclick="togglePicker('picker-mes')">
+                <span class="picker-icon">📅</span>
+                <span id="label-mes">— Mes —</span>
+                <span class="picker-caret">▼</span>
             </div>
-            <div class="picker-grid months" id="mes-grid"></div>
-        </div>
-    </div>
-
-    <!-- ── Picker SEMANA ───────────────────────────────────────────── -->
-    <div id="picker-semana-wrapper" class="picker-wrapper d-none">
-        <div class="picker-trigger" onclick="togglePicker('picker-semana')">
-            <span class="picker-icon">🗓️</span>
-            <span id="label-semana">— semana —</span>
-            <span class="picker-caret">▼</span>
-        </div>
-        <div id="picker-semana" class="picker-panel" style="min-width:340px;">
-            <div class="picker-header">
-                <button class="picker-nav" onclick="navSemana(-1)">&#8249;</button>
-                <span class="picker-year-label" id="semana-year-nav"></span>
-                <button class="picker-nav" onclick="navSemana(1)">&#8250;</button>
+            <div id="picker-mes" class="picker-panel">
+                <div class="picker-header">
+                    <button class="picker-nav" onclick="navMes(-1)">&#8249;</button>
+                    <span class="picker-year-label" id="mes-year-nav"></span>
+                    <button class="picker-nav" onclick="navMes(1)">&#8250;</button>
+                </div>
+                <div class="picker-grid months" id="mes-grid"></div>
             </div>
-            <div class="picker-grid weeks" id="semana-grid"></div>
         </div>
-    </div>
 
-    <!-- ── Picker AÑO ──────────────────────────────────────────────── -->
-    <div id="picker-anio-wrapper" class="picker-wrapper d-none">
-        <div class="picker-trigger" onclick="togglePicker('picker-anio')">
-            <span class="picker-icon">📆</span>
-            <span id="label-anio">— Año —</span>
-            <span class="picker-caret">▼</span>
-        </div>
-        <div id="picker-anio" class="picker-panel" style="min-width:260px;">
-            <div class="picker-header">
-                <span class="picker-year-label">Selecciona un año</span>
+        <!-- ── Picker SEMANA ───────────────────────────────────────────── -->
+        <div id="picker-semana-wrapper" class="picker-wrapper d-none">
+            <div class="picker-trigger" onclick="togglePicker('picker-semana')">
+                <span class="picker-icon">🗓️</span>
+                <span id="label-semana">— semana —</span>
+                <span class="picker-caret">▼</span>
             </div>
-            <div class="picker-grid years" id="anio-grid"></div>
+            <div id="picker-semana" class="picker-panel" style="min-width:340px;">
+                <div class="picker-header">
+                    <button class="picker-nav" onclick="navSemana(-1)">&#8249;</button>
+                    <span class="picker-year-label" id="semana-year-nav"></span>
+                    <button class="picker-nav" onclick="navSemana(1)">&#8250;</button>
+                </div>
+                <div class="picker-grid weeks" id="semana-grid"></div>
+            </div>
+        </div>
+
+        <!-- ── Picker AÑO ──────────────────────────────────────────────── -->
+        <div id="picker-anio-wrapper" class="picker-wrapper d-none">
+            <div class="picker-trigger" onclick="togglePicker('picker-anio')">
+                <span class="picker-icon">📆</span>
+                <span id="label-anio">— Año —</span>
+                <span class="picker-caret">▼</span>
+            </div>
+            <div id="picker-anio" class="picker-panel" style="min-width:260px;">
+                <div class="picker-header">
+                    <span class="picker-year-label">Selecciona un año</span>
+                </div>
+                <div class="picker-grid years" id="anio-grid"></div>
+            </div>
         </div>
     </div>
 
-</div>
-
-<!-- Gráficas -->
-<div class="row g-3 mb-4">
-    <div class="col-md-8">
-        <div class="card shadow-sm">
-            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+    <!-- Gráficas -->
+    <div class="dashboard-charts">
+        <div class="card">
+            <div class="card-header">
                 <span>Ingresos por período</span>
                 <span id="subtitulo-grafica" class="badge bg-secondary"></span>
             </div>
             <div class="card-body">
                 <canvas id="graficaIngresos" height="100"></canvas>
-                <div id="sin-datos" class="text-center py-4 text-muted d-none">
-                    <p class="mb-0">📭 Sin datos para este período</p>
+                <div id="sin-datos" class="empty-state d-none">
+                    <i class="bi bi-inbox"></i>
+                    <p>Sin datos para este período</p>
                 </div>
             </div>
         </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card shadow-sm">
-            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-                <span>📦 Pedidos Activos</span>
-                <a href="{% url 'pantalla_pendientes' %}" target="_blank" class="btn btn-sm btn-outline-light">
-                    📺 Abrir Monitor TV
+        <div class="card">
+            <div class="card-header">
+                <span>Pedidos Activos</span>
+                <a href="{% url 'pantalla_pendientes' %}" target="_blank" class="btn btn-sm btn-outline-dark">
+                    Abrir Monitor TV
                 </a>
             </div>
             <div class="card-body p-0">
                 {% if pedidos_activos %}
                 <table class="table table-sm mb-0">
-                    <thead class="table-light">
+                    <thead>
                         <tr>
                             <th>#</th>
                             <th>Cliente</th>
@@ -328,11 +292,11 @@
                             <td><small>{{ v.producto_nombre|default:"—" }}</small></td>
                             <td>
                                 {% if v.estatus == 'pendiente' %}
-                                <span class="badge bg-secondary">⏳ Pendiente</span>
+                                <span class="badge bg-secondary">Pendiente</span>
                                 {% elif v.estatus == 'en_produccion' %}
-                                <span class="badge bg-warning text-dark">🔧 En producción</span>
+                                <span class="badge bg-warning">En producción</span>
                                 {% elif v.estatus == 'cotizacion' %}
-                                <span class="badge bg-info text-dark">📝 Cotización</span>
+                                <span class="badge bg-info">Cotización</span>
                                 {% endif %}
                             </td>
                             <td><small>{{ v.fecha_entrega|default:"—" }}</small></td>
@@ -341,28 +305,45 @@
                     </tbody>
                 </table>
                 {% else %}
-                <div class="text-center py-4 text-muted">
-                    <p class="mb-0">✅ No hay pedidos pendientes</p>
+                <div class="empty-state">
+                    <i class="bi bi-check-circle"></i>
+                    <p>No hay pedidos pendientes</p>
                 </div>
                 {% endif %}
             </div>
         </div>
     </div>
-</div>
 
-<!-- Accesos rápidos -->
-<div class="row g-3">
-    <div class="col-md-3">
-        <a href="{% url 'nuevo_pedido' %}" class="btn btn-success w-100 btn-lg">➕ Nuevo Pedido</a>
-    </div>
-    <div class="col-md-3">
-        <a href="{% url 'lista_ventas' %}" class="btn btn-primary w-100 btn-lg">📦 Ver ventas</a>
-    </div>
-    <div class="col-md-3">
-        <a href="{% url 'configuracion_precios' %}" class="btn btn-outline-dark w-100 btn-lg">⚙️ Ajustar precios</a>
-    </div>
-    <div class="col-md-3">
-        <a href="{% url 'lista_productos' %}" class="btn btn-outline-secondary w-100 btn-lg">📦 Productos</a>
+    <!-- Accesos rápidos -->
+    <div class="dashboard-actions">
+        <a href="{% url 'nuevo_pedido' %}" class="action-card">
+            <i class="bi bi-plus-circle"></i>
+            <div class="action-card-text">
+                <span class="action-card-title">Nuevo Pedido</span>
+                <span class="action-card-desc">Crear un nuevo pedido directo</span>
+            </div>
+        </a>
+        <a href="{% url 'lista_ventas' %}" class="action-card">
+            <i class="bi bi-bag-check"></i>
+            <div class="action-card-text">
+                <span class="action-card-title">Ver Ventas</span>
+                <span class="action-card-desc">Historial de ventas</span>
+            </div>
+        </a>
+        <a href="{% url 'configuracion_precios' %}" class="action-card">
+            <i class="bi bi-gear"></i>
+            <div class="action-card-text">
+                <span class="action-card-title">Ajustar Precios</span>
+                <span class="action-card-desc">Configurar precios</span>
+            </div>
+        </a>
+        <a href="{% url 'lista_productos' %}" class="action-card">
+            <i class="bi bi-grid"></i>
+            <div class="action-card-text">
+                <span class="action-card-title">Productos</span>
+                <span class="action-card-desc">Gestionar productos</span>
+            </div>
+        </a>
     </div>
 </div>
 
@@ -382,21 +363,20 @@
 
     // ── Estado ────────────────────────────────────────────────────────────────
     let periodoActivo = 'mes';
-    let navAnioMes = anioActual;   // año navegado en picker de mes
-    let navAnioSemana = anioActual;   // año navegado en picker de semana
+    let navAnioMes = anioActual;
+    let navAnioSemana = anioActual;
 
-    // Selección actual
     let selMesAnio = String(anioActual);
-    let selMesIdx = null;   // 0-11
+    let selMesIdx = null;
     let selSemAnio = String(anioActual);
-    let selSemIdx = null;   // índice dentro del array de semanas
+    let selSemIdx = null;
     let selAnio = 'todos';
 
     // ── Chart.js ──────────────────────────────────────────────────────────────
     const colores = {
-        mes: { bg: 'rgba(25,135,84,.7)', bd: 'rgba(25,135,84,1)' },
-        semana: { bg: 'rgba(13,110,253,.7)', bd: 'rgba(13,110,253,1)' },
-        anio: { bg: 'rgba(108,117,125,.7)', bd: 'rgba(108,117,125,1)' },
+        mes: { bg: 'rgba(45, 106, 79, .7)', bd: 'rgba(45, 106, 79, 1)' },
+        semana: { bg: 'rgba(69, 123, 157, .7)', bd: 'rgba(69, 123, 157, 1)' },
+        anio: { bg: 'rgba(107, 101, 96, .7)', bd: 'rgba(107, 101, 96, 1)' },
     };
 
     const ctx = document.getElementById('graficaIngresos').getContext('2d');
@@ -447,10 +427,8 @@
         const anioKey = String(navAnioMes);
         const datosMes = mesesPorAnio[anioKey] || { labels: [], data: [] };
 
-        // Construir set de meses con datos (índice 0-11)
         const mesesConDatos = new Set();
         datosMes.labels.forEach(lbl => {
-            // label format: "Ene 2026" → extraer mes
             const parts = lbl.split(' ');
             const mIdx = MESES.indexOf(parts[0]);
             if (mIdx >= 0) mesesConDatos.add(mIdx);
@@ -508,10 +486,8 @@
         const anioKey = String(navAnioSemana);
         const datosSem = semanasPorAnio[anioKey] || { labels: [], data: [] };
 
-        // Extraer números de semana con datos
-        const semanasConDatos = new Map(); // semNum → índice
+        const semanasConDatos = new Map();
         datosSem.labels.forEach((lbl, idx) => {
-            // label: "Semana 15 (07/04)"
             const m = lbl.match(/Semana\s+(\d+)/);
             if (m) semanasConDatos.set(parseInt(m[1]), idx);
         });
@@ -550,7 +526,6 @@
     function seleccionarSemana(anioKey, dataIdx, semNum, labelCompleto) {
         selSemAnio = anioKey;
         selSemIdx = dataIdx;
-        // Extraer fecha del label: "Semana 15 (07/04)"
         const m = labelCompleto.match(/\((.+?)\)/);
         const fecha = m ? ` · ${m[1]}` : '';
         document.getElementById('label-semana').textContent = `Sem ${semNum}${fecha} / ${anioKey}`;
@@ -565,7 +540,6 @@
         const grid = document.getElementById('anio-grid');
         grid.innerHTML = '';
 
-        // Opción "Todos"
         const todos = document.createElement('div');
         todos.className = 'picker-cell has-data' + (selAnio === 'todos' ? ' active' : '');
         todos.textContent = 'Todos';
@@ -573,7 +547,6 @@
         todos.onclick = () => { selAnio = 'todos'; document.getElementById('label-anio').textContent = 'Todos los años'; closeAllPickers(); actualizarGrafica(); renderAnioGrid(); };
         grid.appendChild(todos);
 
-        // Años disponibles (más reciente primero)
         const aniosDisp = labelsAnio.slice().reverse();
         aniosDisp.forEach(a => {
             const cell = document.createElement('div');
@@ -589,7 +562,6 @@
             grid.appendChild(cell);
         });
 
-        // Años sin datos (hasta el año actual)
         const aniosConDatos = new Set(labelsAnio.map(String));
         const minAnio = labelsAnio.length ? parseInt(labelsAnio[0]) : anioActual;
         for (let y = anioActual; y >= minAnio - 3; y--) {
@@ -609,18 +581,15 @@
         let labels = [], data = [], subtitulo = '';
 
         if (periodoActivo === 'mes') {
-            // Mostrar todos los meses del año seleccionado, o solo el mes elegido
             const anioKey = selMesAnio;
             const d = mesesPorAnio[anioKey] || { labels: [], data: [] };
 
             if (selMesIdx !== null) {
-                // Mes específico seleccionado → mostrar barra única
                 const mesLabel = `${MESES[selMesIdx]} ${anioKey}`;
                 const idx = d.labels.indexOf(mesLabel);
                 if (idx >= 0) { labels = [d.labels[idx]]; data = [d.data[idx]]; }
                 subtitulo = `${MESES_FULL[selMesIdx]} ${anioKey}`;
             } else {
-                // Sin selección específica → todos los meses del año
                 labels = d.labels; data = d.data;
                 subtitulo = `Meses de ${anioKey}`;
             }
@@ -670,10 +639,9 @@
         periodoActivo = periodo;
 
         document.querySelectorAll('.btn-group .btn').forEach(b => {
-            b.classList.remove('btn-dark', 'active'); b.classList.add('btn-outline-dark');
+            b.classList.remove('active');
         });
-        btn.classList.remove('btn-outline-dark');
-        btn.classList.add('btn-dark', 'active');
+        btn.classList.add('active');
 
         document.getElementById('picker-mes-wrapper').classList.toggle('d-none', periodo !== 'mes');
         document.getElementById('picker-semana-wrapper').classList.toggle('d-none', periodo !== 'semana');
@@ -682,7 +650,6 @@
         chart.data.datasets[0].backgroundColor = colores[periodo].bg;
         chart.data.datasets[0].borderColor = colores[periodo].bd;
 
-        // Resetear selección de ítem específico al cambiar modo
         if (periodo === 'mes') { selMesIdx = null; }
         if (periodo === 'semana') { selSemIdx = null; }
 
@@ -692,7 +659,6 @@
     // ─────────────────────────────────────────────────────────────────────────
     // INICIALIZACIÓN
     // ─────────────────────────────────────────────────────────────────────────
-    // Fijar año de navegación en el más reciente disponible
     const aniosMesDisp = Object.keys(mesesPorAnio).map(Number).sort((a, b) => b - a);
     if (aniosMesDisp.length) { navAnioMes = aniosMesDisp[0]; selMesAnio = String(navAnioMes); }
 
@@ -703,7 +669,6 @@
     renderSemanaGrid();
     renderAnioGrid();
 
-    // Label inicial del botón mes
     document.getElementById('label-mes').textContent = `Año ${selMesAnio}`;
     document.getElementById('label-semana').textContent = `Año ${selSemAnio}`;
     document.getElementById('label-anio').textContent = 'Todos los años';
