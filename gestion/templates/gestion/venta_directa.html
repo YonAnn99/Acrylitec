@@ -89,10 +89,12 @@
                                 <label class="form-label">Espesor (mm)</label>
                                 <select name="espesor_mm" id="id_espesor" class="form-select" required>
                                     <option value="">-- Selecciona --</option>
+
                                     {% for t in materiales_tabulador %}
                                     <option value="{{ t.espesor_mm }}" data-factor="{{ t.factor_costo }}">{{
                                         t.espesor_mm }} mm</option>
                                     {% endfor %}
+
                                 </select>
                             </div>
                             <div class="col-md-4 mb-3">
@@ -787,7 +789,7 @@
                     // 2. Agregar el nuevo producto a la lista desplegable y seleccionarlo
                     const select = document.getElementById('id_producto');
                     const newOption = new Option(data.nombre, data.id, false, true);
-                    
+
                     // Inyectamos los atributos: data-precio-fijo, data-stock-actual y data-detalle
                     newOption.setAttribute('data-precio-fijo', data.precio_fijo);
                     newOption.setAttribute('data-stock-actual', data.stock_actual || 0);
