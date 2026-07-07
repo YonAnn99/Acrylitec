@@ -23,8 +23,9 @@
                             <select id="id_cliente" class="form-select select2">
                                 <option value="">-- Busca o selecciona un cliente --</option>
                                 {% for c in clientes %}
-                                <option value="{{ c.id_cliente }}">{{ c.nombre }}{% if c.telefono %} · {{ c.telefono}}{%
-                                    endif %}</option>
+                                <option value="{{ c.id_cliente }}">
+                                    {{ c.nombre }}{% if c.telefono %} · {{ c.telefono }}{% endif %}
+                                </option>
                                 {% endfor %}
                             </select>
                             <small class="text-muted">El cliente se bloqueará al agregar el primer artículo.</small>
@@ -638,7 +639,7 @@
     function renderCarrito() {
         const tbody = document.querySelector('#tabla-carrito tbody');
         tbody.innerHTML = '';
-        
+
         let subtotalBruto = 0; // <-- Usaremos esta para sumar el carrito sin afectar el total final todavía
         granTotal = 0;         // Mantenemos tu variable global en 0
 
@@ -682,22 +683,22 @@
         const montoDescuento = subtotalBruto * (descPct / 100);
         const subtotalNeto = subtotalBruto - montoDescuento;
         const montoIva = ivaCheck ? (subtotalNeto * 0.16) : 0;
-        
+
         // Asignamos el total final a tu variable global
         granTotal = subtotalNeto + montoIva;
 
         const fmt = (v) => '$' + v.toLocaleString('es-MX', { minimumFractionDigits: 2 });
-        
+
         // 🎨 DIBUJAMOS EL DESGLOSE EN LA CAJA VERDE
         let textoTotal = '';
-        
+
         // Si hay descuento o IVA, mostramos el texto pequeñito arriba del total
         if (descPct > 0 || ivaCheck) {
             textoTotal += `<span style="font-size: 1rem; font-weight: normal;">Subtotal: ${fmt(subtotalBruto)}</span><br>`;
             if (descPct > 0) textoTotal += `<span style="font-size: 1rem; color: #dc3545;">Desc (${descPct}%): -${fmt(montoDescuento)}</span><br>`;
             if (ivaCheck) textoTotal += `<span style="font-size: 1rem; color: #0d6efd;">IVA (16%): +${fmt(montoIva)}</span><br>`;
         }
-        
+
         // Mostramos el total gigante
         textoTotal += fmt(granTotal);
         document.getElementById('gran-total-display').innerHTML = textoTotal;
