@@ -242,3 +242,26 @@ path('inventario/<int:pk>/stock/', views.editar_stock_producto, name='editar_sto
 2. Verify stock editing works correctly
 3. Test low stock warnings
 4. Deploy to Railway and verify production
+
+---
+
+# Workflow Convention
+
+## Commit & Push
+Every change made to the codebase **must** include a `git commit` and `git push` to the remote repository (`origin/main`).
+
+**Repository:** https://github.com/YonAnn99/Acrylitec
+
+**Commit message format:**
+```
+<type>(<scope>): <description>
+
+Types: feat, fix, refactor, docs, style, chore
+Scopes: POS, inventory, sales, clients, products, dashboard, auth, core
+```
+
+**Files to NEVER commit:**
+- `__pycache__/` directories
+- `db.sqlite3`
+- `.pyc` files
+- `venv/` or `.env`
