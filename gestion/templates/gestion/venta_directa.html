@@ -23,7 +23,8 @@
                             <select id="id_cliente" class="form-select select2">
                                 <option value="">-- Busca o selecciona un cliente --</option>
                                 {% for c in clientes %}
-                                <option value="{{ c.id_cliente }}">{{ c.nombre }}{% if c.telefono %} · {{ c.telefono}}{% endif %}</option>
+                                <option value="{{ c.id_cliente }}">{{ c.nombre }}{% if c.telefono %} · {{ c.telefono}}{%
+                                    endif %}</option>
                                 {% endfor %}
                             </select>
                             <small class="text-muted">El cliente se bloqueará al agregar el primer artículo.</small>
@@ -90,7 +91,8 @@
                                     <option value="">-- Selecciona --</option>
 
                                     {% for t in materiales_tabulador %}
-                                    <option value="{{ t.espesor_mm }}" data-factor="{{ t.factor_costo }}">{{t.espesor_mm }} mm</option>
+                                    <option value="{{ t.espesor_mm }}" data-factor="{{ t.factor_costo }}">{{t.espesor_mm
+                                        }} mm</option>
                                     {% endfor %}
 
                                 </select>
@@ -139,13 +141,24 @@
                 <div class="card-header bg-dark text-white fw-semibold">4. Cobro y Confirmación</div>
                 <div class="card-body">
                     {% csrf_token %}
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
+                    <div class="row align-items-end">
+                        <div class="col-md-2 mb-3">
+                            <label class="form-label">Desc. (%)</label>
+                            <input type="number" id="id_descuento" min="0" max="100" value="0"
+                                class="form-control text-danger fw-bold">
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <div class="form-check form-switch pb-2">
+                                <input class="form-check-input" type="checkbox" id="id_iva">
+                                <label class="form-check-label fw-bold" for="id_iva">+ IVA (16%)</label>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
                             <label class="form-label">Monto abonado ($)</label>
                             <input type="number" id="id_monto_abonado" step="0.01" min="0"
                                 class="form-control text-success fw-bold">
                         </div>
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-4 mb-3">
                             <label class="form-label">Estatus inicial</label>
                             <select name="estatus" id="id_estatus" class="form-select">
                                 <option value="cotizacion">📝 Solo Cotización</option>
@@ -367,6 +380,8 @@
     document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('nc_guardar_recurrente').addEventListener('change', function () {
             document.getElementById('aviso-eventual').classList.toggle('d-none', this.checked);
+            document.getElementById('id_descuento').addEventListener('input', renderCarrito);
+            document.getElementById('id_iva').addEventListener('change', renderCarrito);
         });
 
         // Limpiar modal al cerrarse
@@ -611,7 +626,8 @@
         document.querySelector('input[name="largo_pza"]').value = '';
         document.querySelector('input[name="ancho_pza"]').value = '';
 
-        // Agregué la limpieza de los minutos láser para que no se queden pegados por error
+        // Agregué la 
+        // limpieza de los minutos láser para que no se queden pegados por error
         const inputLaser = document.querySelector('input[name="minutos_lazer"]');
         if (inputLaser) inputLaser.value = '';
 
@@ -622,14 +638,16 @@
     function renderCarrito() {
         const tbody = document.querySelector('#tabla-carrito tbody');
         tbody.innerHTML = '';
-        granTotal = 0;
+        
+        let subtotalBruto = 0; // <-- Usaremos esta para sumar el carrito sin afectar el total final todavía
+        granTotal = 0;         // Mantenemos tu variable global en 0
 
         if (carrito.length === 0) {
             tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-4">El carrito está vacío</td></tr>';
             document.getElementById('id_cliente').disabled = false;
         } else {
             carrito.forEach((item, i) => {
-                granTotal += item.subtotal;
+                subtotalBruto += item.subtotal; // <-- Sumamos al subtotal, no al granTotal
 
                 // Construir el texto extra si el producto tiene descripción
                 let detalleHTML = item.producto_detalle
@@ -657,9 +675,34 @@
             });
         }
 
-        const fmt = (v) => '$' + v.toLocaleString('es-MX', { minimumFractionDigits: 2 });
-        document.getElementById('gran-total-display').innerText = fmt(granTotal);
+        // 🔴 NUEVOS CÁLCULOS DE DESCUENTO E IVA
+        const descPct = parseFloat(document.getElementById('id_descuento').value) || 0;
+        const ivaCheck = document.getElementById('id_iva').checked;
 
+        const montoDescuento = subtotalBruto * (descPct / 100);
+        const subtotalNeto = subtotalBruto - montoDescuento;
+        const montoIva = ivaCheck ? (subtotalNeto * 0.16) : 0;
+        
+        // Asignamos el total final a tu variable global
+        granTotal = subtotalNeto + montoIva;
+
+        const fmt = (v) => '$' + v.toLocaleString('es-MX', { minimumFractionDigits: 2 });
+        
+        // 🎨 DIBUJAMOS EL DESGLOSE EN LA CAJA VERDE
+        let textoTotal = '';
+        
+        // Si hay descuento o IVA, mostramos el texto pequeñito arriba del total
+        if (descPct > 0 || ivaCheck) {
+            textoTotal += `<span style="font-size: 1rem; font-weight: normal;">Subtotal: ${fmt(subtotalBruto)}</span><br>`;
+            if (descPct > 0) textoTotal += `<span style="font-size: 1rem; color: #dc3545;">Desc (${descPct}%): -${fmt(montoDescuento)}</span><br>`;
+            if (ivaCheck) textoTotal += `<span style="font-size: 1rem; color: #0d6efd;">IVA (16%): +${fmt(montoIva)}</span><br>`;
+        }
+        
+        // Mostramos el total gigante
+        textoTotal += fmt(granTotal);
+        document.getElementById('gran-total-display').innerHTML = textoTotal;
+
+        // 💵 Actualizamos la caja de "Monto Abonado" automáticamente
         const elAbono = document.getElementById('id_monto_abonado');
         if (!elAbono.dataset.modificado) elAbono.value = granTotal.toFixed(2);
     }
@@ -681,6 +724,8 @@
             monto_abonado: document.getElementById('id_monto_abonado').value,
             estatus: document.getElementById('id_estatus').value,
             fecha_entrega: document.getElementById('id_fecha_entrega').value,
+            descuento_porcentaje: parseFloat(document.getElementById('id_descuento').value) || 0,
+            incluye_iva: document.getElementById('id_iva').checked,
             carrito,
         };
 

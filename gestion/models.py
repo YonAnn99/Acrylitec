@@ -145,6 +145,8 @@ class Ventas(models.Model):
     id_cotizacion = models.ForeignKey(Cotizaciones, models.DO_NOTHING, db_column='id_cotizacion', blank=True, null=True)
     id_cliente = models.ForeignKey('Clientes', on_delete=models.SET_NULL, null=True, blank=True, db_column='id_cliente_directo')
     monto_abonado = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, verbose_name="Anticipo/Abono")
+    descuento_porcentaje = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)
+    incluye_iva = models.BooleanField(default=False)
     estatus = models.CharField(max_length=20, choices=ESTATUS_CHOICES, default='pendiente')
     fecha_entrega = models.DateField(blank=True, null=True)
     fecha_venta = models.DateField(auto_now_add=True, null=True)
@@ -155,15 +157,18 @@ class Ventas(models.Model):
 
     @property
     def saldo_restante(self):
-        """Calcula automáticamente cuánto debe el cliente sumando el carrito"""
-        # Si es una venta antigua (1 a 1 con cotización)
         if self.id_cotizacion:
-            total = self.id_cotizacion.monto_total
+            total_bruto = self.id_cotizacion.monto_total or Decimal('0.00')
         else:
-            # Si es una venta nueva (carrito), suma los subtotales de DetalleVenta
-            total = sum(detalle.subtotal for detalle in self.detalles.all())
+            total_bruto = sum(detalle.subtotal for detalle in self.detalles.all()) or Decimal('0.00')
             
-        return (total or Decimal('0.00')) - self.monto_abonado
+        
+        descuento = total_bruto * (self.descuento_porcentaje / Decimal('100'))
+        total_neto = total_bruto - descuento
+        iva = total_neto * Decimal('0.16') if self.incluye_iva else Decimal('0.00')
+        
+        gran_total = total_neto + iva
+        return gran_total - self.monto_abonado
 
 
 class ConfiguracionPrecios(models.Model):

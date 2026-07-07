@@ -405,7 +405,7 @@ def nuevo_pedido(request):
     materiales_tabulador = TabuladorCostos.objects.order_by('espesor_mm')
 
     if request.method == 'POST':
-        # 🌟 NUEVA LÓGICA: Recibimos el carrito por JSON (Fetch API)
+        
         if request.headers.get('Content-Type') == 'application/json':
             try:
                 data = json.loads(request.body)
@@ -423,6 +423,8 @@ def nuevo_pedido(request):
                     estatus=data.get('estatus', 'pendiente'),
                     fecha_entrega=data.get('fecha_entrega') or None,
                     fecha_venta=datetime.date.today(),
+                    descuento_porcentaje=Decimal(str(data.get('descuento_porcentaje') or 0)),
+                    incluye_iva=bool(data.get('incluye_iva', False))
                 )
 
                 alertas_stock = []
@@ -512,7 +514,13 @@ def _total_venta(venta):
     """Calcula el total de una venta sin importar si es POS o cotización."""
     if venta.id_cotizacion_id:
         return venta.id_cotizacion.monto_total or Decimal('0')
-    return sum(d.subtotal for d in venta.detalles.all()) or Decimal('0')
+    
+    subtotal = sum(d.subtotal for d in venta.detalles.all()) or Decimal('0')
+    desc = subtotal * (venta.descuento_porcentaje / Decimal('100'))
+    neto = subtotal - desc
+    iva = neto * Decimal('0.16') if venta.incluye_iva else Decimal('0')
+    
+    return neto + iva
 
 def _cliente_nombre(venta):
     """Resuelve nombre del cliente para POS (id_cliente) y cotización legacy."""
