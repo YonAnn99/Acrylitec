@@ -77,13 +77,18 @@
                         <h6 class="text-muted text-uppercase small">Producto / Material</h6>
                         {% if venta.id_cotizacion_id %}
                             <p class="mb-0 fw-bold">{{ venta.id_cotizacion.id_producto.nombre }}</p>
+                            {% if venta.id_cotizacion.id_producto.detalle %}
+                            <p class="mb-0 text-muted small fst-italic">{{ venta.id_cotizacion.id_producto.detalle }}</p>
+                            {% endif %}
                             <p class="mb-0 text-muted small">{{ venta.id_cotizacion.id_material.descripcion }}</p>
                         {% else %}
                             {% for d in venta.detalles.all %}
                             <div class="mb-1">
                                 <p class="mb-0 fw-bold">{{ d.id_producto.nombre }}</p>
+                                {% if d.id_producto.detalle %}
+                                <p class="mb-0 text-muted small fst-italic">{{ d.id_producto.detalle }}</p>
+                                {% endif %}
                                 <p class="mb-0 text-muted small">
-                                    {{ d.id_material.descripcion }} ·
                                     {{ d.largo_pza }}×{{ d.ancho_pza }} cm ·
                                     {{ d.cantidad }} pza(s)
                                 </p>

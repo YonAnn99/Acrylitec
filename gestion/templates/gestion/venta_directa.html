@@ -44,7 +44,7 @@
                     <div class="card-body">
 
                         <div class="row">
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-12 mb-3">
                                 <label class="form-label">Producto</label>
                                 <div class="input-group">
                                     <select id="id_producto" class="form-select select2" required>
@@ -62,18 +62,6 @@
                                         ➕ Nuevo
                                     </button>
                                 </div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Material</label>
-                                <select id="id_material" class="form-select select2">
-                                    <option value="">-- Selecciona material --</option>
-                                    {% for m in materiales %}
-                                    <option value="{{ m.id_material }}"
-                                        data-precio-fijo="{{ m.precio_fijo|default:'' }}">
-                                        {{ m.descripcion }}
-                                    </option>
-                                    {% endfor %}
-                                </select>
                             </div>
                         </div>
 
@@ -190,10 +178,6 @@
                     <div class="d-flex justify-content-between mb-2">
                         <span class="text-muted">Área (por pza):</span>
                         <strong id="display_area">0.00 cm²</strong>
-                    </div>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted">Costo material:</span>
-                        <span id="display_material">$0.00</span>
                     </div>
                     <div class="d-flex justify-content-between mb-2">
                         <span class="text-muted">Utilidad:</span>
@@ -509,20 +493,17 @@
         const inputLargo = document.querySelector('input[name="largo_pza"]');
         const inputAncho = document.querySelector('input[name="ancho_pza"]');
         const selectEspesor = document.getElementById('id_espesor');
-        const selectMaterial = document.getElementById('id_material');
 
         if (precioFijo > 0) {
             // Apagamos required y bloqueamos visualmente (se pondrán en gris)
             if (inputLargo) { inputLargo.required = false; inputLargo.disabled = true; inputLargo.value = ''; }
             if (inputAncho) { inputAncho.required = false; inputAncho.disabled = true; inputAncho.value = ''; }
             if (selectEspesor) { selectEspesor.required = false; selectEspesor.disabled = true; selectEspesor.value = ''; }
-            if (selectMaterial) { selectMaterial.disabled = true; selectMaterial.value = ''; }
         } else {
             // Encendemos required y desbloqueamos (regresan a la normalidad)
             if (inputLargo) { inputLargo.required = true; inputLargo.disabled = false; }
             if (inputAncho) { inputAncho.required = true; inputAncho.disabled = false; }
             if (selectEspesor) { selectEspesor.required = true; selectEspesor.disabled = false; }
-            if (selectMaterial) { selectMaterial.disabled = false; }
         }
 
         const setText = (id, t) => { const el = document.getElementById(id); if (el) el.innerText = t; };
@@ -531,7 +512,7 @@
         // Si el precio es fijo, actualiza el monto y detiene el resto de la función
         if (precioFijo > 0) {
             const total = precioFijo * cantidad;
-            setText('display_area', '-'); setText('display_material', '-');
+            setText('display_area', '-');
             setText('display_utilidad', '-'); setText('display_laser', '-');
             setText('display_total', fmt(total));
             document.getElementById('nota_precio_fijo').style.display = 'block';
@@ -549,7 +530,6 @@
         const totalRenglon = totalUnitario * cantidad;
 
         setText('display_area', (areaCm2 * cantidad).toFixed(2) + ' cm²');
-        setText('display_material', fmt(costoMaterial * cantidad));
         setText('display_utilidad', fmt(costoUtil * cantidad));
         setText('display_laser', fmt(costoLaser));
         setText('display_total', fmt(totalRenglon));
@@ -564,7 +544,6 @@
         // 1. Cliente es opcional (Eliminamos el alert que bloqueaba si estaba vacío)
 
         const prodSel = document.getElementById('id_producto');
-        const matSel = document.getElementById('id_material');
 
         // 2. Solo el producto es estrictamente necesario
         if (!prodSel.value) {
@@ -603,18 +582,10 @@
             document.getElementById('id_cliente').disabled = true;
         }
 
-        // 4. Manejo seguro del nombre del material (porque puede venir vacío)
-        let materialNombre = "-- Sin material específico --";
-        if (matSel.value && matSel.selectedIndex >= 0) {
-            materialNombre = matSel.options[matSel.selectedIndex].text;
-        }
-
         // 5. Agregar el objeto al carrito
         carrito.push({
             producto_id: prodSel.value,
             producto_nombre: optionSeleccionada.text,
-            material_id: matSel.value || null, // Enviamos null si no seleccionó material
-            material_nombre: materialNombre,
             largo: document.querySelector('input[name="largo_pza"]').value || 0,
             ancho: document.querySelector('input[name="ancho_pza"]').value || 0,
             minutos_laser: document.querySelector('input[name="minutos_lazer"]').value || 0,
@@ -628,7 +599,6 @@
 
         // Limpiar formulario para el siguiente artículo
         prodSel.value = '';
-        matSel.value = '';
         if (typeof jQuery !== 'undefined') $('.select2').trigger('change.select2');
         document.querySelector('input[name="largo_pza"]').value = '';
         document.querySelector('input[name="ancho_pza"]').value = '';
@@ -656,7 +626,7 @@
                 <tr>
                     <td>
                         <strong>${item.producto_nombre}</strong>
-                        <br><small class="text-muted">${item.material_nombre} · ${item.largo}×${item.ancho} cm</small>
+                        <br><small class="text-muted">${item.largo}×${item.ancho} cm</small>
                     </td>
                     <td>${item.cantidad}</td>
                     <td class="text-success fw-bold">$${item.subtotal.toFixed(2)}</td>

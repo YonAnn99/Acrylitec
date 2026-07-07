@@ -402,7 +402,6 @@ def eliminar_producto(request, pk):
 def nuevo_pedido(request):
     clientes = Clientes.objects.all()
     productos = Productos.objects.all()
-    materiales = Materiales.objects.all()
     materiales_tabulador = TabuladorCostos.objects.order_by('espesor_mm')
 
     if request.method == 'POST':
@@ -431,10 +430,6 @@ def nuevo_pedido(request):
                 for item in data.get('carrito', []):
                     producto = get_object_or_404(Productos, pk=item['producto_id'])
                     
-                    # 2. Buscar material (Si viene vacío, se queda como None)
-                    material_id = item.get('material_id')
-                    material = Materiales.objects.filter(pk=material_id).first() if material_id else None
-                    
                     cantidad = int(item.get('cantidad', 1))
                     sub_str = str(item.get('subtotal') or 0).replace(',', '.')
 
@@ -448,7 +443,6 @@ def nuevo_pedido(request):
                     DetalleVenta.objects.create(
                         id_venta=venta,
                         id_producto=producto,
-                        id_material=material,
                         cantidad=cantidad,
                         largo_pza=item.get('largo') or 0,
                         ancho_pza=item.get('ancho') or 0,
@@ -457,19 +451,7 @@ def nuevo_pedido(request):
                         subtotal=Decimal(sub_str)
                     )
 
-                    # 3. Descontar stock SOLO si se seleccionó un material
-                    if material:
-                        material.stock_actual = max(0, material.stock_actual - cantidad)
-                        material.save(update_fields=['stock_actual'])
-
-                        if material.stock_actual <= material.stock_minimo:
-                            alertas_stock.append({
-                                'nombre': material.descripcion,
-                                'actual': material.stock_actual,
-                                'minimo': material.stock_minimo,
-                            })
-
-                    # 4. Descontar stock del producto si tiene precio fijo
+                    # 3. Descontar stock del producto si tiene precio fijo
                     if producto.precio_fijo is not None:
                         producto.stock_actual = max(0, producto.stock_actual - cantidad)
                         producto.save(update_fields=['stock_actual'])
@@ -492,7 +474,6 @@ def nuevo_pedido(request):
     return render(request, 'gestion/venta_directa.html', {
         'clientes': clientes,
         'productos': productos,
-        'materiales': materiales,
         'materiales_tabulador': materiales_tabulador,
         'tarifa_laser': _get_tarifa_laser(),
     })
