@@ -23,8 +23,7 @@
                             <select id="id_cliente" class="form-select select2">
                                 <option value="">-- Busca o selecciona un cliente --</option>
                                 {% for c in clientes %}
-                                <option value="{{ c.id_cliente }}">{{ c.nombre }}{% if c.telefono %} · {{ c.telefono
-                                    }}{% endif %}</option>
+                                <option value="{{ c.id_cliente }}">{{ c.nombre }}{% if c.telefono %} · {{ c.telefono}}{% endif %}</option>
                                 {% endfor %}
                             </select>
                             <small class="text-muted">El cliente se bloqueará al agregar el primer artículo.</small>
@@ -91,8 +90,7 @@
                                     <option value="">-- Selecciona --</option>
 
                                     {% for t in materiales_tabulador %}
-                                    <option value="{{ t.espesor_mm }}" data-factor="{{ t.factor_costo }}">{{
-                                        t.espesor_mm }} mm</option>
+                                    <option value="{{ t.espesor_mm }}" data-factor="{{ t.factor_costo }}">{{t.espesor_mm }} mm</option>
                                     {% endfor %}
 
                                 </select>
