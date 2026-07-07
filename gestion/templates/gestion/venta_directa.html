@@ -23,7 +23,8 @@
                             <select id="id_cliente" class="form-select select2">
                                 <option value="">-- Busca o selecciona un cliente --</option>
                                 {% for c in clientes %}
-                                <option value="{{ c.id_cliente }}">{{ c.nombre }}{% if c.telefono %} · {{ c.telefono }}{% endif %}</option>
+                                <option value="{{ c.id_cliente }}">{{ c.nombre }}{% if c.telefono %} · {{ c.telefono
+                                    }}{% endif %}</option>
                                 {% endfor %}
                             </select>
                             <small class="text-muted">El cliente se bloqueará al agregar el primer artículo.</small>
@@ -52,7 +53,8 @@
                                         {% for p in productos %}
                                         <option value="{{ p.id_producto }}"
                                             data-precio-fijo="{{ p.precio_fijo|default:'' }}"
-                                            data-stock-actual="{{ p.stock_actual }}">
+                                            data-stock-actual="{{ p.stock_actual }}"
+                                            data-detalle="{{ p.detalle|default:'' }}">
                                             {{ p.nombre }}
                                         </option>
                                         {% endfor %}
@@ -88,7 +90,8 @@
                                 <select name="espesor_mm" id="id_espesor" class="form-select" required>
                                     <option value="">-- Selecciona --</option>
                                     {% for t in materiales_tabulador %}
-                                    <option value="{{ t.espesor_mm }}" data-factor="{{ t.factor_costo }}">{{ t.espesor_mm }} mm</option>
+                                    <option value="{{ t.espesor_mm }}" data-factor="{{ t.factor_costo }}">{{
+                                        t.espesor_mm }} mm</option>
                                     {% endfor %}
                                 </select>
                             </div>
@@ -207,41 +210,44 @@
 </div><!-- /container -->
 
 <div class="modal fade" id="modalNuevoProducto" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title">📦 Agregar Nuevo Producto</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <form id="formNuevoProducto">
-          <div class="mb-3">
-            <label class="form-label">Nombre del Producto <span class="text-danger">*</span></label>
-            <input type="text" class="form-control" id="np_nombre" placeholder="Ej. Llavero grabado" required>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Descripción (Opcional)</label>
-            <input type="text" class="form-control" id="np_descripcion">
-          </div>
-          <div class="row">
-              <div class="col-md-6 mb-3">
-                <label class="form-label">% Utilidad <span class="text-danger">*</span></label>
-                <input type="number" class="form-control" id="np_utilidad" value="40" required>
-              </div>
-              <div class="col-md-6 mb-3">
-                <label class="form-label">Precio Fijo ($) (Opcional)</label>
-                <input type="number" step="0.01" class="form-control" id="np_precio_fijo" placeholder="Ej. 500.00">
-                <div class="form-text" style="font-size: 0.75rem;">Vacío = cálculo por m²</div>
-              </div>
-          </div>
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn btn-primary" id="btnGuardarProducto">Guardar Producto</button>
-      </div>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">📦 Agregar Nuevo Producto</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formNuevoProducto">
+                    <div class="mb-3">
+                        <label class="form-label">Nombre del Producto <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="np_nombre" placeholder="Ej. Llavero grabado"
+                            required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Descripción (Opcional)</label>
+                        <input type="text" class="form-control" id="np_descripcion">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">% Utilidad <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="np_utilidad" value="40" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Precio Fijo ($) (Opcional)</label>
+                            <input type="number" step="0.01" class="form-control" id="np_precio_fijo"
+                                placeholder="Ej. 500.00">
+                            <div class="form-text" style="font-size: 0.75rem;">Vacío = cálculo por m²</div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btnGuardarProducto">Guardar Producto</button>
+            </div>
+        </div>
     </div>
-  </div>
 </div>
 <!-- ═══════════════════════════════════════════════════════════
      MODAL — Nuevo Cliente
@@ -555,6 +561,7 @@
         const optionSeleccionada = prodSel.options[prodSel.selectedIndex];
         const precioFijo = optionSeleccionada.getAttribute('data-precio-fijo');
         const stockActual = parseInt(optionSeleccionada.getAttribute('data-stock-actual')) || 0;
+        const detalleProducto = optionSeleccionada.getAttribute('data-detalle') || '';
         let subtotal = 0;
 
         // Validar stock del producto con precio fijo
@@ -564,7 +571,7 @@
         }
 
         if (precioFijo && precioFijo.trim() !== '' && precioFijo !== 'None') {
-            
+
             const cantidadPza = parseInt(document.getElementById('id_cantidad').value) || 1;
             subtotal = parseFloat(precioFijo.replace(',', '.')) * cantidadPza;
         } else {
@@ -586,6 +593,7 @@
         carrito.push({
             producto_id: prodSel.value,
             producto_nombre: optionSeleccionada.text,
+            producto_detalle: detalleProducto,
             largo: document.querySelector('input[name="largo_pza"]').value || 0,
             ancho: document.querySelector('input[name="ancho_pza"]').value || 0,
             minutos_laser: document.querySelector('input[name="minutos_lazer"]').value || 0,
@@ -622,11 +630,23 @@
         } else {
             carrito.forEach((item, i) => {
                 granTotal += item.subtotal;
+
+                // Construir el texto extra si el producto tiene descripción
+                let detalleHTML = item.producto_detalle
+                    ? `<br><small class="text-muted fst-italic">${item.producto_detalle}</small>`
+                    : '';
+
+                // Mostrar medidas solo si se capturaron (mayor a 0)
+                let medidasHTML = (item.largo > 0 || item.ancho > 0)
+                    ? `<br><small class="text-muted">Medidas: ${item.largo}×${item.ancho} cm</small>`
+                    : '';
+
                 tbody.innerHTML += `
                 <tr>
                     <td>
                         <strong>${item.producto_nombre}</strong>
-                        <br><small class="text-muted">${item.largo}×${item.ancho} cm</small>
+                        ${detalleHTML}
+                        ${medidasHTML}
                     </td>
                     <td>${item.cantidad}</td>
                     <td class="text-success fw-bold">$${item.subtotal.toFixed(2)}</td>
@@ -722,73 +742,75 @@
         });
     });
 
-// ══════════════════════════════════════════════════════
-// CREAR PRODUCTO RÁPIDO (AJAX)
-// ══════════════════════════════════════════════════════
-document.getElementById('btnGuardarProducto')?.addEventListener('click', function() {
-    const nombre = document.getElementById('np_nombre').value;
-    const desc = document.getElementById('np_descripcion').value;
-    const utilidad = document.getElementById('np_utilidad').value;
-    const precioFijo = document.getElementById('np_precio_fijo').value;
+    // ══════════════════════════════════════════════════════
+    // CREAR PRODUCTO RÁPIDO (AJAX)
+    // ══════════════════════════════════════════════════════
+    document.getElementById('btnGuardarProducto')?.addEventListener('click', function () {
+        const nombre = document.getElementById('np_nombre').value;
+        const desc = document.getElementById('np_descripcion').value;
+        const utilidad = document.getElementById('np_utilidad').value;
+        const precioFijo = document.getElementById('np_precio_fijo').value;
 
-    if (!nombre || !utilidad) {
-        alert('El nombre y el % de utilidad son obligatorios.');
-        return;
-    }
-
-    this.disabled = true;
-    this.innerText = 'Guardando...';
-
-    // Asegúrate de tener la URL configurada en urls.py como 'crear_producto_rapido'
-    fetch("{% url 'crear_producto_rapido' %}", {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': CSRF 
-        },
-        body: JSON.stringify({
-            nombre: nombre,
-            descripcion: desc,
-            utilidad: utilidad,
-            precio_fijo: precioFijo
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        this.disabled = false;
-        this.innerText = 'Guardar Producto';
-
-        if (data.ok) {
-            // 1. Cerrar el modal
-            const modalEl = document.getElementById('modalNuevoProducto');
-            const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
-            modal.hide();
-
-            // 2. Agregar el nuevo producto a la lista desplegable y seleccionarlo
-            const select = document.getElementById('id_producto');
-            const newOption = new Option(data.nombre, data.id, false, true);
-            // Inyectamos los atributos: data-precio-fijo y data-stock-actual
-            newOption.setAttribute('data-precio-fijo', data.precio_fijo);
-            newOption.setAttribute('data-stock-actual', data.stock_actual || 0);
-            select.add(newOption);
-            
-            // 3. Forzar el recálculo
-            select.dispatchEvent(new Event('change'));
-            if (typeof jQuery !== 'undefined') $(select).trigger('change.select2');
-
-            // 4. Limpiar el formulario
-            document.getElementById('formNuevoProducto').reset();
-            document.getElementById('np_utilidad').value = "40"; 
-            
-        } else {
-            alert('Error: ' + data.error);
+        if (!nombre || !utilidad) {
+            alert('El nombre y el % de utilidad son obligatorios.');
+            return;
         }
-    })
-    .catch(error => {
-        this.disabled = false;
-        this.innerText = 'Guardar Producto';
-        alert('Ocurrió un error de conexión al guardar el producto.');
-    });
-});  
+
+        this.disabled = true;
+        this.innerText = 'Guardando...';
+
+        // Asegúrate de tener la URL configurada en urls.py como 'crear_producto_rapido'
+        fetch("{% url 'crear_producto_rapido' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': CSRF
+            },
+            body: JSON.stringify({
+                nombre: nombre,
+                descripcion: desc,
+                utilidad: utilidad,
+                precio_fijo: precioFijo
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+                this.disabled = false;
+                this.innerText = 'Guardar Producto';
+
+                if (data.ok) {
+                    // 1. Cerrar el modal
+                    const modalEl = document.getElementById('modalNuevoProducto');
+                    const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                    modal.hide();
+
+                    // 2. Agregar el nuevo producto a la lista desplegable y seleccionarlo
+                    const select = document.getElementById('id_producto');
+                    const newOption = new Option(data.nombre, data.id, false, true);
+                    
+                    // Inyectamos los atributos: data-precio-fijo, data-stock-actual y data-detalle
+                    newOption.setAttribute('data-precio-fijo', data.precio_fijo);
+                    newOption.setAttribute('data-stock-actual', data.stock_actual || 0);
+                    newOption.setAttribute('data-detalle', document.getElementById('np_descripcion').value); // <-- LÍNEA NUEVA
+                    select.add(newOption);
+
+                    // 3. Forzar el recálculo
+                    select.dispatchEvent(new Event('change'));
+                    if (typeof jQuery !== 'undefined') $(select).trigger('change.select2');
+
+                    // 4. Limpiar el formulario
+                    document.getElementById('formNuevoProducto').reset();
+                    document.getElementById('np_utilidad').value = "40";
+
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                this.disabled = false;
+                this.innerText = 'Guardar Producto';
+                alert('Ocurrió un error de conexión al guardar el producto.');
+            });
+    });  
 </script>
 {% endblock %}
