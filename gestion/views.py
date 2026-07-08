@@ -24,17 +24,32 @@ from .models import (
 )
 
 
+# --- VALIDACIONES DE SEGURIDAD ---
 EXTENSIONES_PERMITIDAS = {'.jpg', '.jpeg', '.png', '.webp', '.gif'}
-TIPOS_MIME_PERMITIDOS = {'jpeg', 'png', 'gif', 'webp'}
 TAMANO_MAXIMO_MB = 5
+
+def _obtener_tipo_real(archivo):
+    """Lee los primeros bytes para descubrir el tipo real de la imagen."""
+    cabecera = archivo.read(32)
+    archivo.seek(0)  # 🔴 CRÍTICO: Regresar el puntero al inicio para que Django pueda guardar el archivo después
+    
+    if cabecera.startswith(b'\xff\xd8'):
+        return 'jpeg'
+    elif cabecera.startswith(b'\x89PNG\r\n\x1a\n'):
+        return 'png'
+    elif cabecera.startswith(b'GIF87a') or cabecera.startswith(b'GIF89a'):
+        return 'gif'
+    elif cabecera.startswith(b'RIFF') and b'WEBP' in cabecera[:16]:
+        return 'webp'
+    return None
 
 def _validar_imagen(archivo):
     ext = os.path.splitext(archivo.name)[1].lower()
     if ext not in EXTENSIONES_PERMITIDAS:
-        raise ValueError(f"Extensión no permitida: {ext}. Solo imágenes.")
+        raise ValueError(f"Extensión no permitida: {ext}. Solo se aceptan imágenes.")
     
-    tipo_real = imghdr.what(archivo)
-    if tipo_real not in TIPOS_MIME_PERMITIDOS:
+    tipo_real = _obtener_tipo_real(archivo)
+    if not tipo_real:
         raise ValueError("El archivo no es una imagen válida o está corrupto.")
     
     if archivo.size > TAMANO_MAXIMO_MB * 1024 * 1024:
