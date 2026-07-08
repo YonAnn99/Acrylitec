@@ -4,7 +4,6 @@ import datetime
 import json
 from decimal import Decimal, ROUND_HALF_UP
 from collections import defaultdict
-import imghdr  # Para leer los bytes reales de la imagen
 from decimal import Decimal, ROUND_HALF_UP, InvalidOperation  # Agrega InvalidOperation aquí
 from django.core.cache import cache
 
