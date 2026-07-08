@@ -4,6 +4,9 @@ import datetime
 import json
 from decimal import Decimal, ROUND_HALF_UP
 from collections import defaultdict
+import imghdr  # Para leer los bytes reales de la imagen
+from decimal import Decimal, ROUND_HALF_UP, InvalidOperation  # Agrega InvalidOperation aquí
+from django.core.cache import cache
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
@@ -17,7 +20,28 @@ from django.conf import settings
 from .models import (
     Materiales, Clientes, Cotizaciones, Productos,
     TabuladorCostos, Ventas, ConfiguracionPrecios, DetalleVenta
+    
 )
+
+
+EXTENSIONES_PERMITIDAS = {'.jpg', '.jpeg', '.png', '.webp', '.gif'}
+TIPOS_MIME_PERMITIDOS = {'jpeg', 'png', 'gif', 'webp'}
+TAMANO_MAXIMO_MB = 5
+
+def _validar_imagen(archivo):
+    ext = os.path.splitext(archivo.name)[1].lower()
+    if ext not in EXTENSIONES_PERMITIDAS:
+        raise ValueError(f"Extensión no permitida: {ext}. Solo imágenes.")
+    
+    tipo_real = imghdr.what(archivo)
+    if tipo_real not in TIPOS_MIME_PERMITIDOS:
+        raise ValueError("El archivo no es una imagen válida o está corrupto.")
+    
+    if archivo.size > TAMANO_MAXIMO_MB * 1024 * 1024:
+        raise ValueError(f"La imagen no puede superar {TAMANO_MAXIMO_MB} MB.")
+    
+    return ext
+
 # ── Helpers de rol ──────────────────────────────────────────
 def es_admin(user):
     return user.is_authenticated and (
@@ -338,11 +362,18 @@ def lista_productos(request):
 def crear_producto(request):
     if request.method == 'POST':
         precio_fijo = request.POST.get('precio_fijo') or None
+        
+        # 🔴 REVISA AMBOS BOTONES
+        foto_archivo = request.FILES.get('foto') or request.FILES.get('foto_camara')
         foto_path = None
-        if 'foto' in request.FILES:
-            foto = request.FILES['foto']
-            ext = os.path.splitext(foto.name)[1]
-            foto_path = default_storage.save(f"productos/{uuid.uuid4().hex}{ext}", foto)
+        
+        if foto_archivo:
+            try:
+                ext = _validar_imagen(foto_archivo)
+                foto_path = default_storage.save(f"productos/{uuid.uuid4().hex}{ext}", foto_archivo)
+            except ValueError as e:
+                messages.error(request, str(e))
+                return render(request, 'gestion/producto_form.html', {'accion': 'Crear'})
 
         Productos.objects.create(
             nombre=request.POST.get('nombre'),
@@ -363,16 +394,23 @@ def editar_producto(request, pk):
         producto.detalle = request.POST.get('detalle')
         producto.porcentaje_utilidad = request.POST.get('porcentaje_utilidad') or 40
         producto.precio_fijo = request.POST.get('precio_fijo') or None
-        if 'foto' in request.FILES:
-            foto = request.FILES['foto']
-            ext = os.path.splitext(foto.name)[1]
-            if producto.foto:
-                try:
-                    default_storage.delete(producto.foto)
-                except Exception:
-                    pass
-            producto.foto = default_storage.save(
-                f"productos/{uuid.uuid4().hex}{ext}", foto)
+        
+        # 🔴 REVISA AMBOS BOTONES
+        foto_archivo = request.FILES.get('foto') or request.FILES.get('foto_camara')
+        
+        if foto_archivo:
+            try:
+                ext = _validar_imagen(foto_archivo)
+                if producto.foto:
+                    try:
+                        default_storage.delete(producto.foto)
+                    except Exception:
+                        pass
+                producto.foto = default_storage.save(f"productos/{uuid.uuid4().hex}{ext}", foto_archivo)
+            except ValueError as e:
+                messages.error(request, str(e))
+                return render(request, 'gestion/producto_form.html', {'accion': 'Editar', 'producto': producto})
+                
         producto.save()
         return redirect('lista_productos')
     return render(request, 'gestion/producto_form.html',
