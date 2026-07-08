@@ -14,15 +14,28 @@ from pathlib import Path
 import dj_database_url
 from dotenv import load_dotenv
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
+SECRET_KEY = os.environ.get('SECRET_KEY')
+
+# Validación de seguridad extra: si por algo Railway no lee la clave, 
+# el log nos dirá exactamente esto en lugar de un Error 500 genérico.
+if not SECRET_KEY:
+    raise ValueError("¡ALERTA! No se encontró la variable SECRET_KEY en el entorno.")
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-load_dotenv()
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('SECRET_KEY')
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
