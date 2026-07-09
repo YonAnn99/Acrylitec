@@ -193,12 +193,12 @@
                         onclick="togglePassword()"
                         style="position:absolute;right:12px;top:50%;transform:translateY(-50%);
                                background:none;border:none;cursor:pointer;
-                               color:var(--clr-text-muted);font-size:1.1rem;padding:0;
+                               color:var(--clr-text-muted);font-size:1.2rem;padding:0;
                                display:flex;align-items:center;"
                         tabindex="-1"
                         aria-label="Mostrar contraseña">
-                        <span id="eye-icon">👁️</span>
-                    </button>
+                        <i id="eye-icon" class="bi bi-eye"></i>
+                    </button>   
                 </div>
             </div>
 
@@ -216,15 +216,15 @@
     function togglePassword() {
         const input = document.getElementById('id_password');
         const icon  = document.getElementById('eye-icon');
+        
         if (input.type === 'password') {
             input.type = 'text';
-            icon.textContent = '🙈';
+            icon.className = 'bi bi-eye-slash'; // Ícono de ojo tachado
         } else {
             input.type = 'password';
-            icon.textContent = '👁️';
+            icon.className = 'bi bi-eye'; // Ícono de ojo normal
         }
     }
     </script>
-
 </body>
 </html>
