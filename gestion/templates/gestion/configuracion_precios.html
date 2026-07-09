@@ -65,20 +65,33 @@
             <div class="card-header bg-dark text-white">📐 Factor de Costo por m²</div>
             <div class="card-body">
                 <p class="text-muted small">Multiplica el área en m² para obtener el costo base.</p>
-                {% for tab in tabuladores %}
-                <form method="POST" class="mb-3">
-                    {% csrf_token %}
-                    <input type="hidden" name="accion" value="factor_costo">
-                    <input type="hidden" name="tabulador_id" value="{{ tab.id_tabulador }}">
-                    <label class="form-label fw-bold mb-1">Espesor {{ tab.espesor_mm }} mm</label>
-                    <div class="input-group input-group-sm">
-                        <span class="input-group-text">$</span>
-                        <input type="number" name="factor_costo" step="0.01" min="1"
-                               value="{{ tab.factor_costo }}" class="form-control" required>
-                        <span class="input-group-text">/m²</span>
-                        <button type="submit" class="btn btn-sm btn-outline-dark">Guardar</button>
-                    </div>
-                </form>
+{% for tab in tabuladores %}
+                <label class="form-label fw-bold mb-1">Espesor {{ tab.espesor_mm }} mm</label>
+                <div class="d-flex gap-2 align-items-center mb-3">
+                    
+                    <form method="POST" class="flex-grow-1 mb-0">
+                        {% csrf_token %}
+                        <input type="hidden" name="accion" value="factor_costo">
+                        <input type="hidden" name="tabulador_id" value="{{ tab.id_tabulador }}">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text">$</span>
+                            <input type="number" name="factor_costo" step="0.01" min="1"
+                                   value="{{ tab.factor_costo }}" class="form-control" required>
+                            <span class="input-group-text">/m²</span>
+                            <button type="submit" class="btn btn-sm btn-outline-dark">Guardar</button>
+                        </div>
+                    </form>
+
+                    <form method="POST" class="mb-0" onsubmit="return confirm('¿Estás seguro de eliminar el espesor de {{ tab.espesor_mm }} mm?');">
+                        {% csrf_token %}
+                        <input type="hidden" name="accion" value="eliminar_tabulador">
+                        <input type="hidden" name="tabulador_id" value="{{ tab.id_tabulador }}">
+                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar espesor">
+                            🗑️
+                        </button>
+                    </form>
+
+                </div>
                 {% empty %}
                 <p class="text-muted">Sin tabuladores. Agrega uno abajo.</p>
                 {% endfor %}

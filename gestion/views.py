@@ -892,6 +892,15 @@ def configuracion_precios(request):
             TabuladorCostos.objects.create(
                 espesor_mm=request.POST.get('espesor_mm'),
                 factor_costo=request.POST.get('factor_costo_nuevo'))
+        elif accion == 'eliminar_tabulador':
+            try:
+                tabulador_id = request.POST.get('tabulador_id')
+                # Busramos y eliminamos el registro de la base de datos
+                TabuladorCostos.objects.filter(pk=tabulador_id).delete()
+                messages.success(request, 'Espesor eliminado correctamente.')
+            except Exception as e:
+                messages.error(request, f'Ocurrió un error al eliminar: {str(e)}')    
+            
         return redirect('configuracion_precios')
 
     return render(request, 'gestion/configuracion_precios.html', {
