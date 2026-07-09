@@ -122,7 +122,7 @@
         </div>
 
         <div class="table-container">
-            <table class="table table-hover">
+<table class="table table-hover">
                 <thead>
                     <tr>
                         <th style="width: 15%; text-align: center;">Pedido</th>
@@ -135,23 +135,28 @@
                     {% for v in pedidos_activos %}
                     <tr>
                         <td class="text-center align-middle">
-                            <span class="folio-tag d-inline-block mb-1">VTA-{{ v.id_venta|stringformat:"04d" }}</span>
-                            <div class="text-muted small fw-bold mt-1" style="font-size: 1.1rem; line-height: 1.1;">{{
-                                v.cliente_nombre|default:"—" }}</div>
+                            <span class="folio-tag d-inline-block mb-1">
+                                VTA-{{ v.id_venta|stringformat:"04d" }}
+                            </span>
+                            <div class="text-muted small fw-bold mt-1" style="font-size: 1.1rem; line-height: 1.1;">
+                                {{ v.cliente_nombre|default:"—" }}
+                            </div>
                         </td>
                         <td class="align-middle">
-                            <div class="fw-bold text-dark" style="font-size: 2.2rem; line-height: 1.2;">{{
-                                v.producto_nombre|default:"—" }}</div>
+                            <div class="fw-bold text-dark" style="font-size: 2.2rem; line-height: 1.2;">
+                                {{ v.producto_nombre|default:"—" }}
+                            </div>
                         </td>
                         <td class="align-middle">
                             {% if v.estatus == 'en_produccion' %}
-                            <span class="badge bg-warning text-dark">🔧 En producción</span>
+                                <span class="badge bg-warning text-dark">🔧 En producción</span>
                             {% elif v.estatus == 'pagada' %}
-                            <span class="badge bg-success">💰 Pagada</span>
+                                <span class="badge bg-success">💰 Pagada</span>
                             {% endif %}
                         </td>
-                        <td class="fecha-entrega align-middle" style="font-size: 2.2rem;">{{ v.fecha_entrega|default:"—"
-                            }}</td>
+                        <td class="fecha-entrega align-middle" style="font-size: 2.2rem;">
+                            {{ v.fecha_entrega|default:"—" }}
+                        </td>
                     </tr>
                     {% empty %}
                     <tr>
