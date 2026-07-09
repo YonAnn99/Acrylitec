@@ -152,13 +152,12 @@
             <i class="bi bi-exclamation-triangle me-1"></i>
             {{ error }}
         </div>
-        {% elif form.errors %}
+        {% elif form.errors and request.method == 'POST' %}
         <div class="alert alert-danger text-center mb-4" role="alert">
             <i class="bi bi-exclamation-triangle me-1"></i>
             Usuario o contraseña incorrectos.
         </div>
         {% endif %}
-
         <!-- Formulario -->
         <form method="POST" autocomplete="on">
             {% csrf_token %}
