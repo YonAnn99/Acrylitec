@@ -70,6 +70,8 @@ def crear_producto_rapido(request):
             nombre = data.get('nombre')
             utilidad = data.get('utilidad', 40)
             precio_fijo = data.get('precio_fijo')
+            stock_actual = data.get('stock_actual', 0)
+            stock_minimo = data.get('stock_minimo', 0)
 
             if not nombre:
                 return JsonResponse({'ok': False, 'error': 'El nombre es obligatorio.'})
@@ -81,14 +83,17 @@ def crear_producto_rapido(request):
                 nombre=nombre,
                 detalle=data.get('descripcion', ''),
                 porcentaje_utilidad=Decimal(utilidad),
-                precio_fijo=precio_val
+                precio_fijo=precio_val,
+                stock_actual=int(stock_actual),
+                stock_minimo=int(stock_minimo)
             )
 
             return JsonResponse({
                 'ok': True,
                 'id': nuevo_prod.id_producto,
                 'nombre': nuevo_prod.nombre,
-                'precio_fijo': str(nuevo_prod.precio_fijo) if nuevo_prod.precio_fijo else ''
+                'precio_fijo': str(nuevo_prod.precio_fijo) if nuevo_prod.precio_fijo else '',
+                'stock_actual': nuevo_prod.stock_actual
             })
         except Exception as e:
             return JsonResponse({'ok': False, 'error': str(e)})
