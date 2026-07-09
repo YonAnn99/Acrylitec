@@ -831,12 +831,12 @@ def dashboard(request):
 
     # ── Pedidos activos (pendiente + en producción) ───────────────────────
     pedidos_activos_qs = (Ventas.objects
-                          .filter(estatus__in=['cotizacion', 'pendiente', 'en_produccion'])
+                          .filter(estatus__in=['pagada', 'en_produccion'])
                           .select_related('id_cotizacion__id_cliente',
                                           'id_cotizacion__id_producto',
                                           'id_cliente')
                           .prefetch_related('detalles__id_producto')
-                          .order_by('-fecha_venta'))
+                          .order_by('fecha_entrega', 'id_venta'))
 
     # Enriquecer con nombre de cliente/producto usando helpers compartidos
     pedidos_activos = []
@@ -916,12 +916,12 @@ def configuracion_precios(request):
 def pantalla_pendientes(request):
     # Traemos los mismos pedidos activos que el Dashboard
     pedidos_activos_qs = (Ventas.objects
-                          .filter(estatus__in=['cotizacion', 'pendiente', 'en_produccion'])
+                          .filter(estatus__in=['pagada', 'en_produccion'])
                           .select_related('id_cotizacion__id_cliente',
                                           'id_cotizacion__id_producto',
                                           'id_cliente')
                           .prefetch_related('detalles__id_producto')
-                          .order_by('-fecha_venta'))
+                          .order_by('fecha_entrega', 'id_venta'))
 
     pedidos_activos = []
     for v in pedidos_activos_qs:

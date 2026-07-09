@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,19 +9,20 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         /* Estética general igual al sistema (fondo claro) */
-        body { 
-            background-color: #f8f9fa; 
-            font-family: 'Segoe UI', system-ui, sans-serif; 
-            padding: 1.5rem; 
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            padding: 1.5rem;
             height: 100vh;
-            overflow: hidden; /* Evita el scroll general */
+            overflow: hidden;
+            /* Evita el scroll general */
         }
-        
+
         /* Contenedor principal estilo Tarjeta gigante */
         .monitor-card {
             background: #fff;
             border-radius: 1rem;
-            box-shadow: 0 .5rem 1rem rgba(0,0,0,.10);
+            box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .10);
             height: 100%;
             display: flex;
             flex-direction: column;
@@ -36,18 +38,31 @@
             justify-content: space-between;
             align-items: center;
         }
-        .monitor-title { font-size: 2.5rem; font-weight: 700; margin: 0; }
-        .monitor-clock { font-size: 2.2rem; font-weight: 500; color: #adb5bd; }
+
+        .monitor-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .monitor-clock {
+            font-size: 2.2rem;
+            font-weight: 500;
+            color: #adb5bd;
+        }
 
         /* Contenedor de la tabla con scroll interno si hay muchos pedidos */
-        .table-container { 
-            flex: 1; 
-            overflow-y: auto; 
-            padding: 0; 
+        .table-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0;
         }
-        
+
         /* Ajustes de la tabla para TV */
-        .table { margin-bottom: 0; }
+        .table {
+            margin-bottom: 0;
+        }
+
         .table th {
             font-size: 1.3rem;
             color: #6c757d;
@@ -56,10 +71,12 @@
             background-color: #f1f3f5;
             padding: 1.2rem 2.5rem;
             position: sticky;
-            top: 0; /* Deja los títulos fijos al hacer scroll */
+            top: 0;
+            /* Deja los títulos fijos al hacer scroll */
             z-index: 10;
             border-bottom: 2px solid #dee2e6;
         }
+
         .table td {
             font-size: 1.8rem;
             font-weight: 600;
@@ -68,56 +85,80 @@
             color: #212529;
             border-bottom: 1px solid #e9ecef;
         }
-        .table tbody tr:hover { background-color: #f8f9fa; }
-        
+
+        .table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
         /* Elementos visuales */
-        .badge { font-size: 1.4rem; padding: 0.6em 0.8em; border-radius: 0.5rem; }
-        .folio-tag { background-color: #e9ecef; color: #495057; padding: 0.3rem 0.8rem; border-radius: 0.4rem; font-family: monospace; font-size: 1.5rem; }
-        .fecha-entrega { color: #dc3545; font-weight: 700; }
+        .badge {
+            font-size: 1.4rem;
+            padding: 0.6em 0.8em;
+            border-radius: 0.5rem;
+        }
+
+        .folio-tag {
+            background-color: #e9ecef;
+            color: #495057;
+            padding: 0.3rem 0.8rem;
+            border-radius: 0.4rem;
+            font-family: monospace;
+            font-size: 1.5rem;
+        }
+
+        .fecha-entrega {
+            color: #dc3545;
+            font-weight: 700;
+        }
     </style>
 </head>
+
 <body>
 
     <div class="monitor-card">
         <div class="monitor-header">
-            <div class="monitor-title">📦 Monitor de Producción — Acrylitec</div>
+            <div class="monitor-title">Monitor de Producción</div>
             <div class="monitor-clock" id="reloj"></div>
         </div>
-        
+
         <div class="table-container">
             <table class="table table-hover">
                 <thead>
                     <tr>
-                        <th>Folio</th>
-                        <th>Cliente</th>
-                        <th>Producto</th>
-                        <th>Estatus</th>
-                        <th>Entrega</th>
+                        <th style="width: 15%; text-align: center;">Pedido</th>
+                        <th style="width: 50%;">Descripción para Fabricación</th>
+                        <th style="width: 15%;">Estatus</th>
+                        <th style="width: 20%;">Entrega</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for v in pedidos_activos %}
                     <tr>
-                        <td><span class="folio-tag">VTA-{{ v.id_venta|stringformat:"04d" }}</span></td>
-                        <td>{{ v.cliente_nombre|default:"—" }}</td>
-                        <td class="text-muted fw-normal">{{ v.producto_nombre|default:"—" }}</td>
-                        <td>
-                            {% if v.estatus == 'pendiente' %}
-                                <span class="badge bg-secondary">⏳ Pendiente</span>
-                            {% elif v.estatus == 'en_produccion' %}
-                                <span class="badge bg-warning text-dark">🔧 En producción</span>
-                            {% elif v.estatus == 'cotizacion' %}
-                                <span class="badge bg-info text-dark">📝 Cotización</span>
+                        <td class="text-center align-middle">
+                            <span class="folio-tag d-inline-block mb-1">VTA-{{ v.id_venta|stringformat:"04d" }}</span>
+                            <div class="text-muted small fw-bold mt-1" style="font-size: 1.1rem; line-height: 1.1;">{{
+                                v.cliente_nombre|default:"—" }}</div>
+                        </td>
+                        <td class="align-middle">
+                            <div class="fw-bold text-dark" style="font-size: 2.2rem; line-height: 1.2;">{{
+                                v.producto_nombre|default:"—" }}</div>
+                        </td>
+                        <td class="align-middle">
+                            {% if v.estatus == 'en_produccion' %}
+                            <span class="badge bg-warning text-dark">🔧 En producción</span>
+                            {% elif v.estatus == 'pagada' %}
+                            <span class="badge bg-success">💰 Pagada</span>
                             {% endif %}
                         </td>
-                        <td class="fecha-entrega">{{ v.fecha_entrega|default:"—" }}</td>
+                        <td class="fecha-entrega align-middle" style="font-size: 2.2rem;">{{ v.fecha_entrega|default:"—"
+                            }}</td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="5" class="text-center py-5">
+                        <td colspan="4" class="text-center py-5">
                             <div style="font-size: 4rem; margin-bottom: 1rem;">✅</div>
-                            <h2 class="text-muted fw-bold">Todo al día</h2>
-                            <p class="text-muted fs-4">No hay pedidos pendientes en el taller.</p>
+                            <h2 class="text-muted fw-bold">Taller libre</h2>
+                            <p class="text-muted fs-4">No hay pedidos pendientes de fabricación.</p>
                         </td>
                     </tr>
                     {% endfor %}
@@ -133,7 +174,7 @@
             let minutos = ahora.getMinutes();
             let ampm = horas >= 12 ? 'p.m.' : 'a.m.';
             horas = horas % 12;
-            horas = horas ? horas : 12; 
+            horas = horas ? horas : 12;
             minutos = minutos < 10 ? '0' + minutos : minutos;
             document.getElementById('reloj').innerText = horas + ':' + minutos + ' ' + ampm;
         }
@@ -141,4 +182,5 @@
         actualizarReloj();
     </script>
 </body>
+
 </html>

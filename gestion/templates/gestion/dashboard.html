@@ -274,32 +274,33 @@
             </div>
             <div class="card-body p-0">
                 {% if pedidos_activos %}
-                <table class="table table-sm mb-0">
+                <table class="table table-sm mb-0 table-hover">
                     <thead>
                         <tr>
-                            <th>#</th>
-                            <th>Cliente</th>
-                            <th>Producto</th>
-                            <th>Estatus</th>
-                            <th>Entrega</th>
+                            <th style="width: 15%;">#</th>
+                            <th style="width: 45%;">Producto a fabricar</th>
+                            <th style="width: 20%;">Estatus</th>
+                            <th style="width: 20%;">Entrega</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for v in pedidos_activos %}
                         <tr>
-                            <td><small>{{ v.id_venta }}</small></td>
-                            <td><small>{{ v.cliente_nombre|default:"—" }}</small></td>
-                            <td><small>{{ v.producto_nombre|default:"—" }}</small></td>
-                            <td>
-                                {% if v.estatus == 'pendiente' %}
-                                <span class="badge bg-secondary">Pendiente</span>
-                                {% elif v.estatus == 'en_produccion' %}
-                                <span class="badge bg-warning">En producción</span>
-                                {% elif v.estatus == 'cotizacion' %}
-                                <span class="badge bg-info">Cotización</span>
+                            <td class="align-middle">
+                                <small class="fw-bold">VTA-{{ v.id_venta }}</small><br>
+                                <small class="text-muted" style="font-size: 0.75rem;">{{ v.cliente_nombre|default:"—" }}</small>
+                            </td>
+                            <td class="align-middle">
+                                <span class="fw-semibold text-dark">{{ v.producto_nombre|default:"—" }}</span>
+                            </td>
+                            <td class="align-middle">
+                                {% if v.estatus == 'en_produccion' %}
+                                <span class="badge bg-warning text-dark">En producción</span>
+                                {% elif v.estatus == 'pagada' %}
+                                <span class="badge bg-success">Pagada</span>
                                 {% endif %}
                             </td>
-                            <td><small>{{ v.fecha_entrega|default:"—" }}</small></td>
+                            <td class="align-middle fw-bold text-danger"><small>{{ v.fecha_entrega|default:"—" }}</small></td>
                         </tr>
                         {% endfor %}
                     </tbody>
