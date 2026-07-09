@@ -4,40 +4,228 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#fafaf8">
     <title>Acrylitec — Acceso</title>
+    <link rel="icon" type="image/png" href="{% static 'gestion/img/logo_acrylitec.png' %}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="{% static 'gestion/css/main.css' %}" rel="stylesheet">
+    <style>
+        /* ── Login page overrides ─────────────────────────── */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        .login-wrapper {
+            min-height: 100dvh; /* dvh respeta la barra del navegador móvil */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: var(--clr-bg);
+            padding: var(--space-lg);
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 420px;
+            background: var(--clr-surface);
+            border: 1px solid var(--clr-border);
+            border-radius: var(--radius-xl);
+            padding: var(--space-2xl) var(--space-xl);
+            box-shadow: 0 4px 32px rgba(26,24,20,0.09);
+        }
+
+        .login-logo {
+            text-align: center;
+            margin-bottom: var(--space-xl);
+        }
+
+        .login-logo img {
+            height: 72px;
+            width: auto;
+            margin-bottom: var(--space-md);
+        }
+
+        .login-logo h1 {
+            font-size: 1.75rem;
+            margin-bottom: 4px;
+        }
+
+        .login-logo p {
+            font-size: 0.875rem;
+            color: var(--clr-text-muted);
+            margin-bottom: 0;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 0.875rem;
+            font-size: 1rem;
+            font-weight: 600;
+            background: var(--clr-accent);
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: background 200ms ease;
+            min-height: 48px;
+            letter-spacing: 0.01em;
+        }
+
+        .login-btn:hover {
+            background: var(--clr-accent-hover);
+        }
+
+        .login-btn:active {
+            transform: scale(0.98);
+        }
+
+        .login-footer {
+            margin-top: var(--space-xl);
+            text-align: center;
+            font-size: 0.78rem;
+            color: var(--clr-text-muted);
+        }
+
+        /* ── Mobile ───────────────────────────────────────── */
+        @media (max-width: 480px) {
+            .login-wrapper {
+                padding: var(--space-md);
+                justify-content: flex-start;
+                padding-top: 12vh;
+            }
+
+            .login-card {
+                padding: var(--space-xl) var(--space-lg);
+                border-radius: var(--radius-lg);
+                box-shadow: 0 2px 16px rgba(26,24,20,0.07);
+            }
+
+            .login-logo img {
+                height: 80px;
+            }
+
+            .login-logo h1 {
+                font-size: 1.5rem;
+            }
+
+            .form-control {
+                font-size: 1rem; /* evita zoom en iOS */
+                padding: 0.75rem 0.875rem;
+                min-height: 48px;
+            }
+
+            .form-label {
+                font-size: 0.8rem;
+            }
+        }
+
+        /* ── Muy pequeño (< 360px) ────────────────────────── */
+        @media (max-width: 360px) {
+            .login-wrapper {
+                padding-top: 8vh;
+            }
+
+            .login-card {
+                padding: var(--space-lg);
+            }
+        }
+    </style>
 </head>
 
 <body class="login-wrapper">
     <div class="login-card">
+
+        <!-- Logo + Nombre -->
         <div class="login-logo">
             <img src="{% static 'gestion/img/logo_acrylitec.png' %}" alt="Acrylitec">
             <h1>Acrylitec</h1>
             <p>Sistema de Gestión</p>
         </div>
 
-        {% if form.errors %}
-        <div class="alert alert-danger text-center">
+        <!-- Error -->
+        {% if error %}
+        <div class="alert alert-danger text-center mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle me-1"></i>
+            {{ error }}
+        </div>
+        {% elif form.errors %}
+        <div class="alert alert-danger text-center mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle me-1"></i>
             Usuario o contraseña incorrectos.
         </div>
         {% endif %}
 
-        <form method="POST">
+        <!-- Formulario -->
+        <form method="POST" autocomplete="on">
             {% csrf_token %}
+
             <div class="mb-3">
-                <label class="form-label">Usuario</label>
-                <input type="text" name="username" class="form-control" placeholder="Tu usuario" autofocus required>
+                <label class="form-label" for="id_username">Usuario</label>
+                <input
+                    type="text"
+                    id="id_username"
+                    name="username"
+                    class="form-control"
+                    placeholder="Tu usuario"
+                    autocomplete="username"
+                    autofocus
+                    required>
             </div>
+
             <div class="mb-4">
-                <label class="form-label">Contraseña</label>
-                <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+                <label class="form-label" for="id_password">Contraseña</label>
+                <div style="position:relative;">
+                    <input
+                        type="password"
+                        id="id_password"
+                        name="password"
+                        class="form-control"
+                        placeholder="••••••••"
+                        autocomplete="current-password"
+                        required
+                        style="padding-right: 3rem;">
+                    <!-- Toggle mostrar/ocultar contraseña -->
+                    <button
+                        type="button"
+                        onclick="togglePassword()"
+                        style="position:absolute;right:12px;top:50%;transform:translateY(-50%);
+                               background:none;border:none;cursor:pointer;
+                               color:var(--clr-text-muted);font-size:1.1rem;padding:0;
+                               display:flex;align-items:center;"
+                        tabindex="-1"
+                        aria-label="Mostrar contraseña">
+                        <span id="eye-icon">👁️</span>
+                    </button>
+                </div>
             </div>
+
             <button type="submit" class="login-btn">
                 Entrar al sistema
             </button>
         </form>
-    </div>
-</body>
 
+        <div class="login-footer">
+            Acrylitec &copy; {% now "Y" %}
+        </div>
+    </div>
+
+    <script>
+    function togglePassword() {
+        const input = document.getElementById('id_password');
+        const icon  = document.getElementById('eye-icon');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.textContent = '🙈';
+        } else {
+            input.type = 'password';
+            icon.textContent = '👁️';
+        }
+    }
+    </script>
+
+</body>
 </html>
