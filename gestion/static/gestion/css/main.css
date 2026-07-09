@@ -839,3 +839,366 @@ a:hover {
     font-size: 0.8125rem;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   RESPONSIVE MOBILE — Acrylitec v2.1
+   Aplica en pantallas ≤ 768px (smartphones) y ≤ 992px (tablets)
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── NAVBAR HAMBURGUESA MOBILE ───────────────────────────────────── */
+.navbar-toggler {
+  display: none;
+  background: transparent;
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  cursor: pointer;
+  color: var(--clr-text-secondary);
+  font-size: 1.2rem;
+  line-height: 1;
+  margin-left: auto;
+}
+
+#navbarMenu {
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+  overflow: hidden;
+}
+
+/* ── TABLET (≤ 992px) ────────────────────────────────────────────── */
+@media (max-width: 992px) {
+
+  /* Navbar colapsa en hamburguesa */
+  .navbar-toggler {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .navbar > .container-fluid {
+    flex-wrap: wrap;
+    gap: 0;
+  }
+
+  #navbarMenu {
+    width: 100%;
+    max-height: 0;
+    opacity: 0;
+    pointer-events: none;
+    flex-direction: column !important;
+    background: var(--clr-surface);
+    border-top: 1px solid var(--clr-border-subtle);
+    padding: var(--space-sm) 0;
+  }
+
+  #navbarMenu.open {
+    max-height: 600px;
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  #navbarMenu .nav-link {
+    padding: var(--space-sm) var(--space-md) !important;
+    border-radius: 0;
+    border-left: 3px solid transparent;
+    font-size: 0.9375rem;
+  }
+
+  #navbarMenu .nav-link:hover {
+    border-left-color: var(--clr-accent);
+    background: var(--clr-surface-alt);
+  }
+
+  /* Layout de 2 columnas en tablet */
+  .row.g-3 > [class*="col-md-"],
+  .row.g-4 > [class*="col-md-"] {
+    margin-bottom: var(--space-md);
+  }
+
+  /* Dashboard KPIs: 3 columnas en tablet */
+  .dashboard-kpis {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: var(--space-md);
+  }
+
+  /* Dashboard charts: apiladas */
+  .dashboard-charts {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Dashboard acciones: 2 columnas */
+  .dashboard-actions {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* POS / Cotización: calculadora debajo del formulario */
+  .col-md-7, .col-md-5 {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Sticky top panel de calculadora: no sticky en tablet/mobile */
+  .sticky-top {
+    position: relative !important;
+    top: auto !important;
+  }
+}
+
+/* ── MOBILE (≤ 768px) ────────────────────────────────────────────── */
+@media (max-width: 768px) {
+
+  /* Container padding reducido */
+  .container-fluid {
+    padding-left: var(--space-sm) !important;
+    padding-right: var(--space-sm) !important;
+  }
+
+  /* Sección: padding vertical reducido */
+  .section {
+    margin-bottom: var(--space-xl);
+  }
+
+  /* Section header: wrap en mobile */
+  .section-header {
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+  }
+
+  .section-header .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Tipografía mobile */
+  h1 { font-size: 1.5rem; }
+  h2 { font-size: 1.25rem; }
+  h3 { font-size: 1.1rem; }
+
+  /* KPIs: 2 columnas en móvil */
+  .dashboard-kpis {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: var(--space-sm);
+  }
+
+  .kpi-card {
+    padding: var(--space-md);
+  }
+
+  .kpi-value {
+    font-size: 1.35rem;
+  }
+
+  .kpi-label {
+    font-size: 0.72rem;
+  }
+
+  /* Dashboard acciones: 1 columna en móvil */
+  .dashboard-actions {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Action cards: horizontal */
+  .action-card {
+    padding: var(--space-md);
+  }
+
+  /* Bento grids: 1 columna */
+  .bento-grid,
+  .bento-grid--2,
+  .bento-grid--3,
+  .bento-grid--4,
+  .bento-grid--5,
+  .bento-grid--6 {
+    grid-template-columns: 1fr !important;
+    gap: var(--space-sm);
+  }
+
+  /* Tablas: scroll horizontal con indicador visual */
+  .table-responsive {
+    border-radius: var(--radius-md);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Esconder columnas secundarias en tablas de ventas */
+  .table-responsive .hide-mobile {
+    display: none !important;
+  }
+
+  /* Reducir padding de celdas */
+  .table > thead th,
+  .table > tbody td {
+    padding: var(--space-sm) var(--space-sm);
+    font-size: 0.8rem;
+    white-space: nowrap;
+  }
+
+  /* Badge más pequeño */
+  .badge {
+    font-size: 0.65rem;
+    padding: 0.25em 0.5em;
+  }
+
+  /* Cards */
+  .card-header {
+    padding: var(--space-sm) var(--space-md);
+    font-size: 0.9rem;
+  }
+
+  .card-body {
+    padding: var(--space-md);
+  }
+
+  /* Formularios en mobile */
+  .form-label {
+    font-size: 0.75rem;
+  }
+
+  .form-control,
+  .form-select {
+    font-size: 1rem; /* evita zoom automático en iOS */
+    padding: 0.5rem 0.75rem;
+  }
+
+  /* Botones: tamaño táctil mínimo */
+  .btn {
+    min-height: 44px;
+    padding: 0.6rem 1rem;
+  }
+
+  .btn-sm {
+    min-height: 36px;
+    font-size: 0.8rem;
+  }
+
+  /* Input groups en mobile */
+  .input-group .btn {
+    min-height: 44px;
+  }
+
+  /* Rows con columnas col-md → apiladas */
+  .row > .col-md-2,
+  .row > .col-md-3,
+  .row > .col-md-4,
+  .row > .col-md-6 {
+    margin-bottom: var(--space-sm);
+  }
+
+  /* POS — Carrito: tabla compacta */
+  #tabla-carrito th:nth-child(3),
+  #tabla-carrito td:nth-child(3) {
+    white-space: nowrap;
+  }
+
+  /* Paso 4 de cobro — grid compacto */
+  #id_descuento,
+  #id_iva,
+  #id_monto_abonado,
+  #id_estatus {
+    width: 100%;
+  }
+
+  /* Venta detalle — montos en columna */
+  .col-4 {
+    padding: var(--space-xs) var(--space-sm);
+  }
+
+  /* Barra de progreso compacta */
+  .rounded-circle[style*="width:48px"] {
+    width: 38px !important;
+    height: 38px !important;
+    font-size: 1rem !important;
+  }
+
+  /* Botones de acción (WhatsApp + imprimir) */
+  .d-flex.gap-3.mb-4 {
+    flex-direction: column;
+  }
+
+  .d-flex.gap-3.mb-4 .btn {
+    width: 100%;
+  }
+
+  /* Modal: ancho completo */
+  .modal-dialog {
+    margin: var(--space-sm);
+  }
+
+  /* Login card: padding reducido */
+  .login-card {
+    padding: var(--space-xl) var(--space-lg);
+  }
+
+  /* Periodo buttons: más compactos */
+  .periodo-btn-group .btn {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8rem;
+    min-height: 38px;
+  }
+
+  /* Picker panel: ancho completo en mobile */
+  .picker-panel {
+    min-width: calc(100vw - 2rem) !important;
+    left: 0 !important;
+    right: auto !important;
+  }
+
+  /* Pantalla pendientes (panel taller) */
+  .pantalla-taller .pedido-card {
+    font-size: 0.9rem;
+  }
+
+  /* Configuración precios: formularios apilados */
+  .configuracion-row {
+    flex-direction: column;
+  }
+
+  /* Alertas: padding reducido */
+  .alert {
+    padding: var(--space-sm) var(--space-md);
+    font-size: 0.875rem;
+  }
+
+  /* Chart: altura reducida en móvil */
+  #graficaIngresos {
+    max-height: 220px;
+  }
+
+  /* KPI bento-grid--5 */
+  [class*="bento-grid--5"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* ── TOUCH UX ────────────────────────────────────────────────────── */
+@media (hover: none) and (pointer: coarse) {
+  /* Dispositivos táctiles: eliminar hover effects que no aplican */
+  .card:hover {
+    transform: none;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .action-card:hover {
+    transform: none;
+  }
+
+  .btn-primary:hover,
+  .btn-success:hover {
+    transform: none;
+  }
+
+  /* Tap highlight en links */
+  a, button {
+    -webkit-tap-highlight-color: rgba(45, 42, 38, 0.1);
+  }
+}
+
+/* ── SAFE AREA (iPhone notch) ────────────────────────────────────── */
+@supports (padding: max(0px)) {
+  .navbar {
+    padding-left: max(var(--space-md), env(safe-area-inset-left));
+    padding-right: max(var(--space-md), env(safe-area-inset-right));
+  }
+  body {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}

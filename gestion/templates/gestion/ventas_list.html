@@ -8,12 +8,12 @@
             Historial de Ventas
         </h2>
         <a href="{% url 'nuevo_pedido' %}" class="btn btn-success">
-            <i class="bi bi-plus"></i> Nueva Venta Directa
+            <i class="bi bi-plus"></i> Nueva Venta
         </a>
     </div>
 
     <!-- KPIs -->
-    <div class="bento-grid bento-grid--5" style="margin-bottom: var(--space-2xl);">
+    <div class="bento-grid bento-grid--5" style="margin-bottom: var(--space-xl);">
         {% if request.user.is_superuser or request.user.groups.all.0.name == 'Administrador' %}
         <div class="kpi-card kpi-card--success">
             <div class="kpi-value">${{ resumen.total_ingresos|floatformat:2 }}</div>
@@ -44,39 +44,39 @@
             <thead>
                 <tr>
                     <th>#</th>
-                    <th>Fecha</th>
+                    <th class="hide-mobile">Fecha</th>
                     <th>Cliente</th>
-                    <th>Producto</th>
-                    <th>Total pedido</th>
-                    <th>Monto abonado</th>
+                    <th class="hide-mobile">Producto</th>
+                    <th>Total</th>
+                    <th class="hide-mobile">Abonado</th>
                     <th>Estatus</th>
-                    <th>Entrega</th>
-                    <th>Acciones</th>
+                    <th class="hide-mobile">Entrega</th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
                 {% for v in ventas %}
                 <tr>
                     <td><span class="badge bg-secondary">VTA-{{ v.id_venta|stringformat:"04d" }}</span></td>
-                    <td>{{ v.fecha_venta }}</td>
-                    <td>{{ v.cliente_nombre|default:"—" }}</td>
-                    <td>{{ v.producto_nombre|default:"—" }}</td>
+                    <td class="hide-mobile">{{ v.fecha_venta }}</td>
+                    <td>{{ v.cliente_nombre|default:"—"|truncatechars:20 }}</td>
+                    <td class="hide-mobile">{{ v.producto_nombre|default:"—"|truncatechars:20 }}</td>
                     <td class="fw-bold">${{ v.total_calculado|floatformat:2 }}</td>
-                    <td class="text-success">${{ v.monto_abonado|floatformat:2 }}</td>
+                    <td class="text-success hide-mobile">${{ v.monto_abonado|floatformat:2 }}</td>
                     <td>
                         {% if v.estatus == 'cotizacion' %}
                             <span class="badge bg-info">Cotización</span>
                         {% elif v.estatus == 'pendiente' %}
                             <span class="badge bg-secondary">Pendiente</span>
                         {% elif v.estatus == 'en_produccion' %}
-                            <span class="badge bg-warning">En producción</span>
+                            <span class="badge bg-warning">Producción</span>
                         {% elif v.estatus == 'pagada' %}
                             <span class="badge bg-primary">Pagada</span>
                         {% elif v.estatus == 'entregada' %}
                             <span class="badge bg-success">Entregada</span>
                         {% endif %}
                     </td>
-                    <td>{{ v.fecha_entrega|default:"—" }}</td>
+                    <td class="hide-mobile">{{ v.fecha_entrega|default:"—" }}</td>
                     <td>
                         <a href="{% url 'detalle_venta' v.id_venta %}"
                            class="btn btn-sm btn-outline-primary">Ver</a>
