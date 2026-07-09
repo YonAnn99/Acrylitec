@@ -106,6 +106,12 @@
                                 <input type="number" id="id_utilidad" value="40" min="0" class="form-control">
                             </div>
                         </div>
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label text-primary fw-bold">Modificar Precio Unitario ($)</label>
+                                <input type="number" id="id_precio_manual" step="0.01" min="0" class="form-control border-primary bg-light" placeholder="Opcional. Ignora el cálculo y usa este precio solo para esta venta.">
+                            </div>
+                        </div>
 
                         <button type="submit" class="btn btn-primary w-100 mt-2">
                             ➕ Agregar al Carrito
@@ -504,6 +510,7 @@
         const minutos = getVal('input[name="minutos_lazer"]');
         const utilidad = getVal('#id_utilidad') || 40;
         const cantidad = getVal('#id_cantidad') || 1;
+        const precioManual = getVal('#id_precio_manual');
 
         const espesorSel = document.getElementById('id_espesor');
         let factor = 0;
@@ -541,12 +548,30 @@
         const fmt = (v) => '$' + v.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
         // Si el precio es fijo, actualiza el monto y detiene el resto de la función
+        if (precioManual > 0) {
+            const total = precioManual * cantidad;
+            setText('display_area', 'Manual');
+            setText('display_utilidad', '-'); 
+            setText('display_laser', '-');
+            setText('display_total', fmt(total));
+            
+            const nota = document.getElementById('nota_precio_fijo');
+            nota.innerText = '⚠️ Aplicando precio manual (Solo esta venta)';
+            nota.style.display = 'block';
+            return;
+        }
+
+        // 2. PRIORIDAD MEDIA: Precio Fijo guardado en BD
         if (precioFijo > 0) {
             const total = precioFijo * cantidad;
             setText('display_area', '-');
-            setText('display_utilidad', '-'); setText('display_laser', '-');
+            setText('display_utilidad', '-'); 
+            setText('display_laser', '-');
             setText('display_total', fmt(total));
-            document.getElementById('nota_precio_fijo').style.display = 'block';
+            
+            const nota = document.getElementById('nota_precio_fijo');
+            nota.innerText = '⚠️ Este producto tiene precio fijo';
+            nota.style.display = 'block';
             return;
         }
 
@@ -589,22 +614,28 @@
         const detalleProducto = optionSeleccionada.getAttribute('data-detalle') || '';
         let subtotal = 0;
 
+        //Capturar el precio manual
+        const precioManualText = document.getElementById('id_precio_manual').value;
+        const precioManual = parseFloat(precioManualText.replace(',', '.')) || 0;
+        const cantidadPza = parseInt(document.getElementById('id_cantidad').value) || 1;
+
         // Validar stock del producto con precio fijo
         if (precioFijo && precioFijo.trim() !== '' && precioFijo !== 'None' && stockActual <= 0) {
             alert(`No hay stock disponible para "${optionSeleccionada.text}".`);
             return;
         }
 
-        if (precioFijo && precioFijo.trim() !== '' && precioFijo !== 'None') {
-
-            const cantidadPza = parseInt(document.getElementById('id_cantidad').value) || 1;
+        // ASIGNACIÓN DE PRECIOS
+        if (precioManual > 0) {
+            subtotal = precioManual * cantidadPza;
+        } else if (precioFijo && precioFijo.trim() !== '' && precioFijo !== 'None') {
             subtotal = parseFloat(precioFijo.replace(',', '.')) * cantidadPza;
         } else {
-            // Si no tiene precio fijo, exigimos que las medidas den un subtotal mayor a 0
+            // Si no tiene precio fijo ni manual, exigimos que las medidas den un subtotal mayor a 0
             const subtotalText = document.getElementById('display_total').innerText.replace(/[$,]/g, '');
             subtotal = parseFloat(subtotalText);
             if (isNaN(subtotal) || subtotal <= 0) {
-                alert('Agrega medidas para calcular el precio, o selecciona un producto con precio fijo.');
+                alert('Agrega medidas, selecciona un producto con precio fijo, o ingresa un precio manual.');
                 return;
             }
         }
@@ -612,7 +643,10 @@
         // Bloquear el selector de cliente solo si seleccionaron a alguien
         if (clienteId) {
             document.getElementById('id_cliente').disabled = true;
+            document.getElementById('id_precio_manual').value = '';
         }
+
+        
 
         // 5. Agregar el objeto al carrito
         carrito.push({
