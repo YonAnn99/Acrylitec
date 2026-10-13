@@ -78,18 +78,27 @@
         </nav>
 
         <div class="sidebar-user">
-            <span class="avatar">{{ request.user.username|slice:":2"|upper }}</span>
-            <span class="sidebar-user-text">
-                <span class="sidebar-user-name">{{ request.user.get_full_name|default:request.user.username }}</span>
-                <span class="sidebar-user-role">{% if request.user.is_superuser %}Administrador{% else %}{{ request.user.groups.all.0.name|default:"Usuario" }}{% endif %}</span>
-            </span>
-            <button class="icon-btn theme-toggle" type="button" data-theme-toggle aria-label="Cambiar a modo oscuro">
-                <i class="bi bi-moon theme-toggle__moon" aria-hidden="true"></i>
-                <i class="bi bi-sun theme-toggle__sun" aria-hidden="true"></i>
-            </button>
-            <a class="icon-btn" href="{% url 'logout' %}" aria-label="Cerrar sesión" title="Cerrar sesión">
-                <i class="bi bi-box-arrow-right"></i>
-            </a>
+            <div class="sidebar-user-info">
+                <span class="avatar">{{ request.user.username|slice:":2"|upper }}</span>
+                <span class="sidebar-user-text">
+                    <span class="sidebar-user-name">{{ request.user.get_full_name|default:request.user.username }}</span>
+                    <span class="sidebar-user-role">{% if request.user.is_superuser %}Administrador{% else %}{{ request.user.groups.all.0.name|default:"Usuario" }}{% endif %}</span>
+                </span>
+            </div>
+            <div class="sidebar-user-actions">
+                <button class="sidebar-action theme-toggle" type="button" data-theme-toggle aria-label="Cambiar a modo oscuro">
+                    <span class="sidebar-action-icon" aria-hidden="true">
+                        <i class="bi bi-moon theme-toggle__moon"></i>
+                        <i class="bi bi-sun theme-toggle__sun"></i>
+                    </span>
+                    <span class="theme-label-light">Modo oscuro</span>
+                    <span class="theme-label-dark">Modo claro</span>
+                </button>
+                <a class="sidebar-action sidebar-action--logout" href="{% url 'logout' %}">
+                    <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
+                    <span>Salir</span>
+                </a>
+            </div>
         </div>
     </aside>
 
