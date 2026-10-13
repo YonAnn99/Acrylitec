@@ -1,35 +1,39 @@
 {% extends 'gestion/base.html' %}
 {% block content %}
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-md-7">
-            <h2 class="mb-4">🧾 Nueva Cotización</h2>
-            <form method="POST" id="formCotizacion">
-                {% csrf_token %}
+<header class="page-header">
+    <div class="page-heading">
+        <span class="page-eyebrow">Operación / Cotización</span>
+        <h1 class="page-title">Nueva cotización</h1>
+    </div>
+</header>
 
-                <!-- Cliente -->
-                <div class="card shadow-sm mb-3">
-                    <div class="card-header bg-dark text-white">Datos del Cliente</div>
-                    <div class="card-body">
-                        <label class="form-label">Cliente</label>
-                        <select name="cliente" id="id_cliente" class="form-select select2" required>
-                            <option value="">-- Selecciona cliente --</option>
-                            {% for c in clientes %}
-                            <option value="{{ c.id_cliente }}">{{ c.nombre }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
+<div class="pos-layout">
+    <div class="pos-main">
+        <form method="POST" id="formCotizacion" style="display: flex; flex-direction: column; gap: 16px;">
+            {% csrf_token %}
+
+            <section class="card">
+                <div class="card-header"><span class="card-title-row"><span class="step-num">01</span>Cliente</span></div>
+                <div class="card-body">
+                    <label class="form-label" for="id_cliente">Cliente</label>
+                    <select name="cliente" id="id_cliente" class="form-select select2" required>
+                        <option value="">-- Selecciona cliente --</option>
+                        {% for c in clientes %}
+                        <option value="{{ c.id_cliente }}">{{ c.nombre }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
+            </section>
 
-                <!-- Producto -->
-                <div class="card shadow-sm mb-3">
-                    <div class="card-header bg-dark text-white">Producto</div>
-                    <div class="card-body">
-                        <label class="form-label">Producto</label>
+            <section class="card">
+                <div class="card-header"><span class="card-title-row"><span class="step-num">02</span>Producto y material</span></div>
+                <div class="card-body" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px;">
+                    <div>
+                        <label class="form-label" for="id_producto">Producto</label>
                         <select name="producto" id="id_producto" class="form-select select2" required>
                             <option value="">-- Selecciona producto --</option>
                             {% for p in productos %}
-                            <option value="{{ p.id_producto }}" 
+                            <option value="{{ p.id_producto }}"
                                 data-precio-fijo="{{ p.precio_fijo|default:'' }}"
                                 data-utilidad="{{ p.porcentaje_utilidad }}">
                                 {{ p.nombre }}
@@ -37,13 +41,8 @@
                             {% endfor %}
                         </select>
                     </div>
-                </div>
-
-                <!-- Material -->
-                <div class="card shadow-sm mb-3">
-                    <div class="card-header bg-dark text-white">Material</div>
-                    <div class="card-body">
-                        <label class="form-label">Material (lámina)</label>
+                    <div>
+                        <label class="form-label" for="id_material">Material (lámina)</label>
                         <select name="material" id="id_material" class="form-select select2" required>
                             <option value="">-- Selecciona material --</option>
                             {% for m in materiales %}
@@ -52,108 +51,69 @@
                         </select>
                     </div>
                 </div>
+            </section>
 
-                <!-- Medidas -->
-                <div class="card shadow-sm mb-3">
-                    <div class="card-header bg-dark text-white">Medidas y Servicios</div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Largo (cm)</label>
-                                <input type="number" name="largo_pza" step="0.01" class="form-control" placeholder="ej. 20" required>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Ancho (cm)</label>
-                                <input type="number" name="ancho_pza" step="0.01" class="form-control" placeholder="ej. 10" required>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Minutos Láser</label>
-                                <input type="number" name="minutos_lazer" step="1" value="0" class="form-control">
-                            </div>
-                        </div>
-                        <div class="row mt-2">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Espesor (mm)</label>
-                                <select name="espesor_mm" id="id_espesor" class="form-select" required>
-                                    <option value="">-- Selecciona --</option>
-                                    {% for t in materiales_tabulador %}
-                                    <option value="{{ t.espesor_mm }}" data-factor="{{ t.factor_costo }}">
-                                        {{ t.espesor_mm }} mm
-                                    </option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Utilidad (%)</label>
-                                <input type="number" name="porcentaje_utilidad" 
-                                       id="id_utilidad" value="40" min="0" max="200" 
-                                       class="form-control">
-                                <small class="text-muted">40% cortes simples / 70%+ piezas fabricadas</small>
-                            </div>
-                        </div>
+            <section class="card">
+                <div class="card-header"><span class="card-title-row"><span class="step-num">03</span>Medidas y servicios</span></div>
+                <div class="card-body" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">
+                    <div>
+                        <label class="form-label">Largo (cm)</label>
+                        <input type="number" name="largo_pza" step="0.01" class="form-control" placeholder="20" required>
+                    </div>
+                    <div>
+                        <label class="form-label">Ancho (cm)</label>
+                        <input type="number" name="ancho_pza" step="0.01" class="form-control" placeholder="10" required>
+                    </div>
+                    <div>
+                        <label class="form-label">Min. láser</label>
+                        <input type="number" name="minutos_lazer" step="1" value="0" class="form-control">
+                    </div>
+                    <div>
+                        <label class="form-label" for="id_espesor">Espesor (mm)</label>
+                        <select name="espesor_mm" id="id_espesor" class="form-select" required>
+                            <option value="">Selecciona</option>
+                            {% for t in materiales_tabulador %}
+                            <option value="{{ t.espesor_mm }}" data-factor="{{ t.factor_costo }}">{{ t.espesor_mm }} mm</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label" for="id_utilidad">Utilidad (%)</label>
+                        <input type="number" name="porcentaje_utilidad" id="id_utilidad" value="40" min="0" max="200" class="form-control">
+                        <div class="form-text">40% cortes simples · 70%+ piezas fabricadas</div>
                     </div>
                 </div>
+            </section>
 
-                <button type="submit" class="btn btn-success btn-lg w-100 shadow">
-                    ✅ Guardar Cotización
-                </button>
-            </form>
-        </div>
+            <button type="submit" class="btn btn-primary btn-lg w-100">
+                <i class="bi bi-check-lg"></i> Guardar cotización
+            </button>
+        </form>
+    </div>
 
-        <!-- Panel de cálculo -->
-        <div class="col-md-5">
-            <div class="card shadow border-0 sticky-top" style="top:20px">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0">💰 Cálculo en tiempo real</h5>
-                </div>
-                <div class="card-body py-4">
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted">Área:</span>
-                        <strong id="display_area">0.00 cm²</strong>
-                    </div>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted">Costo material:</span>
-                        <span id="display_material">$0.00</span>
-                    </div>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted">Utilidad:</span>
-                        <span id="display_utilidad">$0.00</span>
-                    </div>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted">Corte láser:</span>
-                        <span id="display_laser">$0.00</span>
-                    </div>
-                    <hr>
-                    <div class="text-center">
-                        <p class="text-muted mb-1">Total estimado:</p>
-                        <h2 class="text-success fw-bold" id="display_total">$0.00</h2>
-                    </div>
-                    <p class="small text-muted mt-2 text-center" id="nota_precio_fijo" style="display:none">
-                        ⚠️ Este producto tiene precio fijo
-                    </p>
+    <aside class="pos-aside">
+        <section class="card">
+            <div class="card-header"><span>Cálculo en tiempo real</span><span class="card-hint">en vivo</span></div>
+            <div class="card-body" style="display: flex; flex-direction: column; gap: 14px;">
+                <dl class="calc-list">
+                    <div><dt>Área</dt><dd id="display_area">0.00 cm²</dd></div>
+                    <div><dt>Costo material</dt><dd id="display_material">$0.00</dd></div>
+                    <div><dt>Utilidad</dt><dd id="display_utilidad">$0.00</dd></div>
+                    <div><dt>Corte láser</dt><dd id="display_laser">$0.00</dd></div>
+                </dl>
+                <div class="calc-result">
+                    <span class="eyebrow">Total estimado</span>
+                    <p class="calc-result-value" id="display_total">$0.00</p>
+                    <p class="text-warning" id="nota_precio_fijo" style="display:none; margin: 4px 0 0; font-size: 0.8125rem;">Este producto tiene precio fijo</p>
                 </div>
             </div>
-        </div>
-    </div>
+        </section>
+    </aside>
 </div>
 
 <script>
 const tarifaLaser = {{ tarifa_laser }};
-$(document).ready(function() {
-    $('.select2').select2({
-        theme: 'bootstrap-5',
-        placeholder: '-- Busca o selecciona --',
-        allowClear: true,
-        language: {
-            noResults: function() {
-                return "No se encontraron resultados";
-            },
-            searching: function() {
-                return "Buscando...";
-            }
-        }
-    });
-});
+// Select2 se inicializa en base.html
 
 function calcularMontoRealTime() {
     const largo = parseFloat(document.querySelector('input[name="largo_pza"]').value) || 0;
@@ -194,9 +154,12 @@ function calcularMontoRealTime() {
     document.getElementById('display_total').innerText = '$' + total.toLocaleString('es-MX', {minimumFractionDigits: 2});
 }
 
-document.querySelectorAll('input, select').forEach(el => {
-    el.addEventListener('input', calcularMontoRealTime);
-    el.addEventListener('change', calcularMontoRealTime);
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('input, select').forEach(el => {
+        el.addEventListener('input', calcularMontoRealTime);
+        el.addEventListener('change', calcularMontoRealTime);
+    });
+    if (typeof jQuery !== 'undefined') $('.select2').on('change', calcularMontoRealTime);
 });
 </script>
 {% endblock %}

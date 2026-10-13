@@ -1,131 +1,128 @@
 {% extends 'gestion/base.html' %}
 
-{% block content %}
-<h2 class="mb-4">⚙️ Configuración de Precios</h2>
+{% block title %}Precios y tarifas — Acrylitec{% endblock %}
 
-<div class="row g-4">
+{% block content %}
+<header class="page-header">
+    <div class="page-heading">
+        <span class="page-eyebrow">Ajustes / Precios y tarifas</span>
+        <h1 class="page-title">Precios y tarifas</h1>
+        <p class="page-subtitle">Los cambios aplican desde la siguiente cotización; los registros existentes no se modifican.</p>
+    </div>
+</header>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; align-items: start;">
 
     <!-- Tarifa láser -->
-    <div class="col-md-4">
-        <div class="card shadow-sm h-100">
-            <div class="card-header bg-dark text-white">🔆 Tarifa Láser por Minuto</div>
-            <div class="card-body">
-                <p class="text-muted small">Costo de corte y grabado láser por minuto.</p>
-                <div class="mb-2">
-                    <span class="text-muted">Tarifa actual:</span>
-                    <span class="fw-bold fs-5 text-success ms-2">${{ config.tarifa_laser_minuto }}/min</span>
-                </div>
-                <form method="POST">
-                    {% csrf_token %}
-                    <input type="hidden" name="accion" value="tarifa_laser">
-                    <div class="input-group">
-                        <span class="input-group-text">$</span>
-                        <input type="number" name="tarifa_laser_minuto" step="0.50" min="1"
-                               value="{{ config.tarifa_laser_minuto }}" class="form-control" required>
-                        <span class="input-group-text">/min</span>
-                    </div>
-                    <button type="submit" class="btn btn-dark w-100 mt-3">Actualizar tarifa</button>
-                </form>
-                <small class="text-muted mt-2 d-block">
-                    Última actualización: {{ config.actualizado|date:"d/m/Y H:i" }}
-                </small>
-            </div>
+    <section class="card">
+        <div class="card-header">
+            <span class="card-title-row"><i class="bi bi-lightning-charge" style="color: var(--clr-text-muted);"></i>Tarifa láser</span>
+            <span class="card-hint">por minuto</span>
         </div>
-    </div>
+        <div class="card-body" style="display: flex; flex-direction: column; gap: 16px;">
+            <div>
+                <span class="eyebrow">Tarifa actual</span>
+                <div class="serif" style="margin-top: 8px; font-size: 2.125rem; line-height: 1;">${{ config.tarifa_laser_minuto }}<span class="text-muted" style="font-family: var(--font-sans); font-size: 1rem;"> /min</span></div>
+            </div>
+            <form method="POST" style="display: flex; flex-direction: column; gap: 12px;">
+                {% csrf_token %}
+                <input type="hidden" name="accion" value="tarifa_laser">
+                <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input type="number" name="tarifa_laser_minuto" step="0.50" min="1"
+                           value="{{ config.tarifa_laser_minuto }}" class="form-control" required aria-label="Tarifa por minuto">
+                    <span class="input-group-text">/min</span>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Actualizar tarifa</button>
+            </form>
+            <span class="text-muted" style="font-size: 0.8125rem;">Última actualización: <span class="text-num">{{ config.actualizado|date:"d/m/Y H:i" }}</span></span>
+        </div>
+    </section>
 
     <!-- Utilidad por producto -->
-    <div class="col-md-4">
-        <div class="card shadow-sm h-100">
-            <div class="card-header bg-dark text-white">📦 % Utilidad por Producto</div>
-            <div class="card-body">
-                <p class="text-muted small">Porcentaje de ganancia sobre el costo del material.</p>
-                {% for prod in productos %}
-                <form method="POST" class="mb-3">
-                    {% csrf_token %}
-                    <input type="hidden" name="accion" value="utilidad_producto">
-                    <input type="hidden" name="producto_id" value="{{ prod.id_producto }}">
-                    <label class="form-label fw-bold mb-1">{{ prod.nombre }}</label>
-                    <div class="input-group input-group-sm">
-                        <input type="number" name="porcentaje_utilidad" min="0" max="500"
-                               value="{{ prod.porcentaje_utilidad }}" class="form-control" required>
-                        <span class="input-group-text">%</span>
-                        <button type="submit" class="btn btn-sm btn-outline-dark">Guardar</button>
-                    </div>
-                </form>
-                {% empty %}
-                <p class="text-muted">No hay productos. <a href="{% url 'lista_productos' %}">Agrega uno.</a></p>
-                {% endfor %}
-            </div>
+    <section class="card">
+        <div class="card-header">
+            <span class="card-title-row"><i class="bi bi-percent" style="color: var(--clr-text-muted);"></i>Utilidad por producto</span>
         </div>
-    </div>
+        <div class="card-body" style="display: flex; flex-direction: column; gap: 14px;">
+            <p style="margin: 0; font-size: 0.8125rem;">Porcentaje de ganancia sobre el costo del material.</p>
+            {% for prod in productos %}
+            <form method="POST" style="display: flex; flex-direction: column; gap: 6px;">
+                {% csrf_token %}
+                <input type="hidden" name="accion" value="utilidad_producto">
+                <input type="hidden" name="producto_id" value="{{ prod.id_producto }}">
+                <label class="form-label" style="margin: 0;" for="util{{ prod.id_producto }}">{{ prod.nombre }}</label>
+                <div class="input-group input-group-sm">
+                    <input type="number" id="util{{ prod.id_producto }}" name="porcentaje_utilidad" min="0" max="500"
+                           value="{{ prod.porcentaje_utilidad }}" class="form-control" required>
+                    <span class="input-group-text">%</span>
+                    <button type="submit" class="btn btn-sm">Guardar</button>
+                </div>
+            </form>
+            {% empty %}
+            <p class="text-muted" style="margin: 0;">No hay productos. <a href="{% url 'lista_productos' %}" style="text-decoration: underline;">Agrega uno.</a></p>
+            {% endfor %}
+        </div>
+    </section>
 
     <!-- Factor de costo -->
-    <div class="col-md-4">
-        <div class="card shadow-sm h-100">
-            <div class="card-header bg-dark text-white">📐 Factor de Costo por m²</div>
-            <div class="card-body">
-                <p class="text-muted small">Multiplica el área en m² para obtener el costo base.</p>
-{% for tab in tabuladores %}
-                <label class="form-label fw-bold mb-1">Espesor {{ tab.espesor_mm }} mm</label>
-                <div class="d-flex gap-2 align-items-center mb-3">
-                    
-                    <form method="POST" class="flex-grow-1 mb-0">
+    <section class="card">
+        <div class="card-header">
+            <span class="card-title-row"><i class="bi bi-rulers" style="color: var(--clr-text-muted);"></i>Factor de costo</span>
+            <span class="card-hint">por m²</span>
+        </div>
+        <div class="card-body" style="display: flex; flex-direction: column; gap: 14px;">
+            <p style="margin: 0; font-size: 0.8125rem;">Multiplica el área en m² para obtener el costo base.</p>
+            {% for tab in tabuladores %}
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+                <span class="form-label" style="margin: 0;">Espesor {{ tab.espesor_mm }} mm</span>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <form method="POST" style="flex: 1; margin: 0;">
                         {% csrf_token %}
                         <input type="hidden" name="accion" value="factor_costo">
                         <input type="hidden" name="tabulador_id" value="{{ tab.id_tabulador }}">
                         <div class="input-group input-group-sm">
                             <span class="input-group-text">$</span>
                             <input type="number" name="factor_costo" step="0.01" min="1"
-                                   value="{{ tab.factor_costo }}" class="form-control" required>
+                                   value="{{ tab.factor_costo }}" class="form-control" required aria-label="Factor para {{ tab.espesor_mm }} mm">
                             <span class="input-group-text">/m²</span>
-                            <button type="submit" class="btn btn-sm btn-outline-dark">Guardar</button>
+                            <button type="submit" class="btn btn-sm">Guardar</button>
                         </div>
                     </form>
-
-                    <form method="POST" class="mb-0" onsubmit="return confirm('¿Estás seguro de eliminar el espesor de {{ tab.espesor_mm }} mm?');">
+                    <form method="POST" style="margin: 0;" onsubmit="return confirm('¿Eliminar el espesor de {{ tab.espesor_mm }} mm?');">
                         {% csrf_token %}
                         <input type="hidden" name="accion" value="eliminar_tabulador">
                         <input type="hidden" name="tabulador_id" value="{{ tab.id_tabulador }}">
-                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar espesor">
-                            🗑️
+                        <button type="submit" class="btn btn-sm btn-outline-danger btn-icon" title="Eliminar espesor" aria-label="Eliminar espesor de {{ tab.espesor_mm }} mm">
+                            <i class="bi bi-trash3"></i>
                         </button>
                     </form>
-
                 </div>
-                {% empty %}
-                <p class="text-muted">Sin tabuladores. Agrega uno abajo.</p>
-                {% endfor %}
-                <hr>
-                <p class="fw-bold small mb-2">+ Agregar nuevo espesor</p>
-                <form method="POST">
-                    {% csrf_token %}
-                    <input type="hidden" name="accion" value="nuevo_tabulador">
-                    <div class="row g-2">
-                        <div class="col-5">
-                            <div class="input-group input-group-sm">
-                                <input type="number" name="espesor_mm" min="1" placeholder="mm"
-                                       class="form-control" required>
-                                <span class="input-group-text">mm</span>
-                            </div>
-                        </div>
-                        <div class="col-5">
-                            <div class="input-group input-group-sm">
-                                <span class="input-group-text">$</span>
-                                <input type="number" name="factor_costo_nuevo" step="0.01"
-                                       placeholder="factor" class="form-control" required>
-                            </div>
-                        </div>
-                        <div class="col-2">
-                            <button type="submit" class="btn btn-sm btn-dark w-100">+</button>
-                        </div>
-                    </div>
-                </form>
             </div>
-        </div>
-    </div>
-</div>
+            {% empty %}
+            <div class="empty-state" style="padding: 20px 0;">
+                <i class="bi bi-rulers"></i>
+                <p>Sin espesores. Agrega el primero abajo.</p>
+            </div>
+            {% endfor %}
 
-<div class="alert alert-warning mt-4">
-    ⚠️ Los cambios aplican a partir de la <strong>siguiente cotización</strong>. Los registros existentes no se modifican.
+            <form method="POST" style="display: flex; flex-direction: column; gap: 8px; padding-top: 14px; border-top: 1px dashed var(--clr-border);">
+                {% csrf_token %}
+                <input type="hidden" name="accion" value="nuevo_tabulador">
+                <span class="form-label" style="margin: 0;">Agregar espesor</span>
+                <div style="display: flex; gap: 8px;">
+                    <div class="input-group input-group-sm" style="flex: 1;">
+                        <input type="number" name="espesor_mm" min="1" placeholder="Espesor" class="form-control" required aria-label="Espesor en mm">
+                        <span class="input-group-text">mm</span>
+                    </div>
+                    <div class="input-group input-group-sm" style="flex: 1;">
+                        <span class="input-group-text">$</span>
+                        <input type="number" name="factor_costo_nuevo" step="0.01" placeholder="Factor" class="form-control" required aria-label="Factor de costo">
+                    </div>
+                    <button type="submit" class="btn btn-sm btn-primary btn-icon" aria-label="Agregar espesor"><i class="bi bi-plus-lg"></i></button>
+                </div>
+            </form>
+        </div>
+    </section>
 </div>
 {% endblock %}

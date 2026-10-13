@@ -1,84 +1,87 @@
 {% extends 'gestion/base.html' %}
 
+{% block title %}Materiales — Acrylitec{% endblock %}
+
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h2>Inventario de Materiales</h2>
-    <a href="{% url 'crear_material' %}" class="btn btn-success">+ Nuevo Material</a>
-</div>
+<header class="page-header">
+    <div class="page-heading">
+        <span class="page-eyebrow">Catálogo / Materiales</span>
+        <h1 class="page-title">Materiales</h1>
+        <p class="page-subtitle">Láminas de acrílico disponibles en el taller.</p>
+    </div>
+    <div class="page-actions">
+        <form method="GET" class="search-field" style="width: 280px; max-width: 100%;">
+            <i class="bi bi-search"></i>
+            <input type="search" name="q" class="form-control" placeholder="Buscar material" value="{{ query }}" aria-label="Buscar material">
+            {% if query %}
+            <a href="{% url 'lista_materiales' %}" class="btn btn-icon" aria-label="Limpiar búsqueda" style="min-height: 44px;"><i class="bi bi-x-lg"></i></a>
+            {% endif %}
+        </form>
+        <a href="{% url 'crear_material' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Nuevo material</a>
+    </div>
+</header>
 
-<!-- Mensajes de éxito / error de Django -->
-{% if messages %}
-{% for msg in messages %}
-<div class="alert alert-{{ msg.tags }} alert-dismissible fade show" role="alert">
-    {{ msg }}
-    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-</div>
-{% endfor %}
-{% endif %}
-
-<!-- Alerta global si hay materiales con stock bajo -->
 {% if materiales_bajos %}
-<div class="alert alert-warning d-flex align-items-start gap-2 mb-3" role="alert">
-    <span style="font-size:1.3rem;">⚠️</span>
-    <div>
-        <strong>Stock bajo en {{ materiales_bajos }} material{{ materiales_bajos|pluralize:",es" }}.</strong>
-        Los marcados en naranja están en o por debajo del mínimo configurado.
-    </div>
+<div class="alert alert-warning" role="alert">
+    <i class="bi bi-exclamation-triangle"></i>
+    <span><strong>Stock bajo en {{ materiales_bajos }} material{{ materiales_bajos|pluralize:",es" }}.</strong> Están en o por debajo del mínimo configurado.</span>
 </div>
 {% endif %}
 
-<!-- Barra de búsqueda -->
-<form method="GET" class="mb-3">
-    <div class="input-group">
-        <input type="text" name="q" class="form-control"
-               placeholder="Buscar material..."
-               value="{{ query }}">
-        <button class="btn btn-primary" type="submit">🔍 Buscar</button>
-        {% if query %}
-        <a href="{% url 'lista_materiales' %}" class="btn btn-secondary">✖ Limpiar</a>
-        {% endif %}
+{% if materiales %}
+<div class="table-responsive">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Descripción</th>
+                <th class="hide-mobile">Medida</th>
+                <th style="width: 220px;">Existencia</th>
+                <th style="text-align: right;"></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for material in materiales %}
+            <tr>
+                <td>
+                    <div style="display: flex; flex-direction: column; gap: 4px; align-items: flex-start;">
+                        <span style="font-weight: 600;">{{ material.descripcion }}</span>
+                        {% if material.stock_actual == 0 %}
+                        <span class="badge tag-danger">Sin stock</span>
+                        {% elif material.stock_actual <= material.stock_minimo %}
+                        <span class="badge tag-warning">Stock bajo</span>
+                        {% endif %}
+                    </div>
+                </td>
+                <td class="hide-mobile text-num text-muted">{{ material.largo }} × {{ material.ancho }} cm</td>
+                <td>
+                    {% widthratio material.stock_actual material.stock_minimo|add:material.stock_minimo|add:material.stock_minimo|add:1 100 as pct_stock %}
+                    {% widthratio material.stock_minimo material.stock_minimo|add:material.stock_minimo|add:material.stock_minimo|add:1 100 as pct_min %}
+                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                        <div class="meter">
+                            <div class="meter-fill {% if material.stock_actual == 0 %}is-out{% elif material.stock_actual <= material.stock_minimo %}is-low{% endif %}" style="width: {% if pct_stock|add:0 > 100 %}100{% else %}{{ pct_stock }}{% endif %}%; --i: {{ forloop.counter0 }};"></div>
+                            {% if material.stock_minimo > 0 %}<span class="meter-mark" style="left: {{ pct_min }}%;" title="Stock mínimo"></span>{% endif %}
+                        </div>
+                        <span class="text-muted" style="font-size: 0.75rem;"><span class="text-num" style="color: var(--clr-text); font-weight: 500;">{{ material.stock_actual }}</span> láminas · mín. <span class="text-num">{{ material.stock_minimo }}</span></span>
+                    </div>
+                </td>
+                <td style="text-align: right;">
+                    <a href="{% url 'eliminar_material' material.id_material %}" class="btn btn-sm btn-outline-danger">
+                        <i class="bi bi-trash3"></i> Eliminar
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="card">
+    <div class="empty-state">
+        <i class="bi bi-layers"></i>
+        <span class="empty-title">{% if query %}Sin resultados para "{{ query }}"{% else %}Aún no hay materiales{% endif %}</span>
+        <p>Registra las láminas que usa el taller para llevar su existencia.</p>
+        <a href="{% url 'crear_material' %}" class="btn btn-primary" style="margin-top: 10px;"><i class="bi bi-plus-lg"></i> Nuevo material</a>
     </div>
-</form>
-
-<table class="table table-hover mt-3 align-middle">
-    <thead class="table-dark">
-        <tr>
-            <th>Descripción</th>
-            <th class="text-center">Largo</th>
-            <th class="text-center">Ancho</th>
-            <th class="text-center">Stock actual</th>
-            <th class="text-center">Stock mínimo</th>
-            <th class="text-center">Acciones</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for material in materiales %}
-        <tr class="{% if material.stock_actual <= material.stock_minimo %}table-warning{% endif %}">
-            <td>
-                {{ material.descripcion }}
-                {% if material.stock_actual == 0 %}
-                    <span class="badge bg-danger ms-1">Sin stock</span>
-                {% elif material.stock_actual <= material.stock_minimo %}
-                    <span class="badge bg-warning text-dark ms-1">⚠️ Stock bajo</span>
-                {% endif %}
-            </td>
-            <td class="text-center">{{ material.largo }} cm</td>
-            <td class="text-center">{{ material.ancho }} cm</td>
-            <td class="text-center fw-bold
-                {% if material.stock_actual == 0 %}text-danger
-                {% elif material.stock_actual <= material.stock_minimo %}text-warning
-                {% else %}text-success{% endif %}">
-                {{ material.stock_actual }}
-            </td>
-            <td class="text-center text-muted">{{ material.stock_minimo }}</td>
-            <td class="text-center">
-                <a href="{% url 'eliminar_material' material.id_material %}"
-                   class="btn btn-danger btn-sm">
-                   🗑️ Eliminar
-                </a>
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+</div>
+{% endif %}
 {% endblock %}

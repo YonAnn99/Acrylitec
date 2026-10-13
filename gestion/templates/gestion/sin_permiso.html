@@ -1,9 +1,14 @@
 {% extends 'gestion/base.html' %}
+
+{% block title %}Acceso restringido — Acrylitec{% endblock %}
+
 {% block content %}
-<div class="text-center py-5">
-    <h1 class="display-1">🔒</h1>
-    <h2>Acceso restringido</h2>
-    <p class="text-muted">Esta sección es solo para administradores.</p>
-    <a href="{% url 'dashboard' %}" class="btn btn-secondary">← Volver</a>
-</div>
+<section class="card confirm-card">
+    <span class="confirm-icon is-neutral"><i class="bi bi-shield-lock"></i></span>
+    <h1 class="confirm-title">Acceso restringido</h1>
+    <p style="margin: 0;">Esta sección es solo para administradores.</p>
+    <div class="confirm-actions">
+        <a href="{% url 'lista_ventas' %}" class="btn btn-primary"><i class="bi bi-chevron-left"></i> Ir a ventas</a>
+    </div>
+</section>
 {% endblock %}

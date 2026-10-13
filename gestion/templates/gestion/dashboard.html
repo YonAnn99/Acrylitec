@@ -1,352 +1,199 @@
 {% extends 'gestion/base.html' %}
 
 {% block content %}
-<div class="section">
-    <div class="section-header">
-        <h2 class="section-title">
-            <i class="bi bi-bar-chart-fill"></i>
-            Dashboard
-        </h2>
+<header class="page-header">
+    <div class="page-heading">
+        <span class="page-eyebrow">{% now "l j \d\e F, Y" %}</span>
+        <h1 class="page-title">Dashboard</h1>
     </div>
-
-    <!-- KPIs -->
-    <div class="dashboard-kpis">
-        <div class="kpi-card kpi-card--success">
-            <div class="kpi-value">${{ kpis.ingresos_mes|floatformat:0 }}</div>
-            <div class="kpi-label">Ingresos este mes</div>
-        </div>
-        <div class="kpi-card kpi-card--accent">
-            <div class="kpi-value">{{ kpis.ventas_mes }}</div>
-            <div class="kpi-label">Ventas este mes</div>
-        </div>
-        <div class="kpi-card kpi-card--info">
-            <div class="kpi-value">${{ kpis.ingresos_total|floatformat:0 }}</div>
-            <div class="kpi-label">Ingresos totales</div>
-        </div>
-        <div class="kpi-card">
-            <div class="kpi-value">{{ kpis.ventas_total }}</div>
-            <div class="kpi-label">Ventas totales</div>
-        </div>
-        <div class="kpi-card kpi-card--info">
-            <div class="kpi-value">{{ kpis.clientes_total }}</div>
-            <div class="kpi-label">Clientes</div>
-        </div>
-        <div class="kpi-card kpi-card--warning">
-            <div class="kpi-value">{{ kpis.cotizaciones_mes }}</div>
-            <div class="kpi-label">Cotizaciones este mes</div>
-        </div>
+    <div class="page-actions">
+        <a href="{% url 'pantalla_pendientes' %}" target="_blank" rel="noopener" class="btn">
+            <i class="bi bi-display"></i> Monitor TV
+        </a>
+        <a href="{% url 'nuevo_pedido' %}" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> Nuevo pedido
+        </a>
     </div>
+</header>
 
-    <!-- ── Estilos del picker tipo calendario ─────────────────────────────── -->
-    <style>
-        .picker-wrapper {
-            position: relative;
-            display: inline-block;
-        }
-
-        .picker-trigger {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 14px;
-            background: var(--clr-surface);
-            border: 1px solid var(--clr-border);
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            font-size: .875rem;
-            font-weight: 500;
-            color: var(--clr-text);
-            transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
-            white-space: nowrap;
-            user-select: none;
-        }
-
-        .picker-trigger:hover {
-            border-color: var(--clr-accent);
-            box-shadow: 0 0 0 3px rgba(45, 42, 38, 0.08);
-        }
-
-        .picker-trigger .picker-icon {
-            font-size: 1rem;
-        }
-
-        .picker-trigger .picker-caret {
-            font-size: .7rem;
-            color: var(--clr-text-muted);
-            margin-left: 2px;
-        }
-
-        .picker-panel {
-            position: absolute;
-            z-index: 1050;
-            background: var(--clr-surface);
-            border: 1px solid var(--clr-border);
-            border-radius: var(--radius-md);
-            box-shadow: var(--shadow-lg);
-            padding: 16px;
-            min-width: 280px;
-            display: none;
-            animation: fadeIn var(--transition-fast) ease;
-        }
-
-        .picker-panel.open {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-6px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .picker-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 12px;
-        }
-
-        .picker-header .picker-nav {
-            background: none;
-            border: none;
-            font-size: 1.1rem;
-            cursor: pointer;
-            color: var(--clr-text-secondary);
-            padding: 2px 8px;
-            border-radius: var(--radius-sm);
-            transition: background var(--transition-fast);
-        }
-
-        .picker-header .picker-nav:hover {
-            background: var(--clr-surface-alt);
-        }
-
-        .picker-header .picker-year-label {
-            font-weight: 700;
-            font-size: 1rem;
-            color: var(--clr-text);
-        }
-
-        .picker-grid {
-            display: grid;
-            gap: 6px;
-        }
-
-        .picker-grid.months {
-            grid-template-columns: repeat(3, 1fr);
-        }
-
-        .picker-grid.weeks {
-            grid-template-columns: repeat(6, 1fr);
-        }
-
-        .picker-grid.years {
-            grid-template-columns: repeat(4, 1fr);
-        }
-
-        .picker-cell {
-            padding: 7px 4px;
-            text-align: center;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            font-size: .8125rem;
-            font-weight: 500;
-            color: var(--clr-text);
-            border: 1px solid transparent;
-            transition: background var(--transition-fast), border-color var(--transition-fast);
-            line-height: 1.2;
-        }
-
-        .picker-cell:hover {
-            background: var(--clr-surface-alt);
-            border-color: var(--clr-border);
-            color: var(--clr-accent);
-        }
-
-        .picker-cell.active {
-            background: var(--clr-accent);
-            color: white;
-            border-color: var(--clr-accent);
-        }
-
-        .picker-cell.has-data {
-            font-weight: 700;
-        }
-
-        .picker-cell.no-data {
-            color: var(--clr-text-muted);
-            font-weight: 400;
-        }
-
-        .picker-cell.no-data:hover {
-            background: var(--clr-surface-alt);
-            border-color: var(--clr-border);
-            color: var(--clr-text-muted);
-            cursor: default;
-        }
-    </style>
-
-    <!-- ── Controles de período + pickers ────────────────────────────────── -->
-    <div class="mb-4 d-flex align-items-center gap-3 flex-wrap">
-        <!-- Botones de período -->
-        <div class="btn-group periodo-btn-group" role="group">
-            <button class="btn active" onclick="cambiarPeriodo('mes', this)">Por Mes</button>
-            <button class="btn" onclick="cambiarPeriodo('semana', this)">Por Semana</button>
-            <button class="btn" onclick="cambiarPeriodo('anio', this)">Por Año</button>
-        </div>
-
-        <!-- ── Picker MES ──────────────────────────────────────────────── -->
-        <div id="picker-mes-wrapper" class="picker-wrapper">
-            <div class="picker-trigger" onclick="togglePicker('picker-mes')">
-                <span class="picker-icon">📅</span>
-                <span id="label-mes">— Mes —</span>
-                <span class="picker-caret">▼</span>
-            </div>
-            <div id="picker-mes" class="picker-panel">
-                <div class="picker-header">
-                    <button class="picker-nav" onclick="navMes(-1)">&#8249;</button>
-                    <span class="picker-year-label" id="mes-year-nav"></span>
-                    <button class="picker-nav" onclick="navMes(1)">&#8250;</button>
-                </div>
-                <div class="picker-grid months" id="mes-grid"></div>
-            </div>
-        </div>
-
-        <!-- ── Picker SEMANA ───────────────────────────────────────────── -->
-        <div id="picker-semana-wrapper" class="picker-wrapper d-none">
-            <div class="picker-trigger" onclick="togglePicker('picker-semana')">
-                <span class="picker-icon">🗓️</span>
-                <span id="label-semana">— semana —</span>
-                <span class="picker-caret">▼</span>
-            </div>
-            <div id="picker-semana" class="picker-panel" style="min-width:340px;">
-                <div class="picker-header">
-                    <button class="picker-nav" onclick="navSemana(-1)">&#8249;</button>
-                    <span class="picker-year-label" id="semana-year-nav"></span>
-                    <button class="picker-nav" onclick="navSemana(1)">&#8250;</button>
-                </div>
-                <div class="picker-grid weeks" id="semana-grid"></div>
-            </div>
-        </div>
-
-        <!-- ── Picker AÑO ──────────────────────────────────────────────── -->
-        <div id="picker-anio-wrapper" class="picker-wrapper d-none">
-            <div class="picker-trigger" onclick="togglePicker('picker-anio')">
-                <span class="picker-icon">📆</span>
-                <span id="label-anio">— Año —</span>
-                <span class="picker-caret">▼</span>
-            </div>
-            <div id="picker-anio" class="picker-panel" style="min-width:260px;">
-                <div class="picker-header">
-                    <span class="picker-year-label">Selecciona un año</span>
-                </div>
-                <div class="picker-grid years" id="anio-grid"></div>
-            </div>
-        </div>
+<!-- KPIs -->
+<section class="dashboard-kpis" aria-label="Indicadores">
+    <div class="kpi-card kpi-card--success">
+        <div class="kpi-value">${{ kpis.ingresos_mes|floatformat:0 }}</div>
+        <div class="kpi-label">Ingresos del mes</div>
     </div>
+    <div class="kpi-card">
+        <div class="kpi-value">{{ kpis.ventas_mes }}</div>
+        <div class="kpi-label">Ventas del mes</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-value">${{ kpis.ingresos_total|floatformat:0 }}</div>
+        <div class="kpi-label">Ingresos totales</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-value">{{ kpis.ventas_total }}</div>
+        <div class="kpi-label">Ventas totales</div>
+    </div>
+    <div class="kpi-card kpi-card--info">
+        <div class="kpi-value">{{ kpis.clientes_total }}</div>
+        <div class="kpi-label">Clientes</div>
+    </div>
+    <div class="kpi-card kpi-card--warning">
+        <div class="kpi-value">{{ kpis.cotizaciones_mes }}</div>
+        <div class="kpi-label">Cotizaciones del mes</div>
+    </div>
+</section>
 
-    <!-- Gráficas -->
-    <div class="dashboard-charts">
-        <div class="card">
-            <div class="card-header">
-                <span>Ingresos por período</span>
-                <span id="subtitulo-grafica" class="badge bg-secondary"></span>
+<!-- Gráfica + pedidos activos -->
+<div class="dashboard-charts">
+    <section class="card" aria-label="Ingresos por periodo">
+        <div class="card-header" style="flex-wrap: wrap; align-items: flex-start;">
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+                <span>Ingresos por periodo</span>
+                <span id="subtitulo-grafica" class="card-hint"></span>
             </div>
-            <div class="card-body">
-                <canvas id="graficaIngresos" height="100"></canvas>
-                <div id="sin-datos" class="empty-state d-none">
-                    <i class="bi bi-inbox"></i>
-                    <p>Sin datos para este período</p>
+            <!-- Controles de periodo + pickers -->
+            <div class="dashboard-toolbar">
+                <div class="btn-group periodo-btn-group" role="group" aria-label="Periodo">
+                    <button class="btn active" type="button" onclick="cambiarPeriodo('mes', this)">Mes</button>
+                    <button class="btn" type="button" onclick="cambiarPeriodo('semana', this)">Semana</button>
+                    <button class="btn" type="button" onclick="cambiarPeriodo('anio', this)">Año</button>
+                </div>
+
+                <!-- Picker MES -->
+                <div id="picker-mes-wrapper" class="picker-wrapper">
+                    <div class="picker-trigger" role="button" tabindex="0" onclick="togglePicker('picker-mes')">
+                        <i class="bi bi-calendar3 picker-icon"></i>
+                        <span id="label-mes">— Mes —</span>
+                        <i class="bi bi-chevron-down picker-caret"></i>
+                    </div>
+                    <div id="picker-mes" class="picker-panel">
+                        <div class="picker-header">
+                            <button class="picker-nav" type="button" onclick="navMes(-1)" aria-label="Año anterior"><i class="bi bi-chevron-left"></i></button>
+                            <span class="picker-year-label" id="mes-year-nav"></span>
+                            <button class="picker-nav" type="button" onclick="navMes(1)" aria-label="Año siguiente"><i class="bi bi-chevron-right"></i></button>
+                        </div>
+                        <div class="picker-grid months" id="mes-grid"></div>
+                    </div>
+                </div>
+
+                <!-- Picker SEMANA -->
+                <div id="picker-semana-wrapper" class="picker-wrapper d-none">
+                    <div class="picker-trigger" role="button" tabindex="0" onclick="togglePicker('picker-semana')">
+                        <i class="bi bi-calendar-week picker-icon"></i>
+                        <span id="label-semana">— Semana —</span>
+                        <i class="bi bi-chevron-down picker-caret"></i>
+                    </div>
+                    <div id="picker-semana" class="picker-panel" style="min-width:340px;">
+                        <div class="picker-header">
+                            <button class="picker-nav" type="button" onclick="navSemana(-1)" aria-label="Año anterior"><i class="bi bi-chevron-left"></i></button>
+                            <span class="picker-year-label" id="semana-year-nav"></span>
+                            <button class="picker-nav" type="button" onclick="navSemana(1)" aria-label="Año siguiente"><i class="bi bi-chevron-right"></i></button>
+                        </div>
+                        <div class="picker-grid weeks" id="semana-grid"></div>
+                    </div>
+                </div>
+
+                <!-- Picker AÑO -->
+                <div id="picker-anio-wrapper" class="picker-wrapper d-none">
+                    <div class="picker-trigger" role="button" tabindex="0" onclick="togglePicker('picker-anio')">
+                        <i class="bi bi-calendar picker-icon"></i>
+                        <span id="label-anio">— Año —</span>
+                        <i class="bi bi-chevron-down picker-caret"></i>
+                    </div>
+                    <div id="picker-anio" class="picker-panel" style="min-width:260px;">
+                        <div class="picker-header">
+                            <span class="picker-year-label">Selecciona un año</span>
+                        </div>
+                        <div class="picker-grid years" id="anio-grid"></div>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="card">
-            <div class="card-header">
-                <span>Pedidos Activos</span>
-                <a href="{% url 'pantalla_pendientes' %}" target="_blank" class="btn btn-sm btn-outline-dark">
-                    Abrir Monitor TV
+        <div class="card-body">
+            <canvas id="graficaIngresos" height="110"></canvas>
+            <div id="sin-datos" class="empty-state d-none">
+                <i class="bi bi-inbox"></i>
+                <p>Sin datos para este periodo</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="card" aria-label="Pedidos activos" style="display: flex; flex-direction: column;">
+        <div class="card-header">
+            <span style="display: inline-flex; align-items: center; gap: 10px;">
+                Pedidos activos
+                <span class="card-hint" style="display: inline-flex; align-items: center; gap: 6px;"><span class="live-dot"></span>En vivo</span>
+            </span>
+            <span class="text-num card-hint">{{ pedidos_activos|length }} en taller</span>
+        </div>
+        {% if pedidos_activos %}
+        <ul class="order-list" style="padding-top: 6px;">
+            {% for v in pedidos_activos %}
+            <li class="order-item">
+                <a href="{% url 'detalle_venta' v.id_venta %}" style="display: flex; flex-direction: column; gap: 4px; min-width: 0;">
+                    <span class="order-title">{{ v.producto_nombre|default:"—" }}</span>
+                    <span class="order-meta"><span class="text-num">VTA-{{ v.id_venta|stringformat:"04d" }}</span> · {{ v.cliente_nombre|default:"—" }}</span>
                 </a>
-            </div>
-            <div class="card-body p-0">
-                {% if pedidos_activos %}
-                <table class="table table-sm mb-0 table-hover">
-                    <thead>
-                        <tr>
-                            <th style="width: 15%;">#</th>
-                            <th style="width: 45%;">Producto a fabricar</th>
-                            <th style="width: 20%;">Estatus</th>
-                            <th style="width: 20%;">Entrega</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for v in pedidos_activos %}
-                        <tr>
-                            <td class="align-middle">
-                                <small class="fw-bold">VTA-{{ v.id_venta }}</small><br>
-                                <small class="text-muted" style="font-size: 0.75rem;">{{ v.cliente_nombre|default:"—" }}</small>
-                            </td>
-                            <td class="align-middle">
-                                <span class="fw-semibold text-dark">{{ v.producto_nombre|default:"—" }}</span>
-                            </td>
-                            <td class="align-middle">
-                                {% if v.estatus == 'en_produccion' %}
-                                <span class="badge bg-warning text-dark">En producción</span>
-                                {% elif v.estatus == 'pagada' %}
-                                <span class="badge bg-success">Pagada</span>
-                                {% endif %}
-                            </td>
-                            <td class="align-middle fw-bold text-danger"><small>{{ v.fecha_entrega|default:"—" }}</small></td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                {% else %}
-                <div class="empty-state">
-                    <i class="bi bi-check-circle"></i>
-                    <p>No hay pedidos pendientes</p>
-                </div>
-                {% endif %}
-            </div>
+                <span class="order-side">
+                    {% if v.estatus == 'en_produccion' %}
+                    <span class="badge tag-en_produccion">En producción</span>
+                    {% elif v.estatus == 'pagada' %}
+                    <span class="badge tag-pagada">Pagada</span>
+                    {% endif %}
+                    <span class="order-due">{{ v.fecha_entrega|default:"Sin fecha" }}</span>
+                </span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <div class="empty-state" style="flex: 1; justify-content: center;">
+            <i class="bi bi-check2-circle"></i>
+            <span class="empty-title">Taller al día</span>
+            <p>No hay pedidos en producción.</p>
         </div>
-    </div>
-
-    <!-- Accesos rápidos -->
-    <div class="dashboard-actions">
-        <a href="{% url 'nuevo_pedido' %}" class="action-card">
-            <i class="bi bi-plus-circle"></i>
-            <div class="action-card-text">
-                <span class="action-card-title">Nuevo Pedido</span>
-                <span class="action-card-desc">Crear un nuevo pedido directo</span>
-            </div>
-        </a>
-        <a href="{% url 'lista_ventas' %}" class="action-card">
-            <i class="bi bi-bag-check"></i>
-            <div class="action-card-text">
-                <span class="action-card-title">Ver Ventas</span>
-                <span class="action-card-desc">Historial de ventas</span>
-            </div>
-        </a>
-        <a href="{% url 'configuracion_precios' %}" class="action-card">
-            <i class="bi bi-gear"></i>
-            <div class="action-card-text">
-                <span class="action-card-title">Ajustar Precios</span>
-                <span class="action-card-desc">Configurar precios</span>
-            </div>
-        </a>
-        <a href="{% url 'lista_productos' %}" class="action-card">
-            <i class="bi bi-grid"></i>
-            <div class="action-card-text">
-                <span class="action-card-title">Productos</span>
-                <span class="action-card-desc">Gestionar productos</span>
-            </div>
-        </a>
-    </div>
+        {% endif %}
+        <div style="padding: 0 20px 20px; margin-top: auto;">
+            <a href="{% url 'lista_ventas' %}" class="btn w-100">Ver todas las ventas</a>
+        </div>
+    </section>
 </div>
+
+<!-- Accesos rápidos -->
+<section class="dashboard-actions" aria-label="Accesos rápidos">
+    <a href="{% url 'nuevo_pedido' %}" class="action-card">
+        <i class="bi bi-plus-lg"></i>
+        <span class="action-card-text">
+            <span class="action-card-title">Nuevo pedido</span>
+            <span class="action-card-desc">Cotiza y cobra en un paso</span>
+        </span>
+        <i class="bi bi-arrow-up-right arr"></i>
+    </a>
+    <a href="{% url 'lista_ventas' %}" class="action-card">
+        <i class="bi bi-bag"></i>
+        <span class="action-card-text">
+            <span class="action-card-title">Ventas</span>
+            <span class="action-card-desc">Historial y estatus</span>
+        </span>
+        <i class="bi bi-arrow-up-right arr"></i>
+    </a>
+    <a href="{% url 'configuracion_precios' %}" class="action-card">
+        <i class="bi bi-sliders"></i>
+        <span class="action-card-text">
+            <span class="action-card-title">Precios y tarifas</span>
+            <span class="action-card-desc">Láser, utilidad y m²</span>
+        </span>
+        <i class="bi bi-arrow-up-right arr"></i>
+    </a>
+    <a href="{% url 'lista_productos' %}" class="action-card">
+        <i class="bi bi-box"></i>
+        <span class="action-card-text">
+            <span class="action-card-title">Productos</span>
+            <span class="action-card-desc">Catálogo e inventario</span>
+        </span>
+        <i class="bi bi-arrow-up-right arr"></i>
+    </a>
+</section>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
@@ -374,11 +221,13 @@
     let selAnio = 'todos';
 
     // ── Chart.js ──────────────────────────────────────────────────────────────
-    const colores = {
-        mes: { bg: 'rgba(45, 106, 79, .7)', bd: 'rgba(45, 106, 79, 1)' },
-        semana: { bg: 'rgba(69, 123, 157, .7)', bd: 'rgba(69, 123, 157, 1)' },
-        anio: { bg: 'rgba(107, 101, 96, .7)', bd: 'rgba(107, 101, 96, 1)' },
-    };
+    // Barras monocromas: la última barra (el periodo más reciente) va en tinta
+    function colorBarras(context) {
+        const css = getComputedStyle(document.documentElement);
+        const n = context.chart.data.labels.length;
+        return context.dataIndex === n - 1 ? css.getPropertyValue('--clr-accent').trim() : css.getPropertyValue('--clr-bar').trim();
+    }
+    Chart.defaults.font.family = "'Outfit', system-ui, sans-serif";
 
     const ctx = document.getElementById('graficaIngresos').getContext('2d');
     let chart = new Chart(ctx, {
@@ -386,22 +235,47 @@
         data: {
             labels: [], datasets: [{
                 label: 'Ingresos ($)', data: [],
-                backgroundColor: colores.mes.bg,
-                borderColor: colores.mes.bd,
-                borderWidth: 1, borderRadius: 6,
+                backgroundColor: colorBarras,
+                hoverBackgroundColor: () => getComputedStyle(document.documentElement).getPropertyValue('--clr-text-secondary').trim(),
+                borderWidth: 0, borderRadius: 6, borderSkipped: false,
+                maxBarThickness: 48,
             }]
         },
         options: {
             responsive: true,
-            plugins: { legend: { display: false } },
+            animation: { duration: 700, easing: 'easeOutQuart' },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#1A1814', titleColor: '#F2EFEA', bodyColor: '#F2EFEA',
+                    padding: 10, cornerRadius: 8, displayColors: false,
+                    callbacks: { label: c => '$' + Number(c.parsed.y).toLocaleString('es-MX') }
+                }
+            },
             scales: {
+                x: { ticks: {}, grid: { display: false }, border: { display: false } },
                 y: {
                     beginAtZero: true,
-                    ticks: { callback: v => '$' + v.toLocaleString() }
+                    ticks: { callback: v => '$' + v.toLocaleString('es-MX') },
+                    grid: {}, border: { display: false }
                 }
             }
         }
     });
+
+    // Colores de ejes y cuadrícula según el tema activo
+    function aplicarTemaGrafica() {
+        const css = getComputedStyle(document.documentElement);
+        const texto = css.getPropertyValue('--clr-text-muted').trim();
+        const linea = css.getPropertyValue('--clr-border-subtle').trim();
+        ['x', 'y'].forEach(eje => {
+            chart.options.scales[eje].ticks.color = texto;
+            if (eje === 'y') chart.options.scales[eje].grid.color = linea;
+        });
+        chart.update('none');
+    }
+    aplicarTemaGrafica();
+    document.addEventListener('themechange', aplicarTemaGrafica);
 
     // ── Abrir/cerrar picker ───────────────────────────────────────────────────
     function togglePicker(id) {
@@ -639,7 +513,7 @@
     function cambiarPeriodo(periodo, btn) {
         periodoActivo = periodo;
 
-        document.querySelectorAll('.btn-group .btn').forEach(b => {
+        document.querySelectorAll('.periodo-btn-group .btn').forEach(b => {
             b.classList.remove('active');
         });
         btn.classList.add('active');
@@ -647,9 +521,6 @@
         document.getElementById('picker-mes-wrapper').classList.toggle('d-none', periodo !== 'mes');
         document.getElementById('picker-semana-wrapper').classList.toggle('d-none', periodo !== 'semana');
         document.getElementById('picker-anio-wrapper').classList.toggle('d-none', periodo !== 'anio');
-
-        chart.data.datasets[0].backgroundColor = colores[periodo].bg;
-        chart.data.datasets[0].borderColor = colores[periodo].bd;
 
         if (periodo === 'mes') { selMesIdx = null; }
         if (periodo === 'semana') { selSemIdx = null; }

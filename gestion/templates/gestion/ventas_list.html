@@ -1,96 +1,165 @@
 {% extends 'gestion/base.html' %}
 
+{% block title %}Ventas — Acrylitec{% endblock %}
+
 {% block content %}
-<div class="section">
-    <div class="section-header">
-        <h2 class="section-title">
-            <i class="bi bi-bag-check"></i>
-            Historial de Ventas
-        </h2>
-        <a href="{% url 'nuevo_pedido' %}" class="btn btn-success">
-            <i class="bi bi-plus"></i> Nueva Venta
+<header class="page-header">
+    <div class="page-heading">
+        <span class="page-eyebrow">Operación / Ventas</span>
+        <h1 class="page-title">Ventas</h1>
+    </div>
+    <div class="page-actions">
+        <a href="{% url 'nuevo_pedido' %}" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> Nuevo pedido
         </a>
     </div>
+</header>
 
-    <!-- KPIs -->
-    <div class="bento-grid bento-grid--5" style="margin-bottom: var(--space-xl);">
-        {% if request.user.is_superuser or request.user.groups.all.0.name == 'Administrador' %}
-        <div class="kpi-card kpi-card--success">
-            <div class="kpi-value">${{ resumen.total_ingresos|floatformat:2 }}</div>
-            <div class="kpi-label">Ingresos totales</div>
-        </div>
-        {% endif %}
-        <div class="kpi-card kpi-card--accent">
-            <div class="kpi-value">{{ resumen.total_ventas }}</div>
-            <div class="kpi-label">Total ventas</div>
-        </div>
-        <div class="kpi-card kpi-card--warning">
-            <div class="kpi-value">{{ resumen.en_produccion }}</div>
-            <div class="kpi-label">En producción</div>
-        </div>
-        <div class="kpi-card">
-            <div class="kpi-value">{{ resumen.entregadas }}</div>
-            <div class="kpi-label">Entregadas</div>
-        </div>
-        <div class="kpi-card">
-            <div class="kpi-value">{{ resumen.pendientes }}</div>
-            <div class="kpi-label">Pendientes</div>
-        </div>
-    </div>
-
-    {% if ventas %}
-    <div class="table-responsive">
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th class="hide-mobile">Fecha</th>
-                    <th>Cliente</th>
-                    <th class="hide-mobile">Producto</th>
-                    <th>Total</th>
-                    <th class="hide-mobile">Abonado</th>
-                    <th>Estatus</th>
-                    <th class="hide-mobile">Entrega</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for v in ventas %}
-                <tr>
-                    <td><span class="badge bg-secondary">VTA-{{ v.id_venta|stringformat:"04d" }}</span></td>
-                    <td class="hide-mobile">{{ v.fecha_venta }}</td>
-                    <td>{{ v.cliente_nombre|default:"—"|truncatechars:20 }}</td>
-                    <td class="hide-mobile">{{ v.producto_nombre|default:"—"|truncatechars:20 }}</td>
-                    <td class="fw-bold">${{ v.total_calculado|floatformat:2 }}</td>
-                    <td class="text-success hide-mobile">${{ v.monto_abonado|floatformat:2 }}</td>
-                    <td>
-                        {% if v.estatus == 'cotizacion' %}
-                            <span class="badge bg-info">Cotización</span>
-                        {% elif v.estatus == 'pendiente' %}
-                            <span class="badge bg-secondary">Pendiente</span>
-                        {% elif v.estatus == 'en_produccion' %}
-                            <span class="badge bg-warning">Producción</span>
-                        {% elif v.estatus == 'pagada' %}
-                            <span class="badge bg-primary">Pagada</span>
-                        {% elif v.estatus == 'entregada' %}
-                            <span class="badge bg-success">Entregada</span>
-                        {% endif %}
-                    </td>
-                    <td class="hide-mobile">{{ v.fecha_entrega|default:"—" }}</td>
-                    <td>
-                        <a href="{% url 'detalle_venta' v.id_venta %}"
-                           class="btn btn-sm btn-outline-primary">Ver</a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% else %}
-    <div class="alert alert-info">
-        Aún no hay pedidos registrados.
-        <a href="{% url 'nuevo_pedido' %}" class="alert-link">Crea el primer pedido aquí.</a>
+<!-- Resumen -->
+<section class="stat-strip" aria-label="Resumen">
+    {% if request.user.is_superuser or request.user.groups.all.0.name == 'Administrador' %}
+    <div>
+        <span class="kpi-label">Ingresos totales</span>
+        <span class="kpi-value">${{ resumen.total_ingresos|floatformat:2 }}</span>
     </div>
     {% endif %}
+    <div>
+        <span class="kpi-label">Ventas</span>
+        <span class="kpi-value">{{ resumen.total_ventas }}</span>
+    </div>
+    <div>
+        <span class="kpi-label">En producción</span>
+        <span class="kpi-value">{{ resumen.en_produccion }}</span>
+    </div>
+    <div>
+        <span class="kpi-label">Pendientes</span>
+        <span class="kpi-value">{{ resumen.pendientes }}</span>
+    </div>
+    <div>
+        <span class="kpi-label">Entregadas</span>
+        <span class="kpi-value">{{ resumen.entregadas }}</span>
+    </div>
+</section>
+
+{% if ventas %}
+<div class="dashboard-toolbar" style="justify-content: space-between;" data-reveal>
+    <div class="dashboard-toolbar" role="tablist" aria-label="Filtrar por estatus" id="filtrosEstatus">
+        <button type="button" class="chip active" data-filtro="todas">Todas</button>
+        <button type="button" class="chip" data-filtro="cotizacion">Cotización</button>
+        <button type="button" class="chip" data-filtro="pendiente">Pendiente</button>
+        <button type="button" class="chip" data-filtro="en_produccion">En producción</button>
+        <button type="button" class="chip" data-filtro="pagada">Pagada</button>
+        <button type="button" class="chip" data-filtro="entregada">Entregada</button>
+    </div>
+    <label class="search-field" style="flex: 0 1 300px; min-width: 220px;">
+        <i class="bi bi-search"></i>
+        <input type="search" class="form-control" id="buscarVenta" placeholder="Folio o cliente" aria-label="Buscar venta">
+    </label>
 </div>
+
+<div class="table-responsive">
+    <table class="table" id="tablaVentas">
+        <thead>
+            <tr>
+                <th>Folio</th>
+                <th>Cliente</th>
+                <th class="hide-mobile">Producto</th>
+                <th class="hide-mobile">Fecha</th>
+                <th class="hide-mobile">Entrega</th>
+                <th>Estatus</th>
+                <th class="hide-mobile" style="width: 170px;">Cobrado</th>
+                <th style="text-align: right;">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for v in ventas %}
+            <tr class="row-link" data-estatus="{{ v.estatus }}" data-busqueda="vta-{{ v.id_venta|stringformat:'04d' }} {{ v.cliente_nombre|default:''|lower }}" onclick="location.href='{% url 'detalle_venta' v.id_venta %}'" style="cursor: pointer;">
+                <td><a class="text-num" href="{% url 'detalle_venta' v.id_venta %}" style="font-weight: 500;">VTA-{{ v.id_venta|stringformat:"04d" }}</a></td>
+                <td style="font-weight: 500;">{{ v.cliente_nombre|default:"—"|truncatechars:28 }}</td>
+                <td class="hide-mobile text-muted">{{ v.producto_nombre|default:"—"|truncatechars:24 }}</td>
+                <td class="hide-mobile text-num text-muted" style="font-size: 0.8125rem;">{{ v.fecha_venta|date:"d M Y" }}</td>
+                <td class="hide-mobile text-num text-muted" style="font-size: 0.8125rem;">{{ v.fecha_entrega|date:"d M Y"|default:"—" }}</td>
+                <td>
+                    {% if v.estatus == 'cotizacion' %}<span class="badge tag-cotizacion">Cotización</span>
+                    {% elif v.estatus == 'pendiente' %}<span class="badge tag-pendiente">Pendiente</span>
+                    {% elif v.estatus == 'en_produccion' %}<span class="badge tag-en_produccion">En producción</span>
+                    {% elif v.estatus == 'pagada' %}<span class="badge tag-pagada">Pagada</span>
+                    {% elif v.estatus == 'entregada' %}<span class="badge tag-entregada">Entregada</span>
+                    {% endif %}
+                </td>
+                <td class="hide-mobile">
+                    {% widthratio v.monto_abonado v.total_calculado 100 as pct %}
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div class="meter" style="flex: 1;">
+                            <div class="meter-fill {% if v.monto_abonado >= v.total_calculado and v.total_calculado %}is-full{% endif %}" style="width: {% if pct|add:0 > 100 %}100{% else %}{{ pct }}{% endif %}%; --i: {{ forloop.counter0 }};"></div>
+                        </div>
+                        <span class="text-num text-muted" style="font-size: 0.75rem; width: 38px; text-align: right;">{% if pct|add:0 > 100 %}100{% else %}{{ pct }}{% endif %}%</span>
+                    </div>
+                </td>
+                <td style="text-align: right; white-space: nowrap;">
+                    <span class="text-num" style="font-weight: 500;">${{ v.total_calculado|floatformat:2 }}</span>
+                    <i class="bi bi-chevron-right go text-muted" style="margin-left: 6px; font-size: 0.75rem;"></i>
+                </td>
+            </tr>
+            {% endfor %}
+            <tr id="sinResultados" class="d-none">
+                <td colspan="8"><div class="empty-state" style="padding: 32px;"><i class="bi bi-search"></i><p>Ninguna venta coincide con el filtro.</p></div></td>
+            </tr>
+        </tbody>
+    </table>
+    <div class="table-footer">
+        <span>Mostrando <span class="text-num" id="conteoVentas">{{ ventas|length }}</span> de <span class="text-num">{{ ventas|length }}</span></span>
+    </div>
+</div>
+{% else %}
+<div class="card">
+    <div class="empty-state">
+        <i class="bi bi-receipt"></i>
+        <span class="empty-title">Aún no hay pedidos registrados</span>
+        <p>Cuando registres el primero aparecerá aquí con su estatus y cobro.</p>
+        <a href="{% url 'nuevo_pedido' %}" class="btn btn-primary" style="margin-top: 10px;"><i class="bi bi-plus-lg"></i> Crear el primer pedido</a>
+    </div>
+</div>
+{% endif %}
+
+<script>
+(function () {
+    const tabla = document.getElementById('tablaVentas');
+    if (!tabla) return;
+    const filas = Array.from(tabla.querySelectorAll('tbody tr[data-estatus]'));
+    const chips = document.querySelectorAll('#filtrosEstatus .chip');
+    const buscar = document.getElementById('buscarVenta');
+    let filtro = 'todas';
+
+    // Conteo por estatus en cada chip
+    chips.forEach(chip => {
+        const f = chip.dataset.filtro;
+        const n = f === 'todas' ? filas.length : filas.filter(r => r.dataset.estatus === f).length;
+        const span = document.createElement('span');
+        span.className = 'n';
+        span.textContent = n;
+        chip.appendChild(span);
+    });
+
+    function aplicar() {
+        const q = (buscar.value || '').trim().toLowerCase();
+        let visibles = 0;
+        filas.forEach(r => {
+            const ok = (filtro === 'todas' || r.dataset.estatus === filtro) && (!q || r.dataset.busqueda.includes(q));
+            r.classList.toggle('d-none', !ok);
+            if (ok) visibles++;
+        });
+        document.getElementById('conteoVentas').textContent = visibles;
+        document.getElementById('sinResultados').classList.toggle('d-none', visibles > 0);
+    }
+
+    chips.forEach(chip => chip.addEventListener('click', () => {
+        chips.forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        filtro = chip.dataset.filtro;
+        aplicar();
+    }));
+    buscar.addEventListener('input', aplicar);
+})();
+</script>
 {% endblock %}

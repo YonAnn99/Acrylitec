@@ -1,0 +1,13 @@
+<script>
+    // Aplica el tema guardado antes de pintar, para evitar el flash blanco
+    (function () {
+        var theme;
+        try { theme = localStorage.getItem('acrylitec-theme'); } catch (e) {}
+        if (theme !== 'dark' && theme !== 'light') {
+            theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        document.documentElement.setAttribute('data-bs-theme', theme);
+        var meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.setAttribute('content', theme === 'dark' ? '#121110' : '#F7F6F3');
+    })();
+</script>

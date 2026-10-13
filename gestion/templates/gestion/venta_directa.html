@@ -1,370 +1,337 @@
 {% extends 'gestion/base.html' %}
 {% block content %}
-<div class="container-fluid">
-    <div class="row">
+<header class="page-header">
+    <div class="page-heading">
+        <span class="page-eyebrow">Operación / Punto de venta</span>
+        <h1 class="page-title">Nuevo pedido</h1>
+    </div>
+    <div class="page-actions">
+        <a href="{% url 'lista_ventas' %}" class="btn"><i class="bi bi-x-lg"></i> Cancelar</a>
+    </div>
+</header>
 
-        <!-- ══════════════════════════════════════
-             COLUMNA IZQUIERDA — Formulario POS
-        ══════════════════════════════════════ -->
-        <div class="col-md-7">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2>🛒 Punto de Venta (POS)</h2>
-                <a href="{% url 'lista_ventas' %}" class="btn btn-outline-secondary">← Volver</a>
+<div class="pos-layout">
+
+    <!-- ══════════════ Columna izquierda — pasos ══════════════ -->
+    <div class="pos-main">
+
+        <!-- PASO 1: Cliente -->
+        <section class="card" aria-labelledby="paso1">
+            <div class="card-header">
+                <span class="card-title-row"><span class="step-num">01</span><span id="paso1">Cliente</span></span>
+                <span class="card-hint">Se bloquea al agregar el primer artículo</span>
             </div>
-
-            <!-- ── PASO 1: Cliente ── -->
-            <div class="card shadow-sm mb-3 border-primary">
-                <div class="card-header bg-primary text-white fw-semibold">
-                    1. Seleccionar Cliente
-                </div>
-                <div class="card-body">
-                    <div class="d-flex gap-2 align-items-start">
-                        <div class="flex-grow-1">
-                            <select id="id_cliente" class="form-select select2">
-                                <option value="">-- Busca o selecciona un cliente --</option>
-                                {% for c in clientes %}
-                                <option value="{{ c.id_cliente }}">
-                                    {{ c.nombre }}{% if c.telefono %} · {{ c.telefono }}{% endif %}
-                                </option>
-                                {% endfor %}
-                            </select>
-                            <small class="text-muted">El cliente se bloqueará al agregar el primer artículo.</small>
-                        </div>
-                        <!-- Botón que abre el modal -->
-                        <button type="button" class="btn btn-outline-primary btn-sm mt-1 text-nowrap"
-                            data-bs-toggle="modal" data-bs-target="#modalNuevoCliente" title="Registrar nuevo cliente">
-                            ➕ Nuevo cliente
-                        </button>
+            <div class="card-body">
+                <div style="display: flex; gap: 10px; align-items: flex-start; flex-wrap: wrap;">
+                    <div style="flex: 1 1 320px; min-width: 0;">
+                        <select id="id_cliente" class="form-select select2" aria-label="Cliente">
+                            <option value="">-- Busca o selecciona un cliente --</option>
+                            {% for c in clientes %}
+                            <option value="{{ c.id_cliente }}">
+                                {{ c.nombre }}{% if c.telefono %} · {{ c.telefono }}{% endif %}
+                            </option>
+                            {% endfor %}
+                        </select>
                     </div>
-                </div>
-            </div>
-
-            <!-- ── PASO 2: Artículo ── -->
-            <form id="formProducto" onsubmit="event.preventDefault(); agregarAlCarrito();">
-                <div class="card shadow-sm mb-3">
-                    <div class="card-header bg-dark text-white fw-semibold">2. Agregar Artículo</div>
-                    <div class="card-body">
-
-                        <div class="row">
-                            <div class="col-md-12 mb-3">
-                                <label class="form-label">Producto</label>
-                                <div class="input-group">
-                                    <select id="id_producto" class="form-select select2" required>
-                                        <option value="">-- Selecciona producto --</option>
-                                        {% for p in productos %}
-                                        <option value="{{ p.id_producto }}"
-                                            data-precio-fijo="{{ p.precio_fijo|default:'' }}"
-                                            data-stock-actual="{{ p.stock_actual }}"
-                                            data-detalle="{{ p.detalle|default:'' }}">
-                                            {{ p.nombre }}
-                                        </option>
-                                        {% endfor %}
-                                    </select>
-                                    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal"
-                                        data-bs-target="#modalNuevoProducto">
-                                        ➕ Nuevo
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Cantidad</label>
-                                <input type="number" id="id_cantidad" value="1" min="1" class="form-control" required>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Largo (cm)</label>
-                                <input type="number" name="largo_pza" step="0.01" class="form-control"
-                                    placeholder="ej. 20" required>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Ancho (cm)</label>
-                                <input type="number" name="ancho_pza" step="0.01" class="form-control"
-                                    placeholder="ej. 10" required>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Espesor (mm)</label>
-                                <select name="espesor_mm" id="id_espesor" class="form-select" required>
-                                    <option value="">-- Selecciona --</option>
-
-                                    {% for t in materiales_tabulador %}
-                                    <option value="{{ t.espesor_mm }}" data-factor="{{ t.factor_costo }}">{{t.espesor_mm}} mm</option>
-                                    {% endfor %}
-
-                                </select>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Min. Láser</label>
-                                <input type="number" name="minutos_lazer" step="1" value="0" class="form-control">
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Utilidad (%)</label>
-                                <input type="number" id="id_utilidad" value="40" min="0" class="form-control">
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-12 mb-3">
-                                <label class="form-label text-primary fw-bold">Modificar Precio Unitario ($)</label>
-                                <input type="number" id="id_precio_manual" step="0.01" min="0" class="form-control border-primary bg-light" placeholder="Opcional. Ignora el cálculo y usa este precio solo para esta venta.">
-                            </div>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary w-100 mt-2">
-                            ➕ Agregar al Carrito
-                        </button>
-                    </div>
-                </div>
-            </form>
-
-            <!-- ── PASO 3: Carrito ── -->
-            <div class="card shadow-sm mb-3 border-success">
-                <div class="card-header bg-success text-white fw-semibold">3. Resumen del Pedido (Carrito)</div>
-                <div class="card-body p-0">
-                    <table class="table table-hover mb-0" id="tabla-carrito">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Artículo</th>
-                                <th>Cant.</th>
-                                <th>Subtotal</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td colspan="4" class="text-center text-muted py-4">El carrito está vacío</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- ── PASO 4: Cobro ── -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-dark text-white fw-semibold">4. Cobro y Confirmación</div>
-                <div class="card-body">
-                    {% csrf_token %}
-                    <div class="row align-items-end">
-                        <div class="col-md-2 mb-3">
-                            <label class="form-label">Desc. (%)</label>
-                            <input type="number" id="id_descuento" min="0" max="100" value="0"
-                                class="form-control text-danger fw-bold">
-                        </div>
-                        <div class="col-md-2 mb-3">
-                            <div class="form-check form-switch pb-2">
-                                <input class="form-check-input" type="checkbox" id="id_iva">
-                                <label class="form-check-label fw-bold" for="id_iva">+ IVA (16%)</label>
-                            </div>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label">Monto abonado ($)</label>
-                            <input type="number" id="id_monto_abonado" step="0.01" min="0"
-                                class="form-control text-success fw-bold">
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label">Estatus inicial</label>
-                            <select name="estatus" id="id_estatus" class="form-select">
-                                <option value="cotizacion">📝 Solo Cotización</option>
-                                <option value="pendiente">⏳ Pendiente</option>
-                                <option value="en_produccion">🔧 En producción</option>
-                                <option value="pagada">💰 Pagada</option>
-                                <option value="entregada">✅ Entregada</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Fecha de entrega</label>
-                        <input type="date" id="id_fecha_entrega" class="form-control">
-                    </div>
-
-                    <button type="button" id="btn-finalizar" onclick="guardarVentaCompleta()"
-                        class="btn btn-success btn-lg w-100">
-                        💾 Registrar Pedido Completo
+                    <button type="button" class="btn" style="min-height: 44px;"
+                        data-bs-toggle="modal" data-bs-target="#modalNuevoCliente" title="Registrar nuevo cliente">
+                        <i class="bi bi-person-plus"></i> Nuevo cliente
                     </button>
                 </div>
             </div>
-        </div><!-- /col-md-7 -->
+        </section>
 
-        <!-- ══════════════════════════════════════
-             COLUMNA DERECHA — Calculadora
-        ══════════════════════════════════════ -->
-        <div class="col-md-5">
-            <div class="card shadow border-0 sticky-top" style="top:20px">
-                <div class="card-header bg-dark text-white">
-                    <h5 class="mb-0">Calculadora del renglón</h5>
+        <!-- PASO 2: Artículo -->
+        <form id="formProducto" onsubmit="event.preventDefault(); agregarAlCarrito();">
+            <section class="card" aria-labelledby="paso2">
+                <div class="card-header">
+                    <span class="card-title-row"><span class="step-num">02</span><span id="paso2">Artículo</span></span>
                 </div>
-                <div class="card-body py-4">
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted">Área (por pza):</span>
-                        <strong id="display_area">0.00 cm²</strong>
+                <div class="card-body" style="display: flex; flex-direction: column; gap: 16px;">
+                    <div>
+                        <label class="form-label" for="id_producto">Producto</label>
+                        <div style="display: flex; gap: 10px; align-items: flex-start;">
+                            <div style="flex: 1; min-width: 0;">
+                                <select id="id_producto" class="form-select select2" required>
+                                    <option value="">-- Selecciona producto --</option>
+                                    {% for p in productos %}
+                                    <option value="{{ p.id_producto }}"
+                                        data-precio-fijo="{{ p.precio_fijo|default:'' }}"
+                                        data-stock-actual="{{ p.stock_actual }}"
+                                        data-detalle="{{ p.detalle|default:'' }}">
+                                        {{ p.nombre }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <button type="button" class="btn" style="min-height: 44px;" data-bs-toggle="modal"
+                                data-bs-target="#modalNuevoProducto">
+                                <i class="bi bi-plus-lg"></i> Nuevo
+                            </button>
+                        </div>
                     </div>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted">Utilidad:</span>
-                        <span id="display_utilidad">$0.00</span>
+
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px;">
+                        <div>
+                            <label class="form-label" for="id_cantidad">Cantidad</label>
+                            <input type="number" id="id_cantidad" value="1" min="1" class="form-control" required>
+                        </div>
+                        <div>
+                            <label class="form-label" for="id_largo">Largo (cm)</label>
+                            <input type="number" id="id_largo" name="largo_pza" step="0.01" class="form-control" placeholder="20" required>
+                        </div>
+                        <div>
+                            <label class="form-label" for="id_ancho">Ancho (cm)</label>
+                            <input type="number" id="id_ancho" name="ancho_pza" step="0.01" class="form-control" placeholder="10" required>
+                        </div>
+                        <div>
+                            <label class="form-label" for="id_espesor">Espesor (mm)</label>
+                            <select name="espesor_mm" id="id_espesor" class="form-select" required>
+                                <option value="">Selecciona</option>
+                                {% for t in materiales_tabulador %}
+                                <option value="{{ t.espesor_mm }}" data-factor="{{ t.factor_costo }}">{{t.espesor_mm}} mm</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label" for="id_minutos">Min. láser</label>
+                            <input type="number" id="id_minutos" name="minutos_lazer" step="1" value="0" class="form-control">
+                        </div>
+                        <div>
+                            <label class="form-label" for="id_utilidad">Utilidad (%)</label>
+                            <input type="number" id="id_utilidad" value="40" min="0" class="form-control">
+                        </div>
                     </div>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted">Corte láser:</span>
-                        <span id="display_laser">$0.00</span>
+
+                    <div>
+                        <label class="form-label" for="id_precio_manual">Precio unitario manual · opcional</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" id="id_precio_manual" step="0.01" min="0" class="form-control" placeholder="Ignora el cálculo y usa este precio solo para esta venta">
+                        </div>
                     </div>
-                    <hr>
-                    <div class="text-center">
-                        <p class="text-muted mb-1">Costo estimado de este renglón:</p>
-                        <h2 class="text-primary fw-bold" id="display_total">$0.00</h2>
+
+                    <div style="display: flex; justify-content: flex-end;">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-plus-lg"></i> Agregar al pedido
+                        </button>
                     </div>
-                    <p class="small text-warning mt-2 text-center" id="nota_precio_fijo" style="display:none">
-                        ⚠️ Este producto tiene precio fijo
-                    </p>
-                    <div class="mt-4 p-3 bg-success rounded text-center shadow-sm" style="color: #000000 !important;">
-                        <p class="mb-1 fw-bold" style="color: #000000 !important;">GRAN TOTAL PEDIDO</p>
-                        <h1 id="gran-total-display" class="fw-bold mb-0" style="color: #000000 !important;">$0.00</h1>
+                </div>
+            </section>
+        </form>
+
+        <!-- PASO 3: Carrito -->
+        <section class="card" aria-labelledby="paso3">
+            <div class="card-header">
+                <span class="card-title-row"><span class="step-num">03</span><span id="paso3">Resumen del pedido</span></span>
+                <span class="card-hint text-num" id="conteo-carrito">0 artículos</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table mb-0" id="tabla-carrito">
+                    <thead>
+                        <tr>
+                            <th>Artículo</th>
+                            <th>Cant.</th>
+                            <th style="text-align: right;">Subtotal</th>
+                            <th style="width: 52px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="4" class="text-center text-muted" style="padding: 28px;">Agrega un artículo para empezar el pedido.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- PASO 4: Cobro -->
+        <section class="card" aria-labelledby="paso4">
+            <div class="card-header">
+                <span class="card-title-row"><span class="step-num">04</span><span id="paso4">Cobro y entrega</span></span>
+            </div>
+            <div class="card-body" style="display: flex; flex-direction: column; gap: 16px;">
+                {% csrf_token %}
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px;">
+                    <div>
+                        <label class="form-label" for="id_descuento">Descuento (%)</label>
+                        <input type="number" id="id_descuento" min="0" max="100" value="0" class="form-control">
                     </div>
+                    <div>
+                        <label class="form-label" for="id_monto_abonado">Anticipo ($)</label>
+                        <input type="number" id="id_monto_abonado" step="0.01" min="0" class="form-control">
+                    </div>
+                    <div>
+                        <label class="form-label" for="id_fecha_entrega">Fecha de entrega</label>
+                        <input type="date" id="id_fecha_entrega" class="form-control">
+                    </div>
+                    <div>
+                        <label class="form-label" for="id_estatus">Estatus inicial</label>
+                        <select name="estatus" id="id_estatus" class="form-select">
+                            <option value="cotizacion">Solo cotización</option>
+                            <option value="pendiente">Pendiente</option>
+                            <option value="en_produccion">En producción</option>
+                            <option value="pagada">Pagada</option>
+                            <option value="entregada">Entregada</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-check form-switch" style="display: flex; align-items: center; gap: 10px; padding-left: 0; margin: 0;">
+                    <input class="form-check-input" type="checkbox" id="id_iva" style="margin: 0; float: none;">
+                    <label class="form-check-label" for="id_iva" style="font-size: 0.875rem; color: var(--clr-text-secondary);">Incluir IVA (16%)</label>
                 </div>
             </div>
-        </div><!-- /col-md-5 -->
+        </section>
+    </div>
 
-    </div><!-- /row -->
-</div><!-- /container -->
+    <!-- ══════════════ Columna derecha — calculadora ══════════════ -->
+    <aside class="pos-aside" aria-label="Calculadora">
+        <section class="card">
+            <div class="card-header">
+                <span>Calculadora del renglón</span>
+                <span class="card-hint">en vivo</span>
+            </div>
+            <div class="card-body" style="display: flex; flex-direction: column; gap: 14px;">
+                <dl class="calc-list">
+                    <div><dt>Área</dt><dd id="display_area">0.00 cm²</dd></div>
+                    <div><dt>Utilidad</dt><dd id="display_utilidad">$0.00</dd></div>
+                    <div><dt>Corte láser</dt><dd id="display_laser">$0.00</dd></div>
+                </dl>
+                <div class="calc-result">
+                    <span class="eyebrow">Costo de este renglón</span>
+                    <p class="calc-result-value" id="display_total">$0.00</p>
+                    <p class="text-warning" id="nota_precio_fijo" style="display:none; margin: 4px 0 0; font-size: 0.8125rem;">Este producto tiene precio fijo</p>
+                </div>
+            </div>
+        </section>
 
-<div class="modal fade" id="modalNuevoProducto" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
+        <section class="total-panel" aria-label="Total del pedido">
+            <span class="total-panel-label">Total del pedido</span>
+            <div class="total-breakdown" id="total-breakdown"></div>
+            <h2 id="gran-total-display" class="total-panel-value">$0.00</h2>
+            <button type="button" id="btn-finalizar" onclick="guardarVentaCompleta()"
+                class="btn btn-lg" style="background: var(--clr-on-accent); color: var(--clr-accent); border-color: transparent; width: 100%; margin-top: 6px;">
+                Confirmar pedido
+            </button>
+        </section>
+    </aside>
+</div>
+
+<!-- ══════════════ Modal — Nuevo producto ══════════════ -->
+<div class="modal fade" id="modalNuevoProducto" tabindex="-1" aria-labelledby="modalNuevoProductoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title text-white">📦 Agregar Nuevo Producto</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                    aria-label="Close"></button>
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalNuevoProductoLabel">Nuevo producto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
             <div class="modal-body">
-<form id="formNuevoProducto">
-                    <div class="mb-3">
-                        <label class="form-label">Nombre del Producto <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="np_nombre" placeholder="Ej. Llavero grabado"
-                            required>
+                <form id="formNuevoProducto" style="display: flex; flex-direction: column; gap: 14px;">
+                    <div>
+                        <label class="form-label" for="np_nombre">Nombre <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="np_nombre" placeholder="Ej. Llavero grabado" required>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Descripción (Opcional)</label>
+                    <div>
+                        <label class="form-label" for="np_descripcion">Descripción · opcional</label>
                         <input type="text" class="form-control" id="np_descripcion">
                     </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">% Utilidad <span class="text-danger">*</span></label>
+                    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;">
+                        <div>
+                            <label class="form-label" for="np_utilidad">Utilidad (%) <span class="text-danger">*</span></label>
                             <input type="number" class="form-control" id="np_utilidad" value="40" required>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Precio Fijo ($) (Opcional)</label>
-                            <input type="number" step="0.01" class="form-control" id="np_precio_fijo"
-                                placeholder="Ej. 500.00">
-                            <div class="form-text" style="font-size: 0.75rem;">Vacío = cálculo por m²</div>
+                        <div>
+                            <label class="form-label" for="np_precio_fijo">Precio fijo ($)</label>
+                            <input type="number" step="0.01" class="form-control" id="np_precio_fijo" placeholder="Vacío = por m²">
                         </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Stock Inicial</label>
+                        <div>
+                            <label class="form-label" for="np_stock_actual">Stock inicial</label>
                             <input type="number" class="form-control" id="np_stock_actual" value="0" min="0">
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Stock Mínimo</label>
+                        <div>
+                            <label class="form-label" for="np_stock_minimo">Stock mínimo</label>
                             <input type="number" class="form-control" id="np_stock_minimo" value="0" min="0">
                         </div>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" id="btnGuardarProducto">Guardar Producto</button>
+                <button type="button" class="btn" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btnGuardarProducto">Guardar producto</button>
             </div>
         </div>
     </div>
 </div>
-<!-- ═══════════════════════════════════════════════════════════
-     MODAL — Nuevo Cliente
-     Backend ya preparado en: POST /ajax/crear-cliente/
-═══════════════════════════════════════════════════════════ -->
-<div class="modal fade" id="modalNuevoCliente" tabindex="-1" aria-labelledby="modalNuevoClienteLabel"
-    aria-hidden="true">
+
+<!-- ══════════════ Modal — Nuevo cliente (POST /ajax/crear-cliente/) ══════════════ -->
+<div class="modal fade" id="modalNuevoCliente" tabindex="-1" aria-labelledby="modalNuevoClienteLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="modalNuevoClienteLabel">➕ Nuevo Cliente</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalNuevoClienteLabel">Nuevo cliente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
 
-            <div class="modal-body">
+            <div class="modal-body" style="display: flex; flex-direction: column; gap: 14px;">
+                <div id="alerta-cliente" class="alert alert-danger d-none" role="alert" style="margin: 0;"></div>
 
-                <!-- Alerta de error (oculta por defecto) -->
-                <div id="alerta-cliente" class="alert alert-danger d-none" role="alert"></div>
-
-                <!-- ── Campo obligatorio ── -->
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Nombre <span class="text-danger">*</span></label>
-                    <input type="text" id="nc_nombre" class="form-control" placeholder="Nombre del cliente" autofocus>
+                <div>
+                    <label class="form-label" for="nc_nombre">Nombre <span class="text-danger">*</span></label>
+                    <input type="text" id="nc_nombre" class="form-control" placeholder="Nombre del cliente o empresa" autofocus>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Teléfono</label>
+                <div>
+                    <label class="form-label" for="nc_telefono">Teléfono</label>
                     <div class="input-group">
-                        <span class="input-group-text">📞</span>
+                        <span class="input-group-text"><i class="bi bi-telephone"></i></span>
                         <input type="tel" id="nc_telefono" class="form-control" placeholder="10 dígitos">
                     </div>
                 </div>
 
-                <!-- ── Toggle datos adicionales ── -->
-                <div class="mb-2">
-                    <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none text-muted"
-                        id="btn-ver-mas" onclick="toggleDatosExtra()">
-                        <span id="icono-toggle">▶</span> Agregar correo y dirección (opcional)
-                    </button>
-                </div>
+                <button type="button" class="btn btn-link" id="btn-ver-mas" onclick="toggleDatosExtra()" style="align-self: flex-start; font-size: 0.8125rem; gap: 6px;">
+                    <i id="icono-toggle" class="bi bi-chevron-right" style="transition: transform 220ms var(--ease-out); display: inline-block;"></i> Agregar correo y dirección (opcional)
+                </button>
 
                 <div id="datos-extra" style="display:none;">
-                    <div class="mb-3">
-                        <label class="form-label">Correo electrónico</label>
-                        <div class="input-group">
-                            <span class="input-group-text">✉️</span>
-                            <input type="email" id="nc_email" class="form-control" placeholder="correo@ejemplo.com">
+                    <div style="display: flex; flex-direction: column; gap: 14px;">
+                        <div>
+                            <label class="form-label" for="nc_email">Correo electrónico</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                <input type="email" id="nc_email" class="form-control" placeholder="correo@ejemplo.com">
+                            </div>
                         </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Dirección</label>
-                        <textarea id="nc_direccion" class="form-control" rows="2"
-                            placeholder="Calle, colonia, ciudad..."></textarea>
+                        <div>
+                            <label class="form-label" for="nc_direccion">Dirección</label>
+                            <textarea id="nc_direccion" class="form-control" rows="2" placeholder="Calle, colonia, ciudad..."></textarea>
+                        </div>
                     </div>
                 </div>
 
-                <hr class="my-3">
-
-                <!-- ── Checkbox: guardar como recurrente ── -->
-                <div class="form-check form-switch">
+                <div class="form-check form-switch" style="padding-top: 12px; border-top: 1px solid var(--clr-border-subtle); margin: 0; padding-left: 2.75em;">
                     <input class="form-check-input" type="checkbox" id="nc_guardar_recurrente" checked>
                     <label class="form-check-label" for="nc_guardar_recurrente">
-                        <strong>Guardar en lista de clientes</strong>
-                        <span class="text-muted d-block small">
-                            Deja activado para clientes frecuentes. Desactívalo si es una venta de una sola vez
-                            (el cliente seguirá registrado en la venta, pero no aparecerá en el módulo de Clientes).
+                        <strong style="font-size: 0.875rem;">Guardar en lista de clientes</strong>
+                        <span class="text-muted d-block" style="font-size: 0.8125rem;">
+                            Desactívalo si es una venta de una sola vez: el cliente queda en la venta pero no aparece en Clientes.
                         </span>
                     </label>
                 </div>
 
-                <!-- Preview del nombre cuando se desactiva -->
-                <div id="aviso-eventual" class="alert alert-warning mt-3 mb-0 py-2 small d-none">
-                    ⚠️ Se guardará como <strong>"(Eventual) [nombre]"</strong> para diferenciarlo de tus clientes
-                    habituales.
+                <div id="aviso-eventual" class="alert alert-warning d-none" style="margin: 0;">
+                    <i class="bi bi-info-circle"></i>
+                    <span>Se guardará como <strong>"(Eventual) [nombre]"</strong> para diferenciarlo de tus clientes habituales.</span>
                 </div>
-
-            </div><!-- /modal-body -->
-
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" id="btn-guardar-cliente" onclick="guardarNuevoCliente()">
-                    💾 Guardar y seleccionar
-                </button>
             </div>
 
+            <div class="modal-footer">
+                <button type="button" class="btn" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btn-guardar-cliente" onclick="guardarNuevoCliente()">
+                    Guardar y seleccionar
+                </button>
+            </div>
         </div>
     </div>
-</div><!-- /modal -->
+</div>
 
 
 <!-- ═══════════════════════════════════
@@ -379,6 +346,7 @@
 
     let carrito = [];
     let granTotal = 0;
+    let nuevoIndice = -1;
 
     // ══════════════════════════════════════════════════════
     // MODAL — NUEVO CLIENTE
@@ -389,16 +357,16 @@
         const icono = document.getElementById('icono-toggle');
         const abierto = panel.style.display !== 'none';
         panel.style.display = abierto ? 'none' : 'block';
-        icono.textContent = abierto ? '▶' : '▼';
+        icono.style.transform = abierto ? '' : 'rotate(90deg)';
     }
 
     // Mostrar/ocultar aviso "Eventual" según el switch
     document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('nc_guardar_recurrente').addEventListener('change', function () {
             document.getElementById('aviso-eventual').classList.toggle('d-none', this.checked);
-            document.getElementById('id_descuento').addEventListener('input', renderCarrito);
-            document.getElementById('id_iva').addEventListener('change', renderCarrito);
         });
+        document.getElementById('id_descuento').addEventListener('input', renderCarrito);
+        document.getElementById('id_iva').addEventListener('change', renderCarrito);
 
         // Limpiar modal al cerrarse
         document.getElementById('modalNuevoCliente').addEventListener('hidden.bs.modal', limpiarModal);
@@ -413,7 +381,7 @@
         document.getElementById('alerta-cliente').classList.add('d-none');
         // Cerrar panel extra si estaba abierto
         document.getElementById('datos-extra').style.display = 'none';
-        document.getElementById('icono-toggle').textContent = '▶';
+        document.getElementById('icono-toggle').style.transform = '';
     }
 
     function mostrarErrorModal(msg) {
@@ -443,7 +411,7 @@
         // Deshabilitar botón mientras espera
         const btn = document.getElementById('btn-guardar-cliente');
         btn.disabled = true;
-        btn.innerHTML = '⏳ Guardando...';
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm" aria-hidden="true"></span> Guardando…';
 
         try {
             const resp = await fetch(URL_CREAR_CLIENTE, {
@@ -470,7 +438,7 @@
 
                 // Cerrar modal y mostrar confirmación suave
                 bootstrap.Modal.getInstance(document.getElementById('modalNuevoCliente')).hide();
-                mostrarToast(`✅ Cliente "${data.nombre}" listo para usarse.`, 'success');
+                mostrarToast(`Cliente "${data.nombre}" listo para usarse.`, 'success');
             } else {
                 mostrarErrorModal('Error: ' + (data.error || 'Inténtalo de nuevo.'));
             }
@@ -478,25 +446,13 @@
             mostrarErrorModal('Error de conexión. Revisa tu internet.');
         } finally {
             btn.disabled = false;
-            btn.innerHTML = '💾 Guardar y seleccionar';
+            btn.innerHTML = 'Guardar y seleccionar';
         }
     }
 
     // Toast ligero (sin librerías extra)
     function mostrarToast(mensaje, tipo = 'success') {
-        let container = document.getElementById('toast-container');
-        if (!container) {
-            container = document.createElement('div');
-            container.id = 'toast-container';
-            container.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;';
-            document.body.appendChild(container);
-        }
-        const toast = document.createElement('div');
-        toast.className = `alert alert-${tipo} shadow mb-0 py-2 px-3`;
-        toast.style.cssText = 'min-width:260px;animation:fadeIn .2s ease;';
-        toast.innerHTML = mensaje;
-        container.appendChild(toast);
-        setTimeout(() => toast.remove(), 3500);
+        if (window.acryToast) window.acryToast(mensaje, tipo);
     }
 
     // ══════════════════════════════════════════════════════
@@ -556,7 +512,7 @@
             setText('display_total', fmt(total));
             
             const nota = document.getElementById('nota_precio_fijo');
-            nota.innerText = '⚠️ Aplicando precio manual (Solo esta venta)';
+            nota.innerText = 'Aplicando precio manual (solo esta venta)';
             nota.style.display = 'block';
             return;
         }
@@ -570,7 +526,7 @@
             setText('display_total', fmt(total));
             
             const nota = document.getElementById('nota_precio_fijo');
-            nota.innerText = '⚠️ Este producto tiene precio fijo';
+            nota.innerText = 'Este producto tiene precio fijo';
             nota.style.display = 'block';
             return;
         }
@@ -585,7 +541,7 @@
         const totalUnitario = costoMaterial + costoUtil + costoLaser;
         const totalRenglon = totalUnitario * cantidad;
 
-        setText('display_area', (areaCm2 * cantidad).toFixed(2) + ' cm²');
+        setText('display_area', (areaCm2 * cantidad).toLocaleString('es-MX', { maximumFractionDigits: 2 }) + ' cm²');
         setText('display_utilidad', fmt(costoUtil * cantidad));
         setText('display_laser', fmt(costoLaser));
         setText('display_total', fmt(totalRenglon));
@@ -603,7 +559,7 @@
 
         // 2. Solo el producto es estrictamente necesario
         if (!prodSel.value) {
-            alert('Por favor, selecciona un producto.');
+            mostrarToast('Selecciona un producto.', 'warning');
             return;
         }
 
@@ -621,7 +577,7 @@
 
         // Validar stock del producto con precio fijo
         if (precioFijo && precioFijo.trim() !== '' && precioFijo !== 'None' && stockActual <= 0) {
-            alert(`No hay stock disponible para "${optionSeleccionada.text}".`);
+            mostrarToast(`No hay stock disponible para "${optionSeleccionada.text.trim()}".`, 'error');
             return;
         }
 
@@ -635,7 +591,7 @@
             const subtotalText = document.getElementById('display_total').innerText.replace(/[$,]/g, '');
             subtotal = parseFloat(subtotalText);
             if (isNaN(subtotal) || subtotal <= 0) {
-                alert('Agrega medidas, selecciona un producto con precio fijo, o ingresa un precio manual.');
+                mostrarToast('Agrega medidas, elige un producto con precio fijo o ingresa un precio manual.', 'warning');
                 return;
             }
         }
@@ -661,8 +617,10 @@
             subtotal: subtotal, // Ya validado arriba
         });
 
-        // 6. Tu lógica de renderizado y limpieza se mantiene intacta
+        // 6. Renderizar (el artículo nuevo entra con animación)
+        nuevoIndice = carrito.length - 1;
         renderCarrito();
+        nuevoIndice = -1;
 
         // Limpiar formulario para el siguiente artículo
         prodSel.value = '';
@@ -683,11 +641,12 @@
         const tbody = document.querySelector('#tabla-carrito tbody');
         tbody.innerHTML = '';
 
+        const fmt = (v) => '$' + v.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         let subtotalBruto = 0; // <-- Usaremos esta para sumar el carrito sin afectar el total final todavía
         granTotal = 0;         // Mantenemos tu variable global en 0
 
         if (carrito.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-4">El carrito está vacío</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted" style="padding: 28px;">Agrega un artículo para empezar el pedido.</td></tr>';
             document.getElementById('id_cliente').disabled = false;
         } else {
             carrito.forEach((item, i) => {
@@ -695,25 +654,25 @@
 
                 // Construir el texto extra si el producto tiene descripción
                 let detalleHTML = item.producto_detalle
-                    ? `<br><small class="text-muted fst-italic">${item.producto_detalle}</small>`
+                    ? `<div class="text-muted" style="font-size: 0.8125rem;">${item.producto_detalle}</div>`
                     : '';
 
                 // Mostrar medidas solo si se capturaron (mayor a 0)
                 let medidasHTML = (item.largo > 0 || item.ancho > 0)
-                    ? `<br><small class="text-muted">Medidas: ${item.largo}×${item.ancho} cm</small>`
+                    ? `<div class="text-num text-muted" style="font-size: 0.75rem; margin-top: 2px;">${item.largo} × ${item.ancho} cm${item.espesor ? ' · ' + item.espesor + ' mm' : ''}${item.minutos_laser > 0 ? ' · ' + item.minutos_laser + ' min' : ''}</div>`
                     : '';
 
                 tbody.innerHTML += `
-                <tr>
-                    <td>
-                        <strong>${item.producto_nombre}</strong>
+                <tr class="${i === nuevoIndice ? 'cart-item-enter' : ''}">
+                    <td style="white-space: normal;">
+                        <div style="font-weight: 600;">${item.producto_nombre}</div>
                         ${detalleHTML}
                         ${medidasHTML}
                     </td>
-                    <td>${item.cantidad}</td>
-                    <td class="text-success fw-bold">$${item.subtotal.toFixed(2)}</td>
+                    <td class="text-num">× ${item.cantidad}</td>
+                    <td class="text-num" style="text-align: right; font-weight: 500;">${fmt(item.subtotal)}</td>
                     <td>
-                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="eliminar(${i})" title="Quitar">❌</button>
+                        <button type="button" class="btn btn-sm btn-outline-danger btn-icon" onclick="eliminar(${i})" title="Quitar" aria-label="Quitar artículo"><i class="bi bi-trash3"></i></button>
                     </td>
                 </tr>`;
             });
@@ -730,21 +689,24 @@
         // Asignamos el total final a tu variable global
         granTotal = subtotalNeto + montoIva;
 
-        const fmt = (v) => '$' + v.toLocaleString('es-MX', { minimumFractionDigits: 2 });
-
-        // 🎨 DIBUJAMOS EL DESGLOSE EN LA CAJA VERDE
-        let textoTotal = '';
-
-        // Si hay descuento o IVA, mostramos el texto pequeñito arriba del total
+        // Desglose (solo si hay descuento o IVA) y total
+        let desglose = '';
         if (descPct > 0 || ivaCheck) {
-            textoTotal += `<span style="font-size: 1rem; font-weight: normal;">Subtotal: ${fmt(subtotalBruto)}</span><br>`;
-            if (descPct > 0) textoTotal += `<span style="font-size: 1rem; color: #dc3545;">Desc (${descPct}%): -${fmt(montoDescuento)}</span><br>`;
-            if (ivaCheck) textoTotal += `<span style="font-size: 1rem; color: #0d6efd;">IVA (16%): +${fmt(montoIva)}</span><br>`;
+            desglose += `<span style="display:flex;justify-content:space-between;"><span>Subtotal</span><span>${fmt(subtotalBruto)}</span></span>`;
+            if (descPct > 0) desglose += `<span style="display:flex;justify-content:space-between;"><span>Descuento ${descPct}%</span><span>−${fmt(montoDescuento)}</span></span>`;
+            if (ivaCheck) desglose += `<span style="display:flex;justify-content:space-between;"><span>IVA 16%</span><span>+${fmt(montoIva)}</span></span>`;
         }
+        document.getElementById('total-breakdown').innerHTML = desglose;
 
-        // Mostramos el total gigante
-        textoTotal += fmt(granTotal);
-        document.getElementById('gran-total-display').innerHTML = textoTotal;
+        const elTotal = document.getElementById('gran-total-display');
+        const nuevoTexto = fmt(granTotal);
+        if (elTotal.textContent !== nuevoTexto) {
+            elTotal.textContent = nuevoTexto;
+            elTotal.classList.remove('tick');
+            void elTotal.offsetWidth;
+            elTotal.classList.add('tick');
+        }
+        document.getElementById('conteo-carrito').textContent = carrito.length === 1 ? '1 artículo' : `${carrito.length} artículos`;
 
         // 💵 Actualizamos la caja de "Monto Abonado" automáticamente
         const elAbono = document.getElementById('id_monto_abonado');
@@ -757,11 +719,11 @@
     // ENVIAR AL SERVIDOR
     // ══════════════════════════════════════════════════════
     async function guardarVentaCompleta() {
-        if (carrito.length === 0) { alert('No hay artículos en el pedido.'); return; }
+        if (carrito.length === 0) { mostrarToast('Agrega al menos un artículo al pedido.', 'warning'); return; }
 
         const btn = document.getElementById('btn-finalizar');
         btn.disabled = true;
-        btn.innerText = '⏳ Guardando Pedido...';
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm" aria-hidden="true"></span> Guardando pedido…';
 
         const payload = {
             cliente_id: document.getElementById('id_cliente').value,
@@ -793,12 +755,12 @@
             } else {
                 alert('Error en el servidor: ' + data.error);
                 btn.disabled = false;
-                btn.innerText = '💾 Registrar Pedido Completo';
+                btn.innerText = 'Confirmar pedido';
             }
         } catch {
             alert('Error de conexión');
             btn.disabled = false;
-            btn.innerText = '💾 Registrar Pedido Completo';
+            btn.innerText = 'Confirmar pedido';
         }
     }
 
@@ -843,7 +805,7 @@
         const stockMinimo = document.getElementById('np_stock_minimo').value || 0;
 
         if (!nombre || !utilidad) {
-            alert('El nombre y el % de utilidad son obligatorios.');
+            mostrarToast('El nombre y el % de utilidad son obligatorios.', 'warning');
             return;
         }
 
@@ -869,9 +831,10 @@
             .then(response => response.json())
             .then(data => {
                 this.disabled = false;
-                this.innerText = 'Guardar Producto';
+                this.innerText = 'Guardar producto';
 
                 if (data.ok) {
+                    mostrarToast(`Producto "${data.nombre}" agregado.`, 'success');
                     // 1. Cerrar el modal
                     const modalEl = document.getElementById('modalNuevoProducto');
                     const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
@@ -903,8 +866,8 @@
             })
             .catch(error => {
                 this.disabled = false;
-                this.innerText = 'Guardar Producto';
-                alert('Ocurrió un error de conexión al guardar el producto.');
+                this.innerText = 'Guardar producto';
+                mostrarToast('Error de conexión al guardar el producto.', 'error');
             });
     });  
 </script>

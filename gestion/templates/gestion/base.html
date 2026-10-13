@@ -5,136 +5,244 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="theme-color" content="#ffffff">
+    <meta name="theme-color" content="#F7F6F3">
     <link rel="icon" type="image/png" href="{% static 'gestion/img/logo_acrylitec.png' %}">
-    <title>Acrylitec - Gestión</title>
+    <title>{% block title %}Acrylitec — Gestión{% endblock %}</title>
+    {% include 'gestion/_theme_init.html' %}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet">
     <link href="{% static 'gestion/css/main.css' %}" rel="stylesheet">
 </head>
 
 <body>
-    <nav class="navbar navbar-dark">
-        <div class="container-fluid px-4">
+{% with url_name=request.resolver_match.url_name %}
+<div class="app-shell">
 
-            <!-- Logo + Marca -->
-            <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'dashboard' %}">
-                <img src="{% static 'gestion/img/logo_acrylitec.png' %}" alt="Acrylitec" height="32">
-                Acrylitec
-            </a>
+    <!-- ── Barra lateral ──────────────────────────────────────────── -->
+    <aside class="sidebar" id="sidebar" aria-label="Navegación principal">
+        <a class="sidebar-brand" href="{% url 'dashboard' %}">
+            <span class="sidebar-logo"><img src="{% static 'gestion/img/logo_acrylitec.png' %}" alt=""></span>
+            <span class="sidebar-brand-text">
+                <span class="sidebar-brand-name">Acrylitec</span>
+                <span class="sidebar-brand-sub">Corte y grabado láser</span>
+            </span>
+        </a>
 
-            <!-- Botón hamburguesa (solo mobile/tablet) -->
-            <button class="navbar-toggler" type="button" onclick="toggleNav()" aria-label="Menú">
-                <i class="bi bi-list" id="nav-icon"></i>
-            </button>
-
-            <!-- Links del menú -->
-            <div class="navbar-nav d-flex flex-row" id="navbarMenu">
+        <nav class="sidebar-nav">
+            <div class="nav-group">
+                <span class="nav-group-label">Operación</span>
                 {% if request.user.is_superuser or request.user.groups.all.0.name == 'Administrador' %}
-                <a class="nav-link" href="{% url 'dashboard' %}">
-                    <i class="bi bi-bar-chart-fill"></i>
-                    <span>Dashboard</span>
+                <a class="side-link {% if url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}" {% if url_name == 'dashboard' %}aria-current="page"{% endif %}>
+                    <i class="bi bi-grid-1x2"></i><span>Dashboard</span>
                 </a>
                 {% endif %}
-
-                <a class="nav-link" href="{% url 'pantalla_pendientes' %}" target="_blank">
-                    <i class="bi bi-clipboard-check"></i>
-                    <span>Pedidos Activos</span>
+                <a class="side-link {% if url_name == 'nuevo_pedido' %}active{% endif %}" href="{% url 'nuevo_pedido' %}" {% if url_name == 'nuevo_pedido' %}aria-current="page"{% endif %}>
+                    <i class="bi bi-receipt"></i><span>Punto de venta</span>
                 </a>
-
-                <a class="nav-link" href="{% url 'lista_ventas' %}">
-                    <i class="bi bi-bag-check"></i>
-                    <span>Ventas</span>
+                <a class="side-link {% if url_name == 'lista_ventas' or url_name == 'detalle_venta' %}active{% endif %}" href="{% url 'lista_ventas' %}" {% if url_name == 'lista_ventas' %}aria-current="page"{% endif %}>
+                    <i class="bi bi-bag"></i><span>Ventas</span>
                 </a>
-
-                <a class="nav-link" href="{% url 'lista_clientes' %}">
-                    <i class="bi bi-people"></i>
-                    <span>Clientes</span>
-                </a>
-
-                <a class="nav-link" href="{% url 'inventario_productos' %}">
-                    <i class="bi bi-box-seam"></i>
-                    <span>Inventario</span>
-                </a>
-
-                <a class="nav-link" href="{% url 'lista_productos' %}">
-                    <i class="bi bi-grid"></i>
-                    <span>Productos</span>
-                </a>
-
-                {% if request.user.is_superuser or request.user.groups.all.0.name == 'Administrador' %}
-                <a class="nav-link" href="{% url 'configuracion_precios' %}">
-                    <i class="bi bi-gear"></i>
-                    <span>Precios</span>
-                </a>
-                {% endif %}
-
-                <a class="nav-link" href="{% url 'logout' %}">
-                    <i class="bi bi-box-arrow-right"></i>
-                    <span>Salir</span>
+                <a class="side-link" href="{% url 'pantalla_pendientes' %}" target="_blank" rel="noopener">
+                    <i class="bi bi-display"></i><span>Monitor de taller</span><i class="bi bi-box-arrow-up-right ext" aria-hidden="true"></i>
                 </a>
             </div>
 
+            <div class="nav-group">
+                <span class="nav-group-label">Catálogo</span>
+                <a class="side-link {% if url_name == 'lista_productos' or url_name == 'crear_producto' or url_name == 'editar_producto' or url_name == 'eliminar_producto' %}active{% endif %}" href="{% url 'lista_productos' %}">
+                    <i class="bi bi-box"></i><span>Productos</span>
+                </a>
+                <a class="side-link {% if url_name == 'inventario_productos' or url_name == 'editar_stock_producto' %}active{% endif %}" href="{% url 'inventario_productos' %}">
+                    <i class="bi bi-stack"></i><span>Inventario</span>
+                </a>
+                <a class="side-link {% if url_name == 'lista_materiales' or url_name == 'crear_material' or url_name == 'eliminar_material' %}active{% endif %}" href="{% url 'lista_materiales' %}">
+                    <i class="bi bi-layers"></i><span>Materiales</span>
+                </a>
+                <a class="side-link {% if url_name == 'lista_clientes' or url_name == 'crear_cliente' or url_name == 'eliminar_cliente' %}active{% endif %}" href="{% url 'lista_clientes' %}">
+                    <i class="bi bi-people"></i><span>Clientes</span>
+                </a>
+            </div>
+
+            {% if request.user.is_superuser or request.user.groups.all.0.name == 'Administrador' %}
+            <div class="nav-group">
+                <span class="nav-group-label">Ajustes</span>
+                <a class="side-link {% if url_name == 'configuracion_precios' %}active{% endif %}" href="{% url 'configuracion_precios' %}">
+                    <i class="bi bi-sliders"></i><span>Precios y tarifas</span>
+                </a>
+            </div>
+            {% endif %}
+        </nav>
+
+        <div class="sidebar-user">
+            <span class="avatar">{{ request.user.username|slice:":2"|upper }}</span>
+            <span class="sidebar-user-text">
+                <span class="sidebar-user-name">{{ request.user.get_full_name|default:request.user.username }}</span>
+                <span class="sidebar-user-role">{% if request.user.is_superuser %}Administrador{% else %}{{ request.user.groups.all.0.name|default:"Usuario" }}{% endif %}</span>
+            </span>
+            <button class="icon-btn theme-toggle" type="button" data-theme-toggle aria-label="Cambiar a modo oscuro">
+                <i class="bi bi-moon theme-toggle__moon" aria-hidden="true"></i>
+                <i class="bi bi-sun theme-toggle__sun" aria-hidden="true"></i>
+            </button>
+            <a class="icon-btn" href="{% url 'logout' %}" aria-label="Cerrar sesión" title="Cerrar sesión">
+                <i class="bi bi-box-arrow-right"></i>
+            </a>
         </div>
-    </nav>
+    </aside>
 
-    <div class="container-fluid px-4">
-        {% block content %}
-        {% endblock %}
+    <!-- ── Contenido ──────────────────────────────────────────────── -->
+    <div class="app-main">
+        <header class="topbar">
+            <a class="topbar-brand" href="{% url 'dashboard' %}">
+                <span class="sidebar-logo"><img src="{% static 'gestion/img/logo_acrylitec.png' %}" alt=""></span>
+                Acrylitec
+            </a>
+            <button class="icon-btn theme-toggle" type="button" data-theme-toggle aria-label="Cambiar a modo oscuro" style="width: 40px; height: 40px;">
+                <i class="bi bi-moon theme-toggle__moon" aria-hidden="true"></i>
+                <i class="bi bi-sun theme-toggle__sun" aria-hidden="true"></i>
+            </button>
+        </header>
+
+        <main class="page" id="contenido">
+            {% block content %}
+            {% endblock %}
+        </main>
     </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<!-- ── Dock (móvil) ───────────────────────────────────────────────── -->
+<nav class="dock" aria-label="Navegación">
+    {% if request.user.is_superuser or request.user.groups.all.0.name == 'Administrador' %}
+    <a class="dock-item {% if url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}" {% if url_name == 'dashboard' %}aria-current="page"{% endif %}>
+        {% if url_name == 'dashboard' %}<span class="dock-pill" aria-hidden="true"></span>{% endif %}
+        <i class="bi bi-grid-1x2"></i><span>Inicio</span>
+    </a>
+    {% endif %}
+    <a class="dock-item {% if url_name == 'nuevo_pedido' %}active{% endif %}" href="{% url 'nuevo_pedido' %}" {% if url_name == 'nuevo_pedido' %}aria-current="page"{% endif %}>
+        {% if url_name == 'nuevo_pedido' %}<span class="dock-pill" aria-hidden="true"></span>{% endif %}
+        <i class="bi bi-receipt"></i><span>Vender</span>
+    </a>
+    <a class="dock-item {% if url_name == 'lista_ventas' or url_name == 'detalle_venta' %}active{% endif %}" href="{% url 'lista_ventas' %}" {% if url_name == 'lista_ventas' %}aria-current="page"{% endif %}>
+        {% if url_name == 'lista_ventas' or url_name == 'detalle_venta' %}<span class="dock-pill" aria-hidden="true"></span>{% endif %}
+        <i class="bi bi-bag"></i><span>Ventas</span>
+    </a>
+    <a class="dock-item {% if url_name == 'lista_productos' or url_name == 'crear_producto' or url_name == 'editar_producto' or url_name == 'eliminar_producto' %}active{% endif %}" href="{% url 'lista_productos' %}" {% if url_name == 'lista_productos' %}aria-current="page"{% endif %}>
+        {% if url_name == 'lista_productos' or url_name == 'crear_producto' or url_name == 'editar_producto' or url_name == 'eliminar_producto' %}<span class="dock-pill" aria-hidden="true"></span>{% endif %}
+        <i class="bi bi-box"></i><span>Productos</span>
+    </a>
+    {% if not request.user.is_superuser and request.user.groups.all.0.name != 'Administrador' %}
+    <a class="dock-item {% if url_name == 'inventario_productos' or url_name == 'editar_stock_producto' %}active{% endif %}" href="{% url 'inventario_productos' %}" {% if url_name == 'inventario_productos' %}aria-current="page"{% endif %}>
+        {% if url_name == 'inventario_productos' or url_name == 'editar_stock_producto' %}<span class="dock-pill" aria-hidden="true"></span>{% endif %}
+        <i class="bi bi-stack"></i><span>Inventario</span>
+    </a>
+    {% endif %}
+    <button class="dock-item {% if url_name == 'lista_materiales' or url_name == 'crear_material' or url_name == 'eliminar_material' or url_name == 'lista_clientes' or url_name == 'crear_cliente' or url_name == 'eliminar_cliente' or url_name == 'configuracion_precios' %}active{% elif request.user.is_superuser or request.user.groups.all.0.name == 'Administrador' %}{% if url_name == 'inventario_productos' or url_name == 'editar_stock_producto' %}active{% endif %}{% endif %}" type="button" id="dockMore" aria-expanded="false" aria-controls="dockSheet">
+        {% if url_name == 'lista_materiales' or url_name == 'crear_material' or url_name == 'eliminar_material' or url_name == 'lista_clientes' or url_name == 'crear_cliente' or url_name == 'eliminar_cliente' or url_name == 'configuracion_precios' %}<span class="dock-pill" aria-hidden="true"></span>{% elif request.user.is_superuser or request.user.groups.all.0.name == 'Administrador' %}{% if url_name == 'inventario_productos' or url_name == 'editar_stock_producto' %}<span class="dock-pill" aria-hidden="true"></span>{% endif %}{% endif %}
+        <i class="bi bi-grid-3x3-gap"></i><span>Más</span>
+    </button>
+</nav>
 
-    <script>
-    // ── Navbar hamburguesa ──────────────────────────────────────────
-    function toggleNav() {
-        const menu = document.getElementById('navbarMenu');
-        const icon = document.getElementById('nav-icon');
-        const isOpen = menu.classList.toggle('open');
-        icon.className = isOpen ? 'bi bi-x-lg' : 'bi bi-list';
+<!-- ── Hoja "Más" (móvil) ─────────────────────────────────────────── -->
+<div class="dock-backdrop" id="dockBackdrop"></div>
+<div class="dock-sheet" id="dockSheet" role="dialog" aria-modal="true" aria-label="Más opciones" tabindex="-1">
+    <div class="dock-sheet-handle" aria-hidden="true"></div>
+    <div class="dock-sheet-grid">
+        {% if request.user.is_superuser or request.user.groups.all.0.name == 'Administrador' %}
+        <a class="sheet-tile {% if url_name == 'inventario_productos' or url_name == 'editar_stock_producto' %}active{% endif %}" href="{% url 'inventario_productos' %}" style="--i: 0;"><i class="bi bi-stack"></i><span>Inventario</span></a>
+        {% endif %}
+        <a class="sheet-tile {% if url_name == 'lista_materiales' or url_name == 'crear_material' or url_name == 'eliminar_material' %}active{% endif %}" href="{% url 'lista_materiales' %}" style="--i: 1;"><i class="bi bi-layers"></i><span>Materiales</span></a>
+        <a class="sheet-tile {% if url_name == 'lista_clientes' or url_name == 'crear_cliente' or url_name == 'eliminar_cliente' %}active{% endif %}" href="{% url 'lista_clientes' %}" style="--i: 2;"><i class="bi bi-people"></i><span>Clientes</span></a>
+        {% if request.user.is_superuser or request.user.groups.all.0.name == 'Administrador' %}
+        <a class="sheet-tile {% if url_name == 'configuracion_precios' %}active{% endif %}" href="{% url 'configuracion_precios' %}" style="--i: 3;"><i class="bi bi-sliders"></i><span>Precios</span></a>
+        {% endif %}
+        <a class="sheet-tile" href="{% url 'pantalla_pendientes' %}" target="_blank" rel="noopener" style="--i: 4;"><i class="bi bi-display"></i><span>Monitor</span></a>
+    </div>
+    <div class="dock-sheet-foot">
+        <span class="avatar">{{ request.user.username|slice:":2"|upper }}</span>
+        <span class="sidebar-user-text">
+            <span class="sidebar-user-name">{{ request.user.get_full_name|default:request.user.username }}</span>
+            <span class="sidebar-user-role">{% if request.user.is_superuser %}Administrador{% else %}{{ request.user.groups.all.0.name|default:"Usuario" }}{% endif %}</span>
+        </span>
+        <a class="btn btn-sm" href="{% url 'logout' %}"><i class="bi bi-box-arrow-right"></i> Salir</a>
+    </div>
+</div>
+{% endwith %}
+
+<!-- Avisos -->
+<div class="toast-stack" id="toastStack" aria-live="polite">
+    {% for message in messages %}
+    <div class="toast-item toast-{{ message.tags|default:'info' }}" role="status">
+        <span class="toast-icon"><i class="bi {% if message.tags == 'error' or message.tags == 'danger' %}bi-x-lg{% elif message.tags == 'warning' %}bi-exclamation-lg{% elif message.tags == 'info' %}bi-info-lg{% else %}bi-check-lg{% endif %}"></i></span>
+        <span>{{ message }}</span>
+        <button type="button" class="toast-close" aria-label="Cerrar aviso"><i class="bi bi-x"></i></button>
+    </div>
+    {% endfor %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="{% static 'gestion/js/motion.js' %}"></script>
+
+<script>
+    // ── Tema claro/oscuro (port de beui.dev theme-toggle, variante circle) ──
+    function applyTheme(theme) {
+        const root = document.documentElement;
+        root.setAttribute('data-bs-theme', theme);
+        try { localStorage.setItem('acrylitec-theme', theme); } catch (e) {}
+        const meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.setAttribute('content', theme === 'dark' ? '#121110' : '#F7F6F3');
+        document.querySelectorAll('[data-theme-toggle]').forEach(btn => {
+            btn.setAttribute('aria-label', theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro');
+        });
+        document.dispatchEvent(new CustomEvent('themechange', { detail: { theme } }));
     }
 
-    // Cerrar menú al hacer click en un link (mobile)
-    document.querySelectorAll('#navbarMenu .nav-link').forEach(link => {
-        link.addEventListener('click', () => {
-            if (window.innerWidth <= 992) {
-                document.getElementById('navbarMenu').classList.remove('open');
-                document.getElementById('nav-icon').className = 'bi bi-list';
-            }
-        });
-    });
+    function toggleTheme(origin) {
+        const root = document.documentElement;
+        const next = root.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
+        const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    // Cerrar menú al hacer click fuera
-    document.addEventListener('click', function(e) {
-        const nav = document.getElementById('navbarMenu');
-        const toggler = document.querySelector('.navbar-toggler');
-        if (window.innerWidth <= 992 && nav.classList.contains('open')) {
-            if (!nav.contains(e.target) && !toggler.contains(e.target)) {
-                nav.classList.remove('open');
-                document.getElementById('nav-icon').className = 'bi bi-list';
-            }
+        if (reduce || !document.startViewTransition) {
+            applyTheme(next);
+            return;
         }
+
+        // El círculo nace en el centro del botón que se presionó
+        const btn = origin || document.querySelector('[data-theme-toggle]');
+        const rect = btn.getBoundingClientRect();
+        root.style.setProperty('--beui-vt-origin', `${rect.left + rect.width / 2}px ${rect.top + rect.height / 2}px`);
+        root.dataset.beuiVt = 'circle';
+
+        const vt = document.startViewTransition(() => applyTheme(next));
+        vt.finished.finally(() => { delete root.dataset.beuiVt; });
+    }
+
+    document.querySelectorAll('[data-theme-toggle]').forEach(btn => {
+        btn.addEventListener('click', () => toggleTheme(btn));
     });
 
-    // Inicializar Select2
-    document.addEventListener('DOMContentLoaded', function() {
+    applyTheme(document.documentElement.getAttribute('data-bs-theme') || 'light');
+
+    // ── Select2 ─────────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', function () {
         if (typeof jQuery !== 'undefined' && typeof $.fn.select2 !== 'undefined') {
             $('.select2').select2({
                 theme: 'bootstrap-5',
-                placeholder: '-- Busca o selecciona --',
+                placeholder: 'Busca o selecciona',
                 allowClear: true,
+                width: '100%',
                 language: {
-                    noResults: function() { return "No se encontraron resultados"; },
-                    searching: function() { return "Buscando..."; }
+                    noResults: function () { return "No se encontraron resultados"; },
+                    searching: function () { return "Buscando..."; }
                 }
             });
         }
     });
-    </script>
+</script>
 
 </body>
 </html>
