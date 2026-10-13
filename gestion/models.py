@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+from django.conf import settings
 from django.db import models
 
 
@@ -150,6 +151,17 @@ class Ventas(models.Model):
     estatus = models.CharField(max_length=20, choices=ESTATUS_CHOICES, default='pendiente')
     fecha_entrega = models.DateField(blank=True, null=True)
     fecha_venta = models.DateField(auto_now_add=True, null=True)
+
+    # Datos del registro (ventas creadas a partir de esta versión)
+    FORMA_PAGO_CHOICES = [
+        ('efectivo', 'Efectivo'),
+        ('tarjeta', 'Tarjeta'),
+        ('transferencia', 'Transferencia'),
+    ]
+    creado_en = models.DateTimeField(auto_now_add=True, null=True, blank=True, verbose_name="Fecha y hora de registro")
+    atendio = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+                                related_name='ventas_atendidas', verbose_name="Atendió")
+    forma_pago = models.CharField(max_length=20, choices=FORMA_PAGO_CHOICES, blank=True, default='', verbose_name="Forma de pago")
 
     def __str__(self):
         cliente = self.id_cliente.nombre if self.id_cliente else "Público"

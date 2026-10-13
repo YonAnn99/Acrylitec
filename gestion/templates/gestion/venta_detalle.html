@@ -15,7 +15,7 @@
             {% elif venta.estatus == 'entregada' %}<span class="badge tag-entregada">Entregada</span>
             {% endif %}
         </div>
-        <p class="page-subtitle">{{ venta.cliente_nombre|default:"Sin cliente" }} · registrada el {{ venta.fecha_venta|date:"j \d\e F" }} · entrega {{ venta.fecha_entrega|date:"j \d\e F"|default:"por definir" }}</p>
+        <p class="page-subtitle">{{ venta.cliente_nombre|default:"Sin cliente" }} · registrada el {% if venta.creado_en %}{{ venta.creado_en|date:"j \d\e F \a \l\a\s g:i a" }}{% else %}{{ venta.fecha_venta|date:"j \d\e F" }}{% endif %} · entrega {{ venta.fecha_entrega|date:"j \d\e F"|default:"por definir" }}</p>
     </div>
     <div class="page-actions">
         <button onclick="imprimirTicket()" class="btn" type="button">
@@ -51,6 +51,7 @@
     <!-- Ticket imprimible (siempre claro) -->
     <div id="ticket" style="flex: 3 1 560px; min-width: 0;">
         <article class="ticket" id="ticket-card" data-bs-theme="light">
+            <!-- Encabezado -->
             <div style="display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <img src="{% static 'gestion/img/logo_acrylitec.png' %}" alt="Acrylitec" style="height: 44px; width: auto;">
@@ -60,52 +61,98 @@
                     </div>
                 </div>
                 <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
-                    <span class="text-num" style="font-size: 0.9375rem; font-weight: 500;">VTA-{{ venta.id_venta|stringformat:"04d" }}</span>
-                    <span class="text-num ticket-muted" style="font-size: 0.75rem;">{{ venta.fecha_venta|date:"d/m/Y" }}</span>
-                    <span class="ticket-muted" style="font-size: 0.75rem;">{{ venta.get_estatus_display }}</span>
+                    <span style="font-family: var(--font-serif); font-size: 1.25rem; line-height: 1;">Venta <span class="text-num" style="font-family: var(--font-mono); font-size: 1rem;">VTA-{{ venta.id_venta|stringformat:"04d" }}</span></span>
+                    <span class="ticket-muted" style="font-size: 0.75rem;">{% if venta.creado_en %}{{ venta.creado_en|date:"j \d\e F \d\e Y \a \l\a\s g:i a" }}{% else %}{{ venta.fecha_venta|date:"j \d\e F \d\e Y" }}{% endif %}</span>
                 </div>
             </div>
 
-            <div class="ticket-box" style="display: flex; flex-direction: column; gap: 3px;">
-                <span class="ticket-label">Cliente</span>
-                <span style="font-size: 0.9375rem; font-weight: 600;">{{ venta.cliente_nombre }}</span>
-                {% if venta.id_cotizacion_id and venta.id_cotizacion.id_cliente %}
-                {% if venta.id_cotizacion.id_cliente.telefono %}<span class="text-num ticket-muted" style="font-size: 0.8125rem;">{{ venta.id_cotizacion.id_cliente.telefono }}</span>{% endif %}
-                {% if venta.id_cotizacion.id_cliente.direccion %}<span class="ticket-muted" style="font-size: 0.8125rem;">{{ venta.id_cotizacion.id_cliente.direccion }}</span>{% endif %}
-                {% elif venta.id_cliente_id %}
-                {% if venta.id_cliente.telefono %}<span class="text-num ticket-muted" style="font-size: 0.8125rem;">{{ venta.id_cliente.telefono }}</span>{% endif %}
-                {% if venta.id_cliente.direccion %}<span class="ticket-muted" style="font-size: 0.8125rem;">{{ venta.id_cliente.direccion }}</span>{% endif %}
+            <!-- Datos generales -->
+            <dl style="margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 24px;">
+                <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+                    <dt class="ticket-label">Cliente</dt>
+                    <dd style="margin: 0; font-weight: 600;">{{ venta.cliente_nombre }}</dd>
+                    {% if venta.id_cotizacion_id and venta.id_cotizacion.id_cliente %}
+                    {% if venta.id_cotizacion.id_cliente.telefono %}<dd class="text-num ticket-muted" style="margin: 0; font-size: 0.8125rem;">{{ venta.id_cotizacion.id_cliente.telefono }}</dd>{% endif %}
+                    {% if venta.id_cotizacion.id_cliente.direccion %}<dd class="ticket-muted" style="margin: 0; font-size: 0.8125rem;">{{ venta.id_cotizacion.id_cliente.direccion }}</dd>{% endif %}
+                    {% elif venta.id_cliente_id %}
+                    {% if venta.id_cliente.telefono %}<dd class="text-num ticket-muted" style="margin: 0; font-size: 0.8125rem;">{{ venta.id_cliente.telefono }}</dd>{% endif %}
+                    {% if venta.id_cliente.direccion %}<dd class="ticket-muted" style="margin: 0; font-size: 0.8125rem;">{{ venta.id_cliente.direccion }}</dd>{% endif %}
+                    {% endif %}
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 2px;">
+                    <dt class="ticket-label">Estatus</dt>
+                    <dd style="margin: 0; font-weight: 600;">{{ venta.get_estatus_display }}</dd>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 2px;">
+                    <dt class="ticket-label">Fecha de venta</dt>
+                    <dd class="text-num" style="margin: 0;">{% if venta.creado_en %}{{ venta.creado_en|date:"d/m/Y · g:i a" }}{% else %}{{ venta.fecha_venta|date:"d/m/Y"|default:"—" }}{% endif %}</dd>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 2px;">
+                    <dt class="ticket-label">Entrega</dt>
+                    <dd class="text-num" style="margin: 0;">{{ venta.fecha_entrega|date:"d/m/Y"|default:"Por definir" }}</dd>
+                </div>
+                {% if venta.atendio %}
+                <div style="display: flex; flex-direction: column; gap: 2px;">
+                    <dt class="ticket-label">Atendió</dt>
+                    <dd style="margin: 0; font-weight: 600;">{{ venta.atendio.get_full_name|default:venta.atendio.username }}</dd>
+                </div>
                 {% endif %}
-            </div>
-
-            <div style="display: flex; flex-direction: column; gap: 10px;">
-                <span class="ticket-label">Producto / material</span>
-                {% if venta.id_cotizacion_id %}
-                <div>
-                    <div style="font-weight: 600;">{{ venta.id_cotizacion.id_producto.nombre }}</div>
-                    {% if venta.id_cotizacion.id_producto.detalle %}<div class="ticket-muted" style="font-size: 0.8125rem;">{{ venta.id_cotizacion.id_producto.detalle }}</div>{% endif %}
-                    <div class="ticket-muted" style="font-size: 0.8125rem;">{{ venta.id_cotizacion.id_material.descripcion }}</div>
+                {% if venta.forma_pago %}
+                <div style="display: flex; flex-direction: column; gap: 2px;">
+                    <dt class="ticket-label">Forma de pago</dt>
+                    <dd style="margin: 0; font-weight: 600;">{{ venta.get_forma_pago_display }}</dd>
                 </div>
-                {% else %}
-                {% for d in venta.detalles.all %}
-                <div style="display: flex; justify-content: space-between; gap: 16px; padding-bottom: 10px; border-bottom: 1px solid #F0EEEA;">
-                    <div style="min-width: 0;">
-                        <div style="font-weight: 600;">{{ d.id_producto.nombre }}</div>
-                        {% if d.id_producto.detalle %}<div class="ticket-muted" style="font-size: 0.8125rem;">{{ d.id_producto.detalle }}</div>{% endif %}
-                        <div class="text-num ticket-muted" style="font-size: 0.75rem; margin-top: 2px;">{{ d.largo_pza }} × {{ d.ancho_pza }} cm</div>
-                    </div>
-                    <span class="text-num" style="white-space: nowrap;">× {{ d.cantidad }}</span>
-                </div>
-                {% endfor %}
                 {% endif %}
+            </dl>
+
+            <!-- Productos -->
+            <div style="border: 1px solid #E8E6E1; border-radius: 12px; overflow-x: auto;">
+                <table style="width: 100%; min-width: 460px; border-collapse: collapse; font-size: 0.875rem; color: #1A1814;">
+                    <thead>
+                        <tr style="background: #F7F6F3; text-align: left;">
+                            <th scope="col" style="padding: 10px 14px; font-size: 0.75rem; font-weight: 500; color: #77716B;">Producto</th>
+                            <th scope="col" style="padding: 10px 14px; font-size: 0.75rem; font-weight: 500; color: #77716B; text-align: right; white-space: nowrap;">Cant.</th>
+                            <th scope="col" style="padding: 10px 14px; font-size: 0.75rem; font-weight: 500; color: #77716B; text-align: right;">Precio</th>
+                            <th scope="col" style="padding: 10px 14px; font-size: 0.75rem; font-weight: 500; color: #77716B; text-align: right;">Importe</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for l in lineas %}
+                        <tr style="border-top: 1px solid #F0EEEA; vertical-align: top;">
+                            <td style="padding: 12px 14px;">
+                                <div style="font-weight: 600;">{{ l.nombre }}</div>
+                                {% if l.detalle %}<div class="ticket-muted" style="font-size: 0.75rem; margin-top: 2px;">{{ l.detalle }}</div>{% endif %}
+                                {% if l.medidas or l.espesor or l.minutos or l.material %}
+                                <div class="text-num ticket-muted" style="font-size: 0.6875rem; margin-top: 3px;">
+                                    {% if l.medidas %}{{ l.medidas }}{% endif %}{% if l.area_m2 %} · {{ l.area_m2 }} m²{% endif %}{% if l.espesor %}{% if l.medidas %} · {% endif %}{{ l.espesor }} mm{% endif %}{% if l.minutos %}{% if l.medidas or l.espesor %} · {% endif %}{{ l.minutos }} min láser{% endif %}{% if l.material %}{% if l.medidas or l.espesor or l.minutos %} · {% endif %}{{ l.material }}{% endif %}
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td class="text-num" style="padding: 12px 14px; text-align: right; white-space: nowrap;">{{ l.cantidad }} pza{{ l.cantidad|pluralize }}</td>
+                            <td class="text-num" style="padding: 12px 14px; text-align: right; white-space: nowrap;">${{ l.precio_unitario|floatformat:2 }}</td>
+                            <td class="text-num" style="padding: 12px 14px; text-align: right; white-space: nowrap; font-weight: 500;">${{ l.importe|floatformat:2 }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" class="ticket-muted" style="padding: 18px 14px; text-align: center;">Sin productos registrados.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
 
-            <dl style="margin: 0 0 0 auto; width: min(100%, 320px); display: flex; flex-direction: column; gap: 8px; font-size: 0.875rem;">
-                <div style="display: flex; justify-content: space-between; align-items: baseline; padding-bottom: 10px; border-bottom: 1px solid #E8E6E1;">
+            <!-- Resumen -->
+            <dl style="margin: 0 0 0 auto; width: min(100%, 320px); display: flex; flex-direction: column; gap: 6px; font-size: 0.875rem;">
+                <div style="display: flex; justify-content: space-between;"><dt class="ticket-muted" style="font-weight: 400;">Subtotal</dt><dd class="text-num" style="margin: 0;">${{ resumen.subtotal|floatformat:2 }}</dd></div>
+                {% if resumen.descuento %}
+                <div style="display: flex; justify-content: space-between;"><dt class="ticket-muted" style="font-weight: 400;">Descuento ({{ resumen.descuento_pct }}%)</dt><dd class="text-num" style="margin: 0; color: #9B2226;">−${{ resumen.descuento|floatformat:2 }}</dd></div>
+                {% endif %}
+                {% if resumen.iva %}
+                <div style="display: flex; justify-content: space-between;"><dt class="ticket-muted" style="font-weight: 400;">IVA 16%</dt><dd class="text-num" style="margin: 0;">+${{ resumen.iva|floatformat:2 }}</dd></div>
+                {% endif %}
+                <div style="display: flex; justify-content: space-between; align-items: baseline; padding-top: 8px; margin-top: 2px; border-top: 1px solid #E8E6E1;">
                     <dt style="font-weight: 600;">Total</dt>
                     <dd style="margin: 0; font-family: var(--font-serif); font-size: 1.875rem;">${{ venta.total_calculado|floatformat:2 }}</dd>
                 </div>
-                <div style="display: flex; justify-content: space-between;"><dt class="ticket-muted" style="font-weight: 400;">Abonado</dt><dd class="text-num" style="margin: 0;">${{ venta.monto_abonado|floatformat:2 }}</dd></div>
+                <div style="display: flex; justify-content: space-between; margin-top: 6px;"><dt class="ticket-muted" style="font-weight: 400;">Abonado</dt><dd class="text-num" style="margin: 0;">${{ venta.monto_abonado|floatformat:2 }}</dd></div>
                 <div style="display: flex; justify-content: space-between;">
                     <dt style="font-weight: 600;">Saldo</dt>
                     {% if venta.saldo_restante > 0 %}
@@ -114,7 +161,6 @@
                     <dd style="margin: 0; font-weight: 600; color: #2F5E33;">Pagado</dd>
                     {% endif %}
                 </div>
-                <div style="display: flex; justify-content: space-between;"><dt class="ticket-muted" style="font-weight: 400;">Entrega</dt><dd style="margin: 0;">{{ venta.fecha_entrega|default:"No definida" }}</dd></div>
             </dl>
 
             <p class="ticket-muted" style="margin: 0; font-size: 0.75rem; text-align: center; border-top: 1px dashed #E8E6E1; padding-top: 16px;">Gracias por su preferencia · Acrylitec</p>
@@ -137,8 +183,17 @@
                 <span class="text-muted" style="font-size: 0.8125rem;">
                     {% if venta.saldo_restante > 0 %}Saldo pendiente <span class="text-num" style="color: var(--clr-text); font-weight: 500;">${{ venta.saldo_restante|floatformat:2 }}</span>{% else %}Pagado por completo{% endif %}
                 </span>
-                <form method="POST" action="{% url 'actualizar_abono_venta' venta.id_venta %}" style="display: flex; gap: 10px; align-items: flex-end;">
+                <form method="POST" action="{% url 'actualizar_abono_venta' venta.id_venta %}" style="display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end;">
                     {% csrf_token %}
+                    <div style="flex: 1 1 100%;">
+                        <label class="form-label" for="formaPago">Forma de pago</label>
+                        <select id="formaPago" name="forma_pago" class="form-select">
+                            <option value="" {% if not venta.forma_pago %}selected{% endif %}>Sin registrar</option>
+                            <option value="efectivo" {% if venta.forma_pago == 'efectivo' %}selected{% endif %}>Efectivo</option>
+                            <option value="tarjeta" {% if venta.forma_pago == 'tarjeta' %}selected{% endif %}>Tarjeta</option>
+                            <option value="transferencia" {% if venta.forma_pago == 'transferencia' %}selected{% endif %}>Transferencia</option>
+                        </select>
+                    </div>
                     <div style="flex: 1;">
                         <label class="form-label" for="montoAbonado">Monto pagado</label>
                         <div class="input-group">
@@ -226,6 +281,7 @@ async function compartirWhatsAppImagen() {
         const abonado = "${{ venta.monto_abonado|floatformat:2 }}";
         const entrega = "{{ venta.fecha_entrega|default:'por confirmar' }}";
         const saldo = parseFloat("{{ venta.saldo_restante|default:'0' }}".replace(',', '.'));
+        const formaPago = "{{ venta.get_forma_pago_display|escapejs }}";
 
         const saldoTxt = saldo > 0
             ? `Saldo pendiente: $${saldo.toFixed(2)}`
@@ -237,6 +293,7 @@ async function compartirWhatsAppImagen() {
             `💰 Total: *${total}*\n` +
             `✅ Abonado: *${abonado}*\n` +
             `${saldoTxt}\n` +
+            (formaPago ? `💳 Pago: *${formaPago}*\n` : '') +
             `📅 Entrega estimada: *${entrega}*\n\n` +
             `Gracias por tu preferencia 🙌`;
 

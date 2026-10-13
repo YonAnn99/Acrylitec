@@ -77,7 +77,7 @@
                 <td><a class="text-num" href="{% url 'detalle_venta' v.id_venta %}" style="font-weight: 500;">VTA-{{ v.id_venta|stringformat:"04d" }}</a></td>
                 <td style="font-weight: 500;">{{ v.cliente_nombre|default:"—"|truncatechars:28 }}</td>
                 <td class="hide-mobile text-muted">{{ v.producto_nombre|default:"—"|truncatechars:24 }}</td>
-                <td class="hide-mobile text-num text-muted" style="font-size: 0.8125rem;">{{ v.fecha_venta|date:"d M Y" }}</td>
+                <td class="hide-mobile text-num text-muted" style="font-size: 0.8125rem;">{{ v.fecha_venta|date:"d M Y" }}{% if v.creado_en %}<div style="font-size: 0.75rem;">{{ v.creado_en|date:"g:i a" }}</div>{% endif %}</td>
                 <td class="hide-mobile text-num text-muted" style="font-size: 0.8125rem;">{{ v.fecha_entrega|date:"d M Y"|default:"—" }}</td>
                 <td>
                     {% if v.estatus == 'cotizacion' %}<span class="badge tag-cotizacion">Cotización</span>

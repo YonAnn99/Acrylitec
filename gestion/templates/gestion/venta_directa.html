@@ -162,6 +162,14 @@
                         <input type="number" id="id_monto_abonado" step="0.01" min="0" class="form-control">
                     </div>
                     <div>
+                        <label class="form-label" for="id_forma_pago">Forma de pago</label>
+                        <select id="id_forma_pago" class="form-select">
+                            <option value="efectivo">Efectivo</option>
+                            <option value="tarjeta">Tarjeta</option>
+                            <option value="transferencia">Transferencia</option>
+                        </select>
+                    </div>
+                    <div>
                         <label class="form-label" for="id_fecha_entrega">Fecha de entrega</label>
                         <input type="date" id="id_fecha_entrega" class="form-control">
                     </div>
@@ -728,6 +736,7 @@
         const payload = {
             cliente_id: document.getElementById('id_cliente').value,
             monto_abonado: document.getElementById('id_monto_abonado').value,
+            forma_pago: document.getElementById('id_forma_pago').value,
             estatus: document.getElementById('id_estatus').value,
             fecha_entrega: document.getElementById('id_fecha_entrega').value,
             descuento_porcentaje: parseFloat(document.getElementById('id_descuento').value) || 0,

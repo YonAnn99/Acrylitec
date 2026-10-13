@@ -481,7 +481,9 @@ def nuevo_pedido(request):
                     fecha_entrega=data.get('fecha_entrega') or None,
                     fecha_venta=datetime.date.today(),
                     descuento_porcentaje=Decimal(str(data.get('descuento_porcentaje') or 0)),
-                    incluye_iva=bool(data.get('incluye_iva', False))
+                    incluye_iva=bool(data.get('incluye_iva', False)),
+                    atendio=request.user,
+                    forma_pago=_forma_pago_valida(data.get('forma_pago')),
                 )
 
                 alertas_stock = []
@@ -598,6 +600,52 @@ def _producto_nombre(venta):
         return f'{detalles[0].id_producto.nombre} +{len(detalles)-1} más'
     return '—'
 
+def _forma_pago_valida(valor):
+    """Devuelve la forma de pago si es una opción válida; si no, cadena vacía."""
+    validas = {clave for clave, _ in Ventas.FORMA_PAGO_CHOICES}
+    return valor if valor in validas else ''
+
+
+def _desglose_venta(venta):
+    """Renglones y resumen (subtotal, descuento, IVA) para el ticket detallado."""
+    def _linea(producto, material, cantidad, largo, ancho, espesor, minutos, importe):
+        cantidad = cantidad or 1
+        largo = Decimal(largo or 0)
+        ancho = Decimal(ancho or 0)
+        importe = Decimal(importe or 0)
+        return {
+            'nombre': producto.nombre if producto else '—',
+            'detalle': producto.detalle if producto else '',
+            'material': material.descripcion if material else '',
+            'medidas': f'{largo.normalize():f} × {ancho.normalize():f} cm' if largo > 0 and ancho > 0 else '',
+            'area_m2': format((largo * ancho / Decimal('10000')).quantize(Decimal('0.0001')).normalize(), 'f') if largo > 0 and ancho > 0 else '',
+            'espesor': format(Decimal(espesor).normalize(), 'f') if espesor else '',
+            'minutos': minutos or 0,
+            'cantidad': cantidad,
+            'precio_unitario': (importe / cantidad).quantize(Decimal('0.01')),
+            'importe': importe,
+        }
+
+    if venta.id_cotizacion_id:
+        c = venta.id_cotizacion
+        lineas = [_linea(c.id_producto, c.id_material, 1, c.largo_pza, c.ancho_pza,
+                         c.espesor_mm, c.minutos_lazer, c.monto_total)]
+        subtotal = c.monto_total or Decimal('0')
+        return lineas, {'subtotal': subtotal, 'descuento': Decimal('0'), 'iva': Decimal('0'),
+                        'descuento_pct': '0', 'total': subtotal}
+
+    lineas = [
+        _linea(d.id_producto, d.id_material, d.cantidad, d.largo_pza, d.ancho_pza,
+               d.espesor_mm, d.minutos_lazer, d.subtotal)
+        for d in venta.detalles.all()
+    ]
+    subtotal = sum(d.subtotal for d in venta.detalles.all()) or Decimal('0')
+    descuento = subtotal * (venta.descuento_porcentaje / Decimal('100'))
+    neto = subtotal - descuento
+    iva = neto * Decimal('0.16') if venta.incluye_iva else Decimal('0')
+    return lineas, {'subtotal': subtotal, 'descuento': descuento, 'iva': iva,
+                    'descuento_pct': format(venta.descuento_porcentaje.normalize(), 'f'), 'total': neto + iva}
+
 @login_required
 def lista_ventas(request):
     limite = datetime.date.today() - datetime.timedelta(days=15)
@@ -672,10 +720,14 @@ def detalle_venta(request, pk):
         for i, (icono, label) in enumerate(zip(iconos, labels))
     ]
 
+    lineas, resumen = _desglose_venta(venta)
+
     return render(request, 'gestion/venta_detalle.html', {
         'venta':        venta,
         'cliente_tel':  cliente_tel,
         'progreso':     progreso,
+        'lineas':       lineas,
+        'resumen':      resumen,
         'whatsapp_url': '#',  # se reemplaza en JS con el mensaje dinámico
     })
 
@@ -707,6 +759,8 @@ def actualizar_abono_venta(request, pk):
                 messages.error(request, f'No se puede registrar un abono (${nuevo_abono}) mayor al total del pedido (${total_pedido}).')
             else:
                 venta.monto_abonado = nuevo_abono
+                if 'forma_pago' in request.POST:
+                    venta.forma_pago = _forma_pago_valida(request.POST.get('forma_pago'))
                 venta.save()
                 messages.success(request, 'Monto abonado actualizado correctamente.')
                 
