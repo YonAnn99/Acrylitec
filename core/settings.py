@@ -38,7 +38,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# Apagado en Railway (que define RAILWAY_ENVIRONMENT_NAME) y encendido en local.
+# Se puede forzar con la variable DJANGO_DEBUG=true / false.
+_debug_env = os.environ.get('DJANGO_DEBUG')
+if _debug_env is not None:
+    DEBUG = _debug_env.strip().lower() in ('1', 'true', 'yes')
+else:
+    DEBUG = 'RAILWAY_ENVIRONMENT_NAME' not in os.environ
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'acrylitec.up.railway.app']
 CSRF_TRUSTED_ORIGINS = ['https://acrylitec.up.railway.app']
@@ -156,5 +162,8 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+# Railway no ejecuta collectstatic al arrancar: WhiteNoise sirve los archivos
+# directamente desde las carpetas static de la app, también con DEBUG=False.
+WHITENOISE_USE_FINDERS = True
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
