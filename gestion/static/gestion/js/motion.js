@@ -18,13 +18,13 @@
 
         var blocks = '.page-header, .section-header, .dashboard-kpis > *, .kpi-grid > *, .stat-strip, ' +
             '.dashboard-toolbar, .card, .table-responsive, .action-card, .product-card, .empty-state, ' +
-            '.page > .alert, .section > .alert, .ticket, [data-reveal]';
+            '.page > .alert, .section > .alert, .ticket, .morph-tabs, [data-reveal]';
         var i = 0;
         page.querySelectorAll(blocks).forEach(function (el) {
             if (el.closest('.modal')) return;
             var parent = el.parentElement;
             // Solo el bloque exterior: los anidados entran con su contenedor
-            if (parent && parent.closest('.card, .table-responsive, .product-card, .ticket, .action-card')) return;
+            if (parent && parent.closest('.card, .table-responsive, .product-card, .ticket, .action-card, .morph-tabs')) return;
             el.classList.add('rv');
             el.style.setProperty('--i', Math.min(i++, 14));
         });

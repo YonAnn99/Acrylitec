@@ -1,4 +1,5 @@
 {% extends 'gestion/base.html' %}
+{% load static %}
 
 {% block title %}Ventas — Acrylitec{% endblock %}
 
@@ -42,20 +43,40 @@
 </section>
 
 {% if ventas %}
-<div class="dashboard-toolbar" style="justify-content: space-between;" data-reveal>
-    <div class="dashboard-toolbar" role="tablist" aria-label="Filtrar por estatus" id="filtrosEstatus">
-        <button type="button" class="chip active" data-filtro="todas">Todas</button>
-        <button type="button" class="chip" data-filtro="cotizacion">Cotización</button>
-        <button type="button" class="chip" data-filtro="pendiente">Pendiente</button>
-        <button type="button" class="chip" data-filtro="en_produccion">En producción</button>
-        <button type="button" class="chip" data-filtro="pagada">Pagada</button>
-        <button type="button" class="chip" data-filtro="entregada">Entregada</button>
+<section class="morph-tabs" data-morph-tabs aria-label="Ventas por estatus">
+    <div class="morph-rail" role="tablist" aria-label="Filtrar por estatus">
+        <button type="button" class="morph-tab is-active" role="tab" data-tab="todas" data-titulo="Todas" id="tab-todas" aria-selected="true" aria-controls="panelVentas">
+            <span class="morph-label">Todas</span><span class="morph-label-short" aria-hidden="true">Todas</span><span class="morph-count" data-conteo="todas">0</span>
+        </button>
+        <button type="button" class="morph-tab" role="tab" data-tab="cotizacion" data-titulo="Cotización" id="tab-cotizacion" aria-selected="false" aria-controls="panelVentas">
+            <span class="morph-label">Cotización</span><span class="morph-label-short" aria-hidden="true">Cotiz.</span><span class="morph-count" data-conteo="cotizacion">0</span>
+        </button>
+        <button type="button" class="morph-tab" role="tab" data-tab="pendiente" data-titulo="Pendiente" id="tab-pendiente" aria-selected="false" aria-controls="panelVentas">
+            <span class="morph-label">Pendiente</span><span class="morph-label-short" aria-hidden="true">Pend.</span><span class="morph-count" data-conteo="pendiente">0</span>
+        </button>
+        <button type="button" class="morph-tab" role="tab" data-tab="en_produccion" data-titulo="En producción" id="tab-en_produccion" aria-selected="false" aria-controls="panelVentas">
+            <span class="morph-label">En producción</span><span class="morph-label-short" aria-hidden="true">Prod.</span><span class="morph-count" data-conteo="en_produccion">0</span>
+        </button>
+        <button type="button" class="morph-tab" role="tab" data-tab="pagada" data-titulo="Pagada" id="tab-pagada" aria-selected="false" aria-controls="panelVentas">
+            <span class="morph-label">Pagada</span><span class="morph-label-short" aria-hidden="true">Pagada</span><span class="morph-count" data-conteo="pagada">0</span>
+        </button>
+        <button type="button" class="morph-tab" role="tab" data-tab="entregada" data-titulo="Entregada" id="tab-entregada" aria-selected="false" aria-controls="panelVentas">
+            <span class="morph-label">Entregada</span><span class="morph-label-short" aria-hidden="true">Entreg.</span><span class="morph-count" data-conteo="entregada">0</span>
+        </button>
     </div>
-    <label class="search-field" style="flex: 0 1 300px; min-width: 220px;">
-        <i class="bi bi-search"></i>
-        <input type="search" class="form-control" id="buscarVenta" placeholder="Folio o cliente" aria-label="Buscar venta">
-    </label>
-</div>
+
+    <div class="morph-panel" role="tabpanel" id="panelVentas" aria-labelledby="tab-todas">
+        <div data-morph-content>
+            <div class="morph-panel-head">
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <span class="eyebrow" id="panelConteo">{{ ventas|length }} ventas</span>
+                    <h2 class="morph-panel-title" id="panelTitulo">Todas</h2>
+                </div>
+                <label class="search-field" style="flex: 0 1 300px; min-width: 220px;">
+                    <i class="bi bi-search"></i>
+                    <input type="search" class="form-control" id="buscarVenta" placeholder="Folio o cliente" aria-label="Buscar venta">
+                </label>
+            </div>
 
 <div class="table-responsive">
     <table class="table" id="tablaVentas">
@@ -111,6 +132,9 @@
         <span>Mostrando <span class="text-num" id="conteoVentas">{{ ventas|length }}</span> de <span class="text-num">{{ ventas|length }}</span></span>
     </div>
 </div>
+        </div>
+    </div>
+</section>
 {% else %}
 <div class="card">
     <div class="empty-state">
@@ -122,44 +146,52 @@
 </div>
 {% endif %}
 
+<script src="{% static 'gestion/js/morph-tabs.js' %}"></script>
 <script>
 (function () {
     const tabla = document.getElementById('tablaVentas');
     if (!tabla) return;
     const filas = Array.from(tabla.querySelectorAll('tbody tr[data-estatus]'));
-    const chips = document.querySelectorAll('#filtrosEstatus .chip');
     const buscar = document.getElementById('buscarVenta');
+    const panel = document.getElementById('panelVentas');
     let filtro = 'todas';
 
-    // Conteo por estatus en cada chip
-    chips.forEach(chip => {
-        const f = chip.dataset.filtro;
-        const n = f === 'todas' ? filas.length : filas.filter(r => r.dataset.estatus === f).length;
-        const span = document.createElement('span');
-        span.className = 'n';
-        span.textContent = n;
-        chip.appendChild(span);
+    // Conteo por estatus en cada pestaña
+    document.querySelectorAll('[data-conteo]').forEach(el => {
+        const f = el.dataset.conteo;
+        el.textContent = f === 'todas' ? filas.length : filas.filter(r => r.dataset.estatus === f).length;
     });
 
-    function aplicar() {
+    function aplicar(escalonar) {
         const q = (buscar.value || '').trim().toLowerCase();
         let visibles = 0;
         filas.forEach(r => {
             const ok = (filtro === 'todas' || r.dataset.estatus === filtro) && (!q || r.dataset.busqueda.includes(q));
             r.classList.toggle('d-none', !ok);
+            if (ok && escalonar) {
+                r.classList.remove('rv-row');
+                r.style.setProperty('--i', Math.min(visibles, 24));
+                void r.offsetWidth;
+                r.classList.add('rv-row');
+            }
             if (ok) visibles++;
         });
         document.getElementById('conteoVentas').textContent = visibles;
         document.getElementById('sinResultados').classList.toggle('d-none', visibles > 0);
     }
 
-    chips.forEach(chip => chip.addEventListener('click', () => {
-        chips.forEach(c => c.classList.remove('active'));
-        chip.classList.add('active');
-        filtro = chip.dataset.filtro;
-        aplicar();
-    }));
-    buscar.addEventListener('input', aplicar);
+    MorphTabs(document.querySelector('[data-morph-tabs]'), {
+        onChange: function (id) {
+            filtro = id;
+            const tab = document.getElementById('tab-' + id);
+            const total = id === 'todas' ? filas.length : filas.filter(r => r.dataset.estatus === id).length;
+            document.getElementById('panelTitulo').textContent = tab.dataset.titulo;
+            document.getElementById('panelConteo').textContent = total === 1 ? '1 venta' : total + ' ventas';
+            panel.setAttribute('aria-labelledby', tab.id);
+            aplicar(true);
+        }
+    });
+    buscar.addEventListener('input', () => aplicar(false));
 })();
 </script>
 {% endblock %}

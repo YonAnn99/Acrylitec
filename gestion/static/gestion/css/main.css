@@ -2296,6 +2296,335 @@ input[type="number"].form-control,
   to { opacity: 0; transform: translateY(6px); }
 }
 
+/* ── FILTROS (botón + panel estilo Symvora) ─────────────────────── */
+.filter-btn {
+  min-height: 44px;
+  border-radius: 12px;
+  padding: 0 14px;
+}
+
+.filter-btn i {
+  font-size: 1.0625rem;
+}
+
+.filter-count {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--clr-accent);
+  color: var(--clr-on-accent);
+  font: 600 0.6875rem var(--font-mono);
+  display: inline-grid;
+  place-items: center;
+  animation: pop-in 220ms var(--ease-out);
+}
+
+.filter-dialog {
+  max-width: 460px;
+}
+
+.filter-body {
+  padding: 4px 22px 8px;
+}
+
+.filter-section {
+  border-bottom: 1px solid var(--clr-border-subtle);
+}
+
+.filter-section:last-child {
+  border-bottom: 0;
+}
+
+.filter-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 0;
+  border: 0;
+  background: transparent;
+  color: var(--clr-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.filter-toggle > span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.filter-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--clr-text);
+}
+
+.filter-value {
+  font-size: 0.8125rem;
+  color: var(--clr-text-muted);
+}
+
+.filter-toggle .bi-chevron-down {
+  color: var(--clr-text-muted);
+  transition: transform 260ms var(--ease-out);
+}
+
+.filter-section.is-open .bi-chevron-down {
+  transform: rotate(180deg);
+}
+
+.filter-options {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 260ms var(--ease-out);
+}
+
+.filter-section.is-open .filter-options {
+  grid-template-rows: 1fr;
+}
+
+.filter-options-inner {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.filter-section.is-open .filter-options-inner {
+  padding-bottom: 14px;
+}
+
+.filter-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 38px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--clr-text-secondary);
+  font-size: 0.875rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.filter-option:hover {
+  background: var(--clr-hover);
+  color: var(--clr-text);
+}
+
+.filter-option[aria-checked="true"] {
+  background: var(--clr-surface-alt);
+  color: var(--clr-text);
+  font-weight: 500;
+}
+
+.filter-option[aria-checked="true"]::after {
+  content: '\F26E';
+  font-family: 'bootstrap-icons';
+  font-size: 1rem;
+}
+
+.filter-section--chips {
+  padding: 16px 0 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filter-footer {
+  justify-content: space-between;
+}
+
+.filter-footer .btn-link {
+  padding: 0 6px;
+  min-height: 40px;
+}
+
+/* ── MORPHING TABS (port de beui.dev/components/blocks/morphing-tabs) ─ */
+.morph-tabs {
+  position: relative;
+  isolation: isolate;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 32px;
+  background: var(--clr-surface-alt);
+  transition: background-color 320ms var(--ease-out);
+}
+
+.morph-surface {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 108px;
+  z-index: 0;
+  pointer-events: none;
+  color: var(--clr-surface);
+}
+
+.morph-rail {
+  position: relative;
+  z-index: 3;
+  height: 80px;
+}
+
+.morph-tab {
+  position: absolute;
+  left: 0;
+  top: 24px;
+  height: 56px;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px 8px;
+  border: 0;
+  border-radius: 24px 24px 0 0;
+  background: transparent;
+  color: var(--clr-text-muted);
+  font: 500 0.9375rem var(--font-sans);
+  letter-spacing: -0.015em;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+  transition: color 200ms ease;
+}
+
+.morph-tabs.is-ready .morph-tab {
+  transition: color 200ms ease, transform 420ms var(--ease-out);
+}
+
+/* Fondo de hover en las pestañas inactivas */
+.morph-tab::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 8px 0;
+  border-radius: 20px;
+  background: var(--clr-hover);
+  opacity: 0;
+  transition: opacity 200ms ease;
+  z-index: -1;
+}
+
+.morph-tab:not(.is-active):hover {
+  color: var(--clr-text);
+}
+
+.morph-tab:not(.is-active):hover::before {
+  opacity: 1;
+}
+
+.morph-tab.is-active {
+  color: var(--clr-text);
+  padding-bottom: 0;
+}
+
+/* Foco visible */
+.morph-tab::after {
+  content: '';
+  position: absolute;
+  inset: 4px 4px 12px;
+  border-radius: 16px;
+  border: 2px solid var(--clr-text-muted);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.morph-tab.is-active::after {
+  inset: 4px 4px 0;
+  border-bottom: 0;
+  border-radius: 20px 20px 0 0;
+}
+
+.morph-tab:focus-visible::after {
+  opacity: 1;
+}
+
+.morph-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.morph-label-short {
+  display: none;
+}
+
+.morph-tabs.is-compact .morph-label {
+  display: none;
+}
+
+.morph-tabs.is-compact .morph-label-short {
+  display: inline;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.morph-tabs.is-compact .morph-tab {
+  padding-left: 10px;
+  padding-right: 8px;
+  gap: 5px;
+  font-size: 0.8125rem;
+}
+
+.morph-count {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.7;
+  flex: none;
+}
+
+.morph-panel {
+  position: relative;
+  z-index: 2;
+  margin: 0 16px 16px;
+  min-height: 256px;
+  border-radius: 28px;
+  background: var(--clr-surface);
+  overflow: hidden;
+  transition: background-color 320ms var(--ease-out);
+}
+
+.morph-panel-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 26px 24px 18px;
+}
+
+.morph-panel-title {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 2.25rem;
+  line-height: 1;
+}
+
+.morph-panel .table-responsive {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
 /* ── THEME TOGGLE (port de beui.dev/components/motion/theme-toggle) ─ */
 .theme-toggle {
   position: relative;

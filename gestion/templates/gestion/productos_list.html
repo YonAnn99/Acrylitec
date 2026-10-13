@@ -1,4 +1,5 @@
 {% extends 'gestion/base.html' %}
+{% load l10n %}
 
 {% block title %}Productos — Acrylitec{% endblock %}
 
@@ -16,6 +17,11 @@
             <a href="{% url 'lista_productos' %}" class="btn btn-icon" aria-label="Limpiar búsqueda" style="min-height: 44px;"><i class="bi bi-x-lg"></i></a>
             {% endif %}
         </form>
+        {% if productos %}
+        <button type="button" class="btn filter-btn" id="btnFiltros" data-bs-toggle="modal" data-bs-target="#modalFiltros" aria-haspopup="dialog">
+            <i class="bi bi-sliders2"></i> Filtros <span class="filter-count" id="filtrosActivos" hidden>0</span>
+        </button>
+        {% endif %}
         <a href="{% url 'crear_producto' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Nuevo producto</a>
     </div>
 </header>
@@ -23,7 +29,12 @@
 {% if productos %}
 <section class="product-grid" aria-label="Productos">
     {% for prod in productos %}
-    <article class="product-card">
+    <article class="product-card"
+        data-id="{{ prod.id_producto|unlocalize }}"
+        data-nombre="{{ prod.nombre|default:''|lower }}"
+        data-precio="{% if prod.precio_fijo %}{{ prod.precio_fijo|unlocalize }}{% endif %}"
+        data-stock="{{ prod.stock_actual|unlocalize }}"
+        data-estado="{% if not prod.precio_fijo %}calc{% elif prod.stock_actual == 0 %}sin{% elif prod.stock_actual <= prod.stock_minimo and prod.stock_minimo > 0 %}bajo{% else %}con{% endif %}">
         <div class="product-media">
             {% if prod.foto %}
             <img src="/media/{{ prod.foto }}" alt="{{ prod.nombre }}" loading="lazy">
@@ -64,6 +75,75 @@
     </article>
     {% endfor %}
 </section>
+
+<div class="card" id="filtrosVacio" hidden>
+    <div class="empty-state">
+        <i class="bi bi-funnel"></i>
+        <span class="empty-title">Ningún producto coincide con los filtros</span>
+        <p>Prueba con otra combinación o quita los filtros.</p>
+        <button type="button" class="btn" style="margin-top: 10px;" data-filtros-limpiar>Limpiar filtros</button>
+    </div>
+</div>
+
+<!-- ── Modal de filtros ─────────────────────────────────────────── -->
+<div class="modal fade" id="modalFiltros" tabindex="-1" aria-labelledby="modalFiltrosLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered filter-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalFiltrosLabel">Filtros</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body filter-body">
+                <section class="filter-section" data-seccion="orden">
+                    <button type="button" class="filter-toggle" aria-expanded="false" aria-controls="opcOrden">
+                        <span><span class="filter-title">Ordenar</span><span class="filter-value" data-valor></span></span>
+                        <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                    </button>
+                    <div class="filter-options" id="opcOrden">
+                        <div class="filter-options-inner" role="radiogroup" aria-label="Ordenar">
+                            <button type="button" class="filter-option" role="radio" data-valor="recientes">Últimos creados</button>
+                            <button type="button" class="filter-option" role="radio" data-valor="antiguos">Creados primero</button>
+                            <button type="button" class="filter-option" role="radio" data-valor="stock-asc">Menor stock</button>
+                            <button type="button" class="filter-option" role="radio" data-valor="stock-desc">Mayor stock</button>
+                            <button type="button" class="filter-option" role="radio" data-valor="precio-asc">Menor precio</button>
+                            <button type="button" class="filter-option" role="radio" data-valor="precio-desc">Mayor precio</button>
+                            <button type="button" class="filter-option" role="radio" data-valor="nombre-asc">Nombre A–Z</button>
+                            <button type="button" class="filter-option" role="radio" data-valor="nombre-desc">Nombre Z–A</button>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="filter-section" data-seccion="tipo">
+                    <button type="button" class="filter-toggle" aria-expanded="false" aria-controls="opcTipo">
+                        <span><span class="filter-title">Tipo de precio</span><span class="filter-value" data-valor></span></span>
+                        <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                    </button>
+                    <div class="filter-options" id="opcTipo">
+                        <div class="filter-options-inner" role="radiogroup" aria-label="Tipo de precio">
+                            <button type="button" class="filter-option" role="radio" data-valor="todos">Todos los productos</button>
+                            <button type="button" class="filter-option" role="radio" data-valor="fijo">Precio fijo</button>
+                            <button type="button" class="filter-option" role="radio" data-valor="calculado">Precio calculado</button>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="filter-section filter-section--chips">
+                    <span class="filter-title" id="tituloStock">Stock</span>
+                    <div class="filter-chips" role="group" aria-labelledby="tituloStock">
+                        <button type="button" class="chip" data-stock="con" aria-pressed="false">Con stock <span class="n" data-cuenta="con">0</span></button>
+                        <button type="button" class="chip" data-stock="bajo" aria-pressed="false">Stock bajo <span class="n" data-cuenta="bajo">0</span></button>
+                        <button type="button" class="chip" data-stock="sin" aria-pressed="false">Sin stock <span class="n" data-cuenta="sin">0</span></button>
+                        <button type="button" class="chip" data-stock="calc" aria-pressed="false">Sin inventario <span class="n" data-cuenta="calc">0</span></button>
+                    </div>
+                </section>
+            </div>
+            <div class="modal-footer filter-footer">
+                <button type="button" class="btn btn-link" data-filtros-limpiar>Limpiar</button>
+                <button type="button" class="btn btn-primary" id="btnAplicarFiltros">Aplicar</button>
+            </div>
+        </div>
+    </div>
+</div>
 {% else %}
 <div class="card">
     <div class="empty-state">
@@ -74,4 +154,185 @@
     </div>
 </div>
 {% endif %}
+
+<script>
+(function () {
+    const grid = document.querySelector('.product-grid');
+    const modal = document.getElementById('modalFiltros');
+    if (!grid || !modal) return;
+
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const tarjetas = Array.from(grid.querySelectorAll('.product-card'));
+    const DEF = { orden: 'recientes', tipo: 'todos', stock: [] };
+    const ETIQUETAS = {
+        orden: { recientes: 'Últimos creados', antiguos: 'Creados primero', 'stock-asc': 'Menor stock', 'stock-desc': 'Mayor stock',
+                 'precio-asc': 'Menor precio', 'precio-desc': 'Mayor precio', 'nombre-asc': 'Nombre A–Z', 'nombre-desc': 'Nombre Z–A' },
+        tipo: { todos: 'Todos los productos', fijo: 'Precio fijo', calculado: 'Precio calculado' }
+    };
+
+    // Conteo por estado de stock
+    modal.querySelectorAll('[data-cuenta]').forEach(el => {
+        el.textContent = tarjetas.filter(t => t.dataset.estado === el.dataset.cuenta).length;
+    });
+
+    // Estado inicial desde la URL
+    const params = new URLSearchParams(location.search);
+    let aplicado = {
+        orden: ETIQUETAS.orden[params.get('orden')] ? params.get('orden') : DEF.orden,
+        tipo: ETIQUETAS.tipo[params.get('tipo')] ? params.get('tipo') : DEF.tipo,
+        stock: (params.get('stock') || '').split(',').filter(s => ['con', 'bajo', 'sin', 'calc'].includes(s))
+    };
+    let borrador = clonar(aplicado);
+
+    function clonar(e) { return { orden: e.orden, tipo: e.tipo, stock: e.stock.slice() }; }
+
+    // ── Panel ──────────────────────────────────────────────────────
+    function pintarPanel() {
+        modal.querySelectorAll('.filter-section[data-seccion]').forEach(sec => {
+            const clave = sec.dataset.seccion;
+            sec.querySelector('[data-valor]').textContent = ETIQUETAS[clave][borrador[clave]];
+            sec.querySelectorAll('.filter-option').forEach(op => {
+                op.setAttribute('aria-checked', op.dataset.valor === borrador[clave] ? 'true' : 'false');
+            });
+        });
+        modal.querySelectorAll('.chip[data-stock]').forEach(ch => {
+            const on = borrador.stock.includes(ch.dataset.stock);
+            ch.classList.toggle('active', on);
+            ch.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+    }
+
+    function abrirSeccion(sec, abrir) {
+        modal.querySelectorAll('.filter-section[data-seccion]').forEach(s => {
+            const on = s === sec ? abrir : false;
+            s.classList.toggle('is-open', on);
+            s.querySelector('.filter-toggle').setAttribute('aria-expanded', on ? 'true' : 'false');
+        });
+    }
+
+    modal.querySelectorAll('.filter-toggle').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const sec = btn.closest('.filter-section');
+            abrirSeccion(sec, !sec.classList.contains('is-open'));
+        });
+    });
+    modal.querySelectorAll('.filter-option').forEach(op => {
+        op.addEventListener('click', () => {
+            borrador[op.closest('.filter-section').dataset.seccion] = op.dataset.valor;
+            pintarPanel();
+        });
+    });
+    modal.querySelectorAll('.chip[data-stock]').forEach(ch => {
+        ch.addEventListener('click', () => {
+            const v = ch.dataset.stock;
+            borrador.stock = borrador.stock.includes(v) ? borrador.stock.filter(s => s !== v) : borrador.stock.concat(v);
+            pintarPanel();
+        });
+    });
+
+    // Al abrir: el borrador parte de lo aplicado; todo cerrado
+    modal.addEventListener('show.bs.modal', () => {
+        borrador = clonar(aplicado);
+        abrirSeccion(null, false);
+        pintarPanel();
+    });
+
+    document.getElementById('btnAplicarFiltros').addEventListener('click', () => {
+        aplicado = clonar(borrador);
+        aplicar(true);
+        bootstrap.Modal.getOrCreateInstance(modal).hide();
+    });
+    document.querySelectorAll('[data-filtros-limpiar]').forEach(btn => btn.addEventListener('click', () => {
+        aplicado = clonar(DEF);
+        borrador = clonar(DEF);
+        pintarPanel();
+        aplicar(true);
+        bootstrap.Modal.getOrCreateInstance(modal).hide();
+    }));
+
+    // ── Filtrar y ordenar con animación FLIP ───────────────────────
+    function comparar(a, b) {
+        const d = a.dataset, e = b.dataset;
+        const num = v => (v === '' ? null : parseFloat(v));
+        // Los de precio calculado no llevan inventario: al ordenar por stock van al final
+        if (aplicado.orden.startsWith('stock') && (d.estado === 'calc') !== (e.estado === 'calc')) {
+            return d.estado === 'calc' ? 1 : -1;
+        }
+        switch (aplicado.orden) {
+            case 'antiguos': return num(d.id) - num(e.id);
+            case 'stock-asc': return num(d.stock) - num(e.stock) || num(e.id) - num(d.id);
+            case 'stock-desc': return num(e.stock) - num(d.stock) || num(e.id) - num(d.id);
+            case 'precio-asc':
+            case 'precio-desc': {
+                const pa = num(d.precio), pb = num(e.precio);
+                if (pa === null && pb === null) return num(e.id) - num(d.id);
+                if (pa === null) return 1;
+                if (pb === null) return -1;
+                return aplicado.orden === 'precio-asc' ? pa - pb : pb - pa;
+            }
+            case 'nombre-asc': return d.nombre.localeCompare(e.nombre, 'es');
+            case 'nombre-desc': return e.nombre.localeCompare(d.nombre, 'es');
+            default: return num(e.id) - num(d.id);
+        }
+    }
+
+    function pasa(t) {
+        const est = t.dataset.estado;
+        if (aplicado.tipo === 'fijo' && est === 'calc') return false;
+        if (aplicado.tipo === 'calculado' && est !== 'calc') return false;
+        if (aplicado.stock.length && !aplicado.stock.includes(est)) return false;
+        return true;
+    }
+
+    function aplicar(animar) {
+        const antes = new Map();
+        if (animar && !reduce) tarjetas.forEach(t => { if (!t.hidden) antes.set(t, t.getBoundingClientRect()); });
+
+        const orden = tarjetas.slice().sort(comparar);
+        let visibles = 0;
+        orden.forEach(t => {
+            grid.appendChild(t);
+            t.hidden = !pasa(t);
+            if (!t.hidden) visibles++;
+        });
+        document.getElementById('filtrosVacio').hidden = visibles > 0;
+        grid.hidden = visibles === 0;
+
+        // Contador del botón
+        const activos = (aplicado.orden !== DEF.orden) + (aplicado.tipo !== DEF.tipo) + (aplicado.stock.length > 0);
+        const badge = document.getElementById('filtrosActivos');
+        badge.textContent = activos;
+        badge.hidden = activos === 0;
+
+        // URL (conserva la búsqueda q)
+        const p = new URLSearchParams(location.search);
+        ['orden', 'tipo', 'stock'].forEach(k => p.delete(k));
+        if (aplicado.orden !== DEF.orden) p.set('orden', aplicado.orden);
+        if (aplicado.tipo !== DEF.tipo) p.set('tipo', aplicado.tipo);
+        if (aplicado.stock.length) p.set('stock', aplicado.stock.join(','));
+        const qs = p.toString();
+        history.replaceState(null, '', location.pathname + (qs ? '?' + qs : ''));
+
+        if (!animar || reduce) return;
+        let k = 0;
+        orden.forEach(t => {
+            if (t.hidden) return;
+            const a = antes.get(t);
+            const b = t.getBoundingClientRect();
+            if (a) {
+                const dx = a.left - b.left, dy = a.top - b.top;
+                if (dx || dy) {
+                    t.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'none' }],
+                              { duration: 420, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' });
+                }
+            } else {
+                t.animate([{ opacity: 0, transform: 'translateY(12px) scale(.985)' }, { opacity: 1, transform: 'none' }],
+                          { duration: 480, delay: Math.min(k++, 10) * 40, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'backwards' });
+            }
+        });
+    }
+
+    aplicar(false);
+})();
+</script>
 {% endblock %}
