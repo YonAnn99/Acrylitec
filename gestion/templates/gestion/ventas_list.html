@@ -46,21 +46,27 @@
 <section class="morph-tabs" data-morph-tabs aria-label="Ventas por estatus">
     <div class="morph-rail" role="tablist" aria-label="Filtrar por estatus">
         <button type="button" class="morph-tab is-active" role="tab" data-tab="todas" data-titulo="Todas" id="tab-todas" aria-selected="true" aria-controls="panelVentas">
+            <i class="bi bi-grid morph-icon" aria-hidden="true"></i>
             <span class="morph-label">Todas</span><span class="morph-label-short" aria-hidden="true">Todas</span><span class="morph-count" data-conteo="todas">0</span>
         </button>
         <button type="button" class="morph-tab" role="tab" data-tab="cotizacion" data-titulo="Cotización" id="tab-cotizacion" aria-selected="false" aria-controls="panelVentas">
+            <i class="bi bi-file-earmark-text morph-icon" aria-hidden="true"></i>
             <span class="morph-label">Cotización</span><span class="morph-label-short" aria-hidden="true">Cotiz.</span><span class="morph-count" data-conteo="cotizacion">0</span>
         </button>
         <button type="button" class="morph-tab" role="tab" data-tab="pendiente" data-titulo="Pendiente" id="tab-pendiente" aria-selected="false" aria-controls="panelVentas">
+            <i class="bi bi-hourglass-split morph-icon" aria-hidden="true"></i>
             <span class="morph-label">Pendiente</span><span class="morph-label-short" aria-hidden="true">Pend.</span><span class="morph-count" data-conteo="pendiente">0</span>
         </button>
         <button type="button" class="morph-tab" role="tab" data-tab="en_produccion" data-titulo="En producción" id="tab-en_produccion" aria-selected="false" aria-controls="panelVentas">
+            <i class="bi bi-gear morph-icon" aria-hidden="true"></i>
             <span class="morph-label">En producción</span><span class="morph-label-short" aria-hidden="true">Prod.</span><span class="morph-count" data-conteo="en_produccion">0</span>
         </button>
         <button type="button" class="morph-tab" role="tab" data-tab="pagada" data-titulo="Pagada" id="tab-pagada" aria-selected="false" aria-controls="panelVentas">
+            <i class="bi bi-cash-coin morph-icon" aria-hidden="true"></i>
             <span class="morph-label">Pagada</span><span class="morph-label-short" aria-hidden="true">Pagada</span><span class="morph-count" data-conteo="pagada">0</span>
         </button>
         <button type="button" class="morph-tab" role="tab" data-tab="entregada" data-titulo="Entregada" id="tab-entregada" aria-selected="false" aria-controls="panelVentas">
+            <i class="bi bi-check2-circle morph-icon" aria-hidden="true"></i>
             <span class="morph-label">Entregada</span><span class="morph-label-short" aria-hidden="true">Entreg.</span><span class="morph-count" data-conteo="entregada">0</span>
         </button>
     </div>
@@ -94,7 +100,7 @@
         </thead>
         <tbody>
             {% for v in ventas %}
-            <tr class="row-link" data-estatus="{{ v.estatus }}" data-busqueda="vta-{{ v.id_venta|stringformat:'04d' }} {{ v.cliente_nombre|default:''|lower }}" onclick="location.href='{% url 'detalle_venta' v.id_venta %}'" style="cursor: pointer;">
+            <tr class="row-link" data-estatus="{{ v.estatus }}" data-busqueda="vta-{{ v.id_venta|stringformat:'04d' }} {{ v.cliente_nombre|default:''|lower }}" data-href="{% url 'detalle_venta' v.id_venta %}" style="cursor: pointer;">
                 <td><a class="text-num" href="{% url 'detalle_venta' v.id_venta %}" style="font-weight: 500;">VTA-{{ v.id_venta|stringformat:"04d" }}</a></td>
                 <td style="font-weight: 500;">{{ v.cliente_nombre|default:"—"|truncatechars:28 }}</td>
                 <td class="hide-mobile text-muted">{{ v.producto_nombre|default:"—"|truncatechars:24 }}</td>
@@ -112,7 +118,7 @@
                     {% widthratio v.monto_abonado v.total_calculado 100 as pct %}
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <div class="meter" style="flex: 1;">
-                            <div class="meter-fill {% if v.monto_abonado >= v.total_calculado and v.total_calculado %}is-full{% endif %}" style="width: {% if pct|add:0 > 100 %}100{% else %}{{ pct }}{% endif %}%; --i: {{ forloop.counter0 }};"></div>
+                            <div class="meter-fill {% if v.monto_abonado >= v.total_calculado and v.total_calculado %}is-full{% endif %}" data-pct="{{ pct }}" data-i="{{ forloop.counter0 }}"></div>
                         </div>
                         <span class="text-num text-muted" style="font-size: 0.75rem; width: 38px; text-align: right;">{% if pct|add:0 > 100 %}100{% else %}{{ pct }}{% endif %}%</span>
                     </div>
@@ -156,10 +162,19 @@
     const panel = document.getElementById('panelVentas');
     let filtro = 'todas';
 
+    // Toda la fila abre el detalle de la venta (el enlace del folio funciona por sí solo)
+    filas.forEach(r => r.addEventListener('click', e => {
+        if (!e.target.closest('a')) location.href = r.dataset.href;
+    }));
+
     // Conteo por estatus en cada pestaña
     document.querySelectorAll('[data-conteo]').forEach(el => {
         const f = el.dataset.conteo;
         el.textContent = f === 'todas' ? filas.length : filas.filter(r => r.dataset.estatus === f).length;
+        // En móvil la pestaña muestra solo ícono + conteo: el nombre va en aria-label/title
+        const tab = el.closest('.morph-tab');
+        tab.setAttribute('aria-label', tab.dataset.titulo + ', ' + el.textContent);
+        tab.title = tab.dataset.titulo;
     });
 
     function aplicar(escalonar) {

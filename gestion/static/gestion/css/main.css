@@ -1099,6 +1099,10 @@ a.page-eyebrow:hover {
   background: var(--clr-success);
 }
 
+.meter-fill.is-accent {
+  background: var(--clr-accent);
+}
+
 .meter-fill.is-low {
   background: var(--clr-warning);
 }
@@ -1668,7 +1672,8 @@ input[type="number"].form-control,
 .timeline-fill {
   background: var(--clr-accent);
   transform-origin: left;
-  animation: meter-fill 1100ms var(--ease-out) 300ms backwards;
+  animation: meter-fill 1100ms var(--ease-out) backwards;
+  animation-delay: calc(360ms + var(--i, 0) * 160ms);
 }
 
 .timeline-step {
@@ -2582,6 +2587,33 @@ input[type="number"].form-control,
   padding-right: 8px;
   gap: 5px;
   font-size: 0.8125rem;
+}
+
+.morph-icon {
+  display: none;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+/* Muy angosto (móvil): ícono + conteo, centrados */
+.morph-tabs.is-tiny .morph-label,
+.morph-tabs.is-tiny .morph-label-short {
+  display: none;
+}
+
+.morph-tabs.is-tiny .morph-icon {
+  display: inline-flex;
+}
+
+.morph-tabs.is-tiny .morph-tab {
+  justify-content: center;
+  padding-left: 4px;
+  padding-right: 4px;
+  gap: 4px;
+}
+
+.morph-tabs.is-tiny .morph-count {
+  font-size: 0.6875rem;
 }
 
 .morph-count {

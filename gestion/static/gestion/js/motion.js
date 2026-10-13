@@ -194,7 +194,21 @@
         el.sheet.addEventListener('touchcancel', endDrag);
     }
 
+    // ── Valores desde data-* (evita etiquetas de plantilla dentro de style="") ──
+    function applyDataStyles() {
+        document.querySelectorAll('[data-pct]').forEach(function (el) {
+            el.style.width = Math.min(100, Math.max(0, parseFloat(el.dataset.pct) || 0)) + '%';
+        });
+        document.querySelectorAll('[data-left]').forEach(function (el) {
+            el.style.left = Math.min(100, Math.max(0, parseFloat(el.dataset.left) || 0)) + '%';
+        });
+        document.querySelectorAll('[data-i]').forEach(function (el) {
+            el.style.setProperty('--i', el.dataset.i);
+        });
+    }
+
     function init() {
+        applyDataStyles();
         revealPage();
         runCounters();
         wireSheet();

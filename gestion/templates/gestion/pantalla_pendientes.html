@@ -150,7 +150,7 @@
         {% if pedidos_activos %}
         <main class="monitor-list">
             {% for v in pedidos_activos %}
-            <article class="monitor-row" style="--i: {{ forloop.counter0 }};">
+            <article class="monitor-row" data-i="{{ forloop.counter0 }}">
                 <div>
                     <div class="monitor-folio">VTA-{{ v.id_venta|stringformat:"04d" }}</div>
                     <div class="monitor-client">{{ v.cliente_nombre|default:"—" }}</div>
@@ -179,6 +179,9 @@
     </div>
 
     <script>
+        // Orden de la animación de entrada de cada pedido
+        document.querySelectorAll('[data-i]').forEach(el => el.style.setProperty('--i', el.dataset.i));
+
         function actualizarReloj() {
             const ahora = new Date();
             let horas = ahora.getHours();

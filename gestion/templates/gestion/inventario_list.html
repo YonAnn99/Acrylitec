@@ -65,8 +65,8 @@
                     {% widthratio prod.stock_minimo prod.stock_minimo|add:prod.stock_minimo|add:prod.stock_minimo|add:1 100 as pct_min %}
                     <div style="display: flex; flex-direction: column; gap: 6px;">
                         <div class="meter">
-                            <div class="meter-fill {% if prod.stock_actual == 0 %}is-out{% elif prod.stock_actual <= prod.stock_minimo and prod.stock_minimo > 0 %}is-low{% endif %}" style="width: {% if pct_stock|add:0 > 100 %}100{% else %}{{ pct_stock }}{% endif %}%; --i: {{ forloop.counter0 }};"></div>
-                            {% if prod.stock_minimo > 0 %}<span class="meter-mark" style="left: {{ pct_min }}%;" title="Stock mínimo"></span>{% endif %}
+                            <div class="meter-fill {% if prod.stock_actual == 0 %}is-out{% elif prod.stock_actual <= prod.stock_minimo and prod.stock_minimo > 0 %}is-low{% endif %}" data-pct="{{ pct_stock }}" data-i="{{ forloop.counter0 }}"></div>
+                            {% if prod.stock_minimo > 0 %}<span class="meter-mark" data-left="{{ pct_min }}" title="Stock mínimo"></span>{% endif %}
                         </div>
                         <span class="text-muted" style="font-size: 0.75rem;"><span class="text-num" style="color: var(--clr-text); font-weight: 500;">{{ prod.stock_actual }}</span> en stock · mín. <span class="text-num">{{ prod.stock_minimo }}</span></span>
                     </div>

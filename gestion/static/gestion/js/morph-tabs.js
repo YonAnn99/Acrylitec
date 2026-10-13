@@ -23,6 +23,7 @@
     var MAX_TAB_WIDTH = 176;
     var MIN_TAB_WIDTH = 96;
     var COMPACT_BELOW = 110;
+    var TINY_BELOW = 72;
     var TAB_HEIGHT = 56;
     var RAIL_HEIGHT = 80;
     var SURFACE_INSET = 16;
@@ -157,6 +158,7 @@
             }
             slots = tabs.map(function (_, i) { return SURFACE_INSET + i * (tabWidth + slotGap); });
             root.classList.toggle('is-compact', tabWidth < COMPACT_BELOW);
+            root.classList.toggle('is-tiny', tabWidth < TINY_BELOW);
             svg.setAttribute('viewBox', '0 0 ' + width + ' ' + (RAIL_HEIGHT + PANEL_RADIUS));
             tabs.forEach(function (tab, i) {
                 tab.style.width = tabWidth + 'px';

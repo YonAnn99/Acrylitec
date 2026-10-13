@@ -36,10 +36,10 @@
                 {% if not forloop.last %}
                 <span aria-hidden="true" style="position: absolute; top: 13px; left: calc(50% + 18px); right: calc(-50% + 18px); height: 2px; background: var(--clr-border);"></span>
                 {% if etapa.linea %}
-                <span aria-hidden="true" class="timeline-fill" style="left: calc(50% + 18px); right: calc(-50% + 18px); animation-delay: calc(360ms + {{ forloop.counter0 }} * 160ms);"></span>
+                <span aria-hidden="true" class="timeline-fill" style="left: calc(50% + 18px); right: calc(-50% + 18px);" data-i="{{ forloop.counter0 }}"></span>
                 {% endif %}
                 {% endif %}
-                <span class="timeline-dot" style="--i: {{ forloop.counter0 }};">{% if etapa.activo and etapa.linea or etapa.activo and venta.estatus == 'entregada' %}<i class="bi bi-check-lg"></i>{% endif %}</span>
+                <span class="timeline-dot" data-i="{{ forloop.counter0 }}">{% if etapa.activo and etapa.linea or etapa.activo and venta.estatus == 'entregada' %}<i class="bi bi-check-lg"></i>{% endif %}</span>
                 <span>{{ label }}</span>
             </div>
             {% endfor %}
@@ -178,7 +178,7 @@
                     <span class="text-num text-muted" style="font-size: 0.8125rem;">de ${{ venta.total_calculado|floatformat:2 }}</span>
                 </div>
                 <div class="meter" style="height: 8px;">
-                    <div class="meter-fill {% if venta.saldo_restante <= 0 %}is-full{% endif %}" style="width: {% if pct_pago|add:0 > 100 %}100{% else %}{{ pct_pago }}{% endif %}%; background: {% if venta.saldo_restante <= 0 %}var(--clr-success){% else %}var(--clr-accent){% endif %};"></div>
+                    <div class="meter-fill {% if venta.saldo_restante <= 0 %}is-full{% else %}is-accent{% endif %}" data-pct="{{ pct_pago }}"></div>
                 </div>
                 <span class="text-muted" style="font-size: 0.8125rem;">
                     {% if venta.saldo_restante > 0 %}Saldo pendiente <span class="text-num" style="color: var(--clr-text); font-weight: 500;">${{ venta.saldo_restante|floatformat:2 }}</span>{% else %}Pagado por completo{% endif %}

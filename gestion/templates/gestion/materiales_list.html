@@ -58,8 +58,8 @@
                     {% widthratio material.stock_minimo material.stock_minimo|add:material.stock_minimo|add:material.stock_minimo|add:1 100 as pct_min %}
                     <div style="display: flex; flex-direction: column; gap: 6px;">
                         <div class="meter">
-                            <div class="meter-fill {% if material.stock_actual == 0 %}is-out{% elif material.stock_actual <= material.stock_minimo %}is-low{% endif %}" style="width: {% if pct_stock|add:0 > 100 %}100{% else %}{{ pct_stock }}{% endif %}%; --i: {{ forloop.counter0 }};"></div>
-                            {% if material.stock_minimo > 0 %}<span class="meter-mark" style="left: {{ pct_min }}%;" title="Stock mínimo"></span>{% endif %}
+                            <div class="meter-fill {% if material.stock_actual == 0 %}is-out{% elif material.stock_actual <= material.stock_minimo %}is-low{% endif %}" data-pct="{{ pct_stock }}" data-i="{{ forloop.counter0 }}"></div>
+                            {% if material.stock_minimo > 0 %}<span class="meter-mark" data-left="{{ pct_min }}" title="Stock mínimo"></span>{% endif %}
                         </div>
                         <span class="text-muted" style="font-size: 0.75rem;"><span class="text-num" style="color: var(--clr-text); font-weight: 500;">{{ material.stock_actual }}</span> láminas · mín. <span class="text-num">{{ material.stock_minimo }}</span></span>
                     </div>
